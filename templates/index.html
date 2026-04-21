@@ -1,0 +1,2350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydro — Dimensionnement Pompage Solaire</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+    <style>
+        :root {
+            --forest:      #1a472a;
+            --forest-dark: #12351f;
+            --forest-mid:  #2d6a4f;
+            --forest-lite: #52b788;
+            --gold:        #d4a017;
+            --gold-lite:   #f0c040;
+            --white:       #ffffff;
+            --gray-50:     #f8fafc;
+            --gray-100:    #f1f5f9;
+            --gray-200:    #e2e8f0;
+            --gray-300:    #cbd5e1;
+            --gray-400:    #94a3b8;
+            --gray-500:    #64748b;
+            --gray-600:    #475569;
+            --gray-700:    #334155;
+            --gray-900:    #0f172a;
+            --green-50:    #f0fdf4;
+            --green-100:   #dcfce7;
+            --green-200:   #bbf7d0;
+            --green-700:   #15803d;
+            --red-100:     #fee2e2;
+            --red-600:     #dc2626;
+            --orange-100:  #ffedd5;
+            --orange-600:  #ea580c;
+            --blue-50:     #eff6ff;
+            --blue-100:    #dbeafe;
+            --blue-600:    #2563eb;
+            --radius-sm:   6px;
+            --radius-md:   10px;
+            --radius-lg:   14px;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .page { display: none; animation: fadeUp 0.3s ease; }
+        .page.active { display: block; }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(12px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        @keyframes shimmer {
+            0%   { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ============================================================
+           PAGE ACCUEIL — NAVBAR
+        ============================================================ */
+        .accueil-navbar {
+            background: var(--forest);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .accueil-navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .accueil-navbar .logo-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-lite));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 2px 12px rgba(212,160,23,0.4);
+        }
+
+        .accueil-navbar .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+            font-family: 'Times New Roman', serif;
+        }
+
+        /* ============================================================
+           HERO
+        ============================================================ */
+        .hero {
+            position: relative;
+            min-height: calc(100vh - 64px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: url('/static/images/solar_pump1.jpg');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            padding: 60px 80px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                160deg,
+                rgba(26,71,42,0.88) 0%,
+                rgba(26,71,42,0.70) 50%,
+                rgba(0,0,0,0.30) 100%
+            );
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .hero-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+            color: white;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+
+        .hero-title .shimmer {
+            background: linear-gradient(90deg, var(--gold), var(--gold-lite), var(--gold));
+            background-size: 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        .hero-desc {
+            font-family: 'Poppins', sans-serif;
+            font-size: 17px;
+            color: rgba(255,255,255,0.85);
+            max-width: 480px;
+            margin: 0 auto 40px;
+            line-height: 1.8;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.3);
+        }
+
+        /* ============================================================
+           2 CARTES AUTH
+        ============================================================ */
+        .auth-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            max-width: 580px;
+            margin: 0 auto;
+        }
+
+        .auth-card {
+            border-radius: 18px;
+            padding: 24px 22px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+
+        .auth-card-green {
+            background: rgba(255,255,255,0.08);
+            border: 1.5px solid rgba(255,255,255,0.18);
+        }
+
+        .auth-card-green:hover {
+            background: rgba(255,255,255,0.14);
+            border-color: rgba(82,183,136,0.6);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .auth-card-gold {
+            background: rgba(212,160,23,0.1);
+            border: 1.5px solid rgba(212,160,23,0.35);
+        }
+
+        .auth-card-gold:hover {
+            background: rgba(212,160,23,0.18);
+            border-color: rgba(212,160,23,0.65);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(212,160,23,0.2);
+        }
+
+        .auth-card-icon { font-size: 32px; margin-bottom: 12px; }
+
+        .auth-card-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 7px;
+        }
+
+        .auth-card-desc {
+            font-size: 12px;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .auth-btn-green {
+            display: block;
+            width: 100%;
+            background: var(--forest);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .auth-btn-green:hover { background: var(--forest-mid); }
+
+        .auth-btn-gold {
+            display: block;
+            width: 100%;
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .auth-btn-gold:hover { background: var(--gold-lite); }
+
+        .hero-note {
+            position: relative;
+            z-index: 2;
+            margin-top: 22px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* ============================================================
+           NAVBAR APP (pages intérieures)
+        ============================================================ */
+        .app-navbar {
+            background: var(--forest);
+            height: 56px;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .app-navbar .logo-icon {
+            width: 32px; height: 32px;
+            background: rgba(255,255,255,0.15);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+
+        /* ============================================================
+           STEPPER BAR
+        ============================================================ */
+        .stepper-bar {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 0 32px;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            height: 52px;
+            max-width: 900px;
+        }
+
+        .step-item { display: flex; align-items: center; gap: 8px; }
+
+        .step-circle {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            border: 1.5px solid var(--gray-300);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 600;
+            color: var(--gray-400);
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .step-item.active .step-circle { background: var(--forest); border-color: var(--forest); color: white; }
+        .step-item.done .step-circle   { background: var(--forest-lite); border-color: var(--forest-lite); color: white; font-size: 11px; }
+
+        .step-info { display: flex; flex-direction: column; }
+
+        .step-lbl {
+            font-size: 12px; font-weight: 500;
+            color: var(--gray-400);
+            transition: color 0.3s;
+        }
+
+        .step-item.active .step-lbl { color: var(--forest); }
+        .step-item.done .step-lbl   { color: var(--forest-lite); }
+        .step-sub-lbl { font-size: 10px; color: var(--gray-400); }
+
+        .step-line {
+            flex: 1;
+            height: 1.5px;
+            background: var(--gray-200);
+            margin: 0 12px;
+            min-width: 24px;
+            transition: background 0.3s;
+        }
+
+        .step-line.done { background: var(--forest-lite); }
+
+        /* ============================================================
+           APP LAYOUT
+        ============================================================ */
+        .app-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            min-height: calc(100vh - 108px);
+        }
+
+        /* ============================================================
+           SIDEBAR
+        ============================================================ */
+        .sidebar {
+            background: var(--white);
+            border-right: 1px solid var(--gray-200);
+            padding: 20px 16px;
+        }
+
+        .sidebar-section-title {
+            font-size: 10px; font-weight: 600;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+            padding-left: 8px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: var(--radius-md);
+            margin-bottom: 3px;
+            font-size: 13px;
+            color: var(--gray-500);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .sidebar-item:hover { background: var(--gray-50); }
+        .sidebar-item.active { background: var(--green-50); color: var(--forest); font-weight: 500; }
+
+        .sidebar-badge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 10px;
+            background: var(--gray-100);
+            color: var(--gray-500);
+        }
+
+        .sidebar-badge.done   { background: var(--green-100); color: var(--green-700); }
+        .sidebar-badge.active { background: var(--green-100); color: var(--green-700); }
+
+        .sidebar-divider { height: 1px; background: var(--gray-200); margin: 14px 0; }
+
+        .sidebar-info-title {
+            font-size: 10px; font-weight: 600;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+            padding-left: 8px;
+        }
+
+        .sidebar-info-row {
+            padding: 4px 8px;
+            font-size: 12px;
+            color: var(--gray-500);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sidebar-info-row span { color: var(--forest); font-weight: 500; }
+
+        /* ============================================================
+           MAIN CONTENT
+        ============================================================ */
+        .main-content { padding: 28px 32px; max-width: 760px; }
+
+        .page-title {
+            font-size: 22px; font-weight: 700;
+            color: var(--gray-900);
+            letter-spacing: -0.3px;
+            margin-bottom: 4px;
+        }
+
+        .page-sub { font-size: 13px; color: var(--gray-500); margin-bottom: 24px; }
+
+        /* ============================================================
+           CARDS
+        ============================================================ */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 11px; font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 18px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 3px; height: 13px;
+            background: var(--forest);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+           FORMS
+        ============================================================ */
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 12px; font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 6px;
+        }
+
+        .form-hint { font-size: 11px; color: var(--gray-400); margin-top: 4px; line-height: 1.4; }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 9px 12px;
+            color: var(--gray-900);
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            transition: border-color 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--forest);
+            box-shadow: 0 0 0 3px rgba(26,71,42,0.08);
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+
+        .form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+        /* MAP */
+        .search-wrapper { display: flex; gap: 8px; margin-bottom: 12px; }
+        .search-wrapper input { flex: 1; }
+
+        .btn-search {
+            background: var(--forest);
+            color: white;
+            border: none;
+            padding: 9px 18px;
+            border-radius: var(--radius-md);
+            font-size: 13px; font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Poppins', sans-serif;
+            transition: background 0.2s;
+        }
+
+        .btn-search:hover { background: var(--forest-dark); }
+
+        #carte {
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+        }
+
+        .coords-row { display: flex; gap: 10px; margin: 10px 0; }
+
+        .coord-chip {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            padding: 7px 12px;
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        .coord-chip strong { color: var(--forest); font-weight: 600; }
+
+        .climate-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; margin-top: 14px; }
+
+        .climate-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 14px 10px;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+
+        .climate-card:hover { border-color: var(--forest-lite); }
+        .climate-icon { font-size: 20px; margin-bottom: 7px; }
+
+        .climate-value {
+            font-family: 'DM Mono', monospace;
+            font-size: 18px; font-weight: 700;
+            color: var(--forest);
+            line-height: 1;
+        }
+
+        .climate-label { font-size: 10px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+        /* MESSAGES */
+        .msg {
+            border-radius: var(--radius-md);
+            padding: 9px 12px;
+            font-size: 12px;
+            margin-top: 6px;
+            display: flex; align-items: center; gap: 7px;
+            line-height: 1.4;
+        }
+
+        .msg-success { background: var(--green-50);   color: var(--forest);      border: 1px solid var(--green-200); }
+        .msg-warning { background: var(--orange-100); color: var(--orange-600);  border: 1px solid #fed7aa; }
+        .msg-info    { background: var(--blue-50);    color: var(--blue-600);    border: 1px solid var(--blue-100); }
+        .msg-green   { background: var(--green-50);   color: var(--forest);      border: 1px solid var(--green-200); }
+
+        .hidden { display: none !important; }
+
+        /* MODE SELECTOR */
+        .mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+
+        .mode-card {
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--white);
+            position: relative;
+        }
+
+        .mode-card:hover { border-color: var(--forest-lite); }
+        .mode-card.selected { border-color: var(--forest); background: var(--green-50); }
+
+        .mode-check {
+            position: absolute; top: 14px; right: 14px;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border: 1.5px solid var(--gray-300);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px;
+            transition: all 0.2s;
+        }
+
+        .mode-card.selected .mode-check { background: var(--forest); border-color: var(--forest); color: white; }
+        .mode-icon { font-size: 24px; margin-bottom: 10px; }
+        .mode-title { font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 5px; }
+        .mode-desc { font-size: 12px; color: var(--gray-500); line-height: 1.5; }
+
+        /* NAV BUTTONS */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .btn-back {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            color: var(--gray-600);
+            padding: 9px 22px;
+            border-radius: 20px;
+            font-size: 13px; font-weight: 500;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover { border-color: var(--gray-400); color: var(--gray-900); }
+
+        .btn-next {
+            background: var(--forest);
+            border: none;
+            color: white;
+            padding: 10px 26px;
+            border-radius: 20px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: background 0.2s;
+        }
+
+        .btn-next:hover { background: var(--forest-dark); }
+
+        .btn-calculate {
+            background: var(--forest);
+            border: none;
+            color: white;
+            padding: 11px 32px;
+            border-radius: 20px;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: background 0.2s;
+        }
+
+        .btn-calculate:hover { background: var(--forest-dark); }
+
+        /* LOADING */
+        .loading-bar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 18px;
+            background: var(--green-50);
+            border: 1px solid var(--green-200);
+            border-radius: var(--radius-md);
+            color: var(--forest);
+            font-size: 13px; font-weight: 500;
+        }
+
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid var(--green-200);
+            border-top-color: var(--forest);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        /* RESULTS */
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+        .result-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+        }
+
+        .result-card-title {
+            font-size: 11px; font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 14px;
+            display: flex; align-items: center; gap: 7px;
+        }
+
+        .result-card-title::before {
+            content: '';
+            width: 3px; height: 12px;
+            background: var(--forest);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .result-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 13px;
+        }
+
+        .result-row:last-child { border-bottom: none; }
+        .result-label { color: var(--gray-500); font-size: 12px; }
+
+        .result-value {
+            font-weight: 700;
+            color: var(--gray-900);
+            font-family: 'DM Mono', monospace;
+        }
+
+        .result-value.highlight { color: var(--forest); font-size: 17px; }
+        .result-unit { font-size: 11px; color: var(--gray-400); margin-left: 3px; font-family: 'Poppins', sans-serif; font-weight: 400; }
+        .result-card-full { grid-column: 1 / -1; }
+
+        /* POMPES */
+        .pompe-card {
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 14px;
+            background: var(--white);
+            transition: border-color 0.2s;
+        }
+
+        .pompe-card:hover { border-color: var(--forest-lite); }
+        .pompe-card.best  { border-color: var(--forest-lite); background: var(--green-50); }
+
+        .pompe-rank {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .rank-1 { background: var(--forest); color: white; }
+        .rank-2 { background: var(--green-100); color: var(--forest); }
+        .rank-3 { background: var(--gray-100); color: var(--gray-600); }
+
+        .pompe-info { flex: 1; }
+        .pompe-name { font-weight: 600; font-size: 13px; color: var(--gray-900); margin-bottom: 4px; }
+        .pompe-specs { display: flex; gap: 14px; font-size: 12px; color: var(--gray-500); flex-wrap: wrap; }
+        .pompe-specs strong { color: var(--gray-700); }
+
+        .pompe-carac-box {
+            background: var(--green-50);
+            border: 1px solid var(--green-200);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .pompe-carac-title {
+            font-size: 11px; font-weight: 600;
+            color: var(--forest);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
+        }
+
+        .pompe-carac-desc { margin-top: 10px; font-size: 12px; color: var(--gray-500); font-style: italic; }
+
+        .option-radio {
+            display: flex; align-items: center; gap: 10px;
+            cursor: pointer;
+            padding: 10px 14px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .option-radio:hover { border-color: var(--forest-lite); background: var(--green-50); }
+        .option-radio input[type="radio"] { width: auto; margin: 0; }
+
+        .btn-pdf {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            color: var(--gray-700);
+            padding: 9px 22px;
+            border-radius: 20px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 7px;
+        }
+
+        .btn-pdf:hover { border-color: var(--forest); color: var(--forest); }
+
+        /* AUTH CARDS */
+        .auth-cards { display:grid; grid-template-columns:1fr 1fr; gap:18px; max-width:580px; margin:0 auto; }
+        .auth-card { border-radius:18px; padding:24px 22px; cursor:pointer; transition:all 0.3s ease; text-decoration:none; display:block; text-align:left; }
+        .auth-card-green { background:rgba(255,255,255,0.08); border:1.5px solid rgba(255,255,255,0.18); }
+        .auth-card-green:hover { background:rgba(255,255,255,0.14); border-color:rgba(82,183,136,0.6); transform:translateY(-5px); box-shadow:0 20px 50px rgba(0,0,0,0.3); }
+        .auth-card-gold { background:rgba(212,160,23,0.1); border:1.5px solid rgba(212,160,23,0.35); }
+        .auth-card-gold:hover { background:rgba(212,160,23,0.18); border-color:rgba(212,160,23,0.65); transform:translateY(-5px); box-shadow:0 20px 50px rgba(212,160,23,0.2); }
+        .auth-card-icon { font-size:32px; margin-bottom:12px; }
+        .auth-card-title { font-family:'Poppins',sans-serif; font-size:17px; font-weight:700; color:white; margin-bottom:7px; }
+        .auth-card-desc { font-size:12px; color:rgba(255,255,255,0.55); line-height:1.6; margin-bottom:16px; }
+        .auth-btn-green { display:block; width:100%; background:var(--forest); color:white; border:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:700; text-align:center; font-family:'Poppins',sans-serif; text-decoration:none; }
+        .auth-btn-gold  { display:block; width:100%; background:var(--gold); color:#000; border:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:700; text-align:center; font-family:'Poppins',sans-serif; text-decoration:none; }
+        .hero-note { position:relative; z-index:2; margin-top:22px; font-size:11px; color:rgba(255,255,255,0.3); }
+        /* HERO centré */
+        .hero { align-items:center !important; text-align:center !important; padding:60px 80px !important; }
+        .hero-title { font-family:'Poppins',sans-serif; }
+        .hero-desc { font-family:'Poppins',sans-serif; margin:0 auto 40px; }
+    </style>
+</head>
+<body>
+
+<!-- ================================================================
+     PAGE ACCUEIL
+================================================================ -->
+<div id="page-accueil" class="page active">
+
+    <nav class="accueil-navbar">
+        <div class="logo">
+            <div class="logo-icon">💧</div>
+            <span class="logo-text">Hydro</span>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                Dimensionnez votre<br>
+                système de<br>
+                <span class="shimmer">pompage</span>
+            </h1>
+            <p class="hero-desc">
+                Un outil simple et fiable pour dimensionner votre installation
+                de pompage, de la source d'eau jusqu'au champ irrigué.
+            </p>
+
+            <div class="auth-cards">
+                <a href="/connexion" class="auth-card auth-card-green">
+                    <div class="auth-card-icon">👤</div>
+                    <div class="auth-card-title">J'ai déjà un compte</div>
+                    <div class="auth-card-desc">Connectez-vous pour retrouver vos projets sauvegardés.</div>
+                    <span class="auth-btn-green">Se connecter →</span>
+                </a>
+                <a href="/inscription" class="auth-card auth-card-gold">
+                    <div class="auth-card-icon">🚀</div>
+                    <div class="auth-card-title">Nouveau sur Hydro ?</div>
+                    <div class="auth-card-desc">Créez un compte gratuit et commencez à dimensionner.</div>
+                    <span class="auth-btn-gold">Créer un compte →</span>
+                </a>
+            </div>
+        </div>
+
+        <p class="hero-note">🔒 Vos données sont accessibles uniquement par vous.</p>
+    </div>
+
+</div>
+
+<!-- ================================================================
+     PAGE LOCALISATION
+================================================================ -->
+<div id="page-localisation" class="page">
+    <nav class="app-navbar"><div class="logo"><div class="logo-icon">💧</div>Hydro</div></nav>
+    <div class="stepper-bar">
+        <div class="stepper">
+            <div class="step-item active"><div class="step-circle">1</div><div class="step-info"><div class="step-lbl">Localisation</div><div class="step-sub-lbl">Site & climat</div></div></div>
+            <div class="step-line"></div>
+            <div class="step-item"><div class="step-circle">2</div><div class="step-info"><div class="step-lbl">Besoins</div><div class="step-sub-lbl">Usage & eau</div></div></div>
+            <div class="step-line"></div>
+            <div class="step-item"><div class="step-circle">3</div><div class="step-info"><div class="step-lbl">Énergie</div><div class="step-sub-lbl">Source & hydraulique</div></div></div>
+            <div class="step-line"></div>
+            <div class="step-item"><div class="step-circle">4</div><div class="step-info"><div class="step-lbl">Résultats</div><div class="step-sub-lbl">Dimensionnement</div></div></div>
+        </div>
+    </div>
+    <div class="app-layout">
+        <div class="sidebar">
+            <div class="sidebar-section-title">Étapes</div>
+            <div class="sidebar-item active">Localisation <span class="sidebar-badge active">En cours</span></div>
+            <div class="sidebar-item">Besoins</div>
+            <div class="sidebar-item">Énergie</div>
+            <div class="sidebar-item">Résultats</div>
+        </div>
+        <div class="main-content">
+            <h2 class="page-title">Nouveau projet</h2>
+            <p class="page-sub">Donnez un nom à votre projet puis localisez votre site</p>
+
+            <div class="card">
+                <div class="card-title">Identification du projet</div>
+                <div class="form-row-3">
+                    <div class="form-group"><label class="form-label">Nom du projet</label><input type="text" id="nom_projet" placeholder="Ex: Irrigation village de Kpomassè"/></div>
+                    <div class="form-group"><label class="form-label">Réalisé par</label><input type="text" id="realise_par" placeholder="Ex: Bureau d'études Hydro"/></div>
+                    <div class="form-group"><label class="form-label">Date du projet</label><input type="text" id="date_projet" placeholder="Ex: 16/03/2026"/></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Recherche du site</div>
+                <div class="search-wrapper">
+                    <input type="text" id="recherche_ville" placeholder="Ex: Cotonou, Parakou, Porto-Novo..."/>
+                    <button class="btn-search" onclick="rechercherVille()">🔍 Rechercher</button>
+                </div>
+                <div id="carte" style="height:380px;"></div>
+                <div class="coords-row">
+                    <div class="coord-chip">📍 Latitude : <strong id="lat">—</strong></div>
+                    <div class="coord-chip">📍 Longitude : <strong id="lon">—</strong></div>
+                </div>
+            </div>
+
+            <div id="loading-climate" class="hidden">
+                <div class="loading-bar"><div class="spinner"></div>Récupération des données climatiques NASA POWER...</div>
+            </div>
+
+            <div id="climate-section" class="hidden">
+                <div class="card">
+                    <div class="card-title">Données climatiques NASA POWER</div>
+                    <div class="climate-grid">
+                        <div class="climate-card"><div class="climate-icon">🌡️</div><div class="climate-value"><span id="temperature_max">—</span>°</div><div class="climate-label">T. max (°C)</div></div>
+                        <div class="climate-card"><div class="climate-icon">🌡️</div><div class="climate-value"><span id="temperature_min">—</span>°</div><div class="climate-label">T. min (°C)</div></div>
+                        <div class="climate-card"><div class="climate-icon">☀️</div><div class="climate-value"><span id="irradiation">—</span></div><div class="climate-label">kWh/m²/jour</div></div>
+                        <div class="climate-card"><div class="climate-icon">🌿</div><div class="climate-value"><span id="ET0_max">—</span></div><div class="climate-label">ET0 max (mm/j)</div></div>
+                        <div class="climate-card"><div class="climate-icon">📅</div><div class="climate-value" style="font-size:15px;"><span id="mois_critique">—</span></div><div class="climate-label">Mois critique</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn-back" onclick="allerVers('accueil')">← Accueil</button>
+                <button class="btn-next" onclick="allerVers('besoins')">Suivant →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     PAGE BESOINS
+================================================================ -->
+<div id="page-besoins" class="page">
+    <nav class="app-navbar"><div class="logo"><div class="logo-icon">💧</div>Hydro</div></nav>
+    <div class="stepper-bar">
+        <div class="stepper">
+            <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl">Localisation</div><div class="step-sub-lbl">Site & climat</div></div></div>
+            <div class="step-line done"></div>
+            <div class="step-item active"><div class="step-circle">2</div><div class="step-info"><div class="step-lbl">Besoins</div><div class="step-sub-lbl">Usage & eau</div></div></div>
+            <div class="step-line"></div>
+            <div class="step-item"><div class="step-circle">3</div><div class="step-info"><div class="step-lbl">Énergie</div><div class="step-sub-lbl">Source & hydraulique</div></div></div>
+            <div class="step-line"></div>
+            <div class="step-item"><div class="step-circle">4</div><div class="step-info"><div class="step-lbl">Résultats</div><div class="step-sub-lbl">Dimensionnement</div></div></div>
+        </div>
+    </div>
+    <div class="app-layout">
+        <div class="sidebar">
+            <div class="sidebar-section-title">Étapes</div>
+            <div class="sidebar-item">Localisation <span class="sidebar-badge done">✓</span></div>
+            <div class="sidebar-item active">Besoins <span class="sidebar-badge active">En cours</span></div>
+            <div class="sidebar-item">Énergie</div>
+            <div class="sidebar-item">Résultats</div>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-info-title">Données site</div>
+            <div class="sidebar-info-row">ET0 max <span id="sb_ET0">—</span></div>
+            <div class="sidebar-info-row">Irradiation <span id="sb_irr">—</span></div>
+            <div class="sidebar-info-row">Mois critique <span id="sb_mois">—</span></div>
+        </div>
+        <div class="main-content">
+            <h2 class="page-title">Définissez vos besoins</h2>
+            <p class="page-sub">Choisissez le type de système et renseignez les paramètres</p>
+
+            <div class="mode-selector">
+                <div class="mode-card selected" id="mode-irrigation" onclick="selectionnerMode('irrigation')">
+                    <div class="mode-check">✓</div>
+                    <div class="mode-icon">🌱</div>
+                    <div class="mode-title">Irrigation agricole</div>
+                    <div class="mode-desc">Calcul automatique des besoins selon la culture, superficie et données NASA POWER.</div>
+                </div>
+                <div class="mode-card" id="mode-classique" onclick="selectionnerMode('classique')">
+                    <div class="mode-check"></div>
+                    <div class="mode-icon">🏠</div>
+                    <div class="mode-title">Système classique</div>
+                    <div class="mode-desc">Eau potable, élevage, bâtiment, industrie — saisie directe du volume journalier.</div>
+                </div>
+            </div>
+
+            <div id="form-irrigation">
+                <div class="card">
+                    <div class="card-title">Culture & Irrigation</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Culture</label>
+                            <select id="culture" onchange="afficherKcManuel()">
+                                <option value="tomate">Tomate — Kc = 1.15</option>
+                                <option value="maïs">Maïs — Kc = 1.20</option>
+                                <option value="riz">Riz — Kc = 1.20</option>
+                                <option value="oignon">Oignon — Kc = 1.05</option>
+                                <option value="piment">Piment — Kc = 1.05</option>
+                                <option value="haricot">Haricot — Kc = 0.95</option>
+                                <option value="manioc">Manioc — Kc = 0.90</option>
+                                <option value="chou">Chou — Kc = 1.05</option>
+                                <option value="laitue">Laitue — Kc = 1.00</option>
+                                <option value="arachide">Arachide — Kc = 1.15</option>
+                                <option value="igname">Igname — Kc = 1.10</option>
+                                <option value="gombo">Gombo — Kc = 1.10</option>
+                                <option value="sorgho">Sorgho — Kc = 1.00</option>
+                                <option value="coton">Coton — Kc = 1.15</option>
+                                <option value="patate_douce">Patate douce — Kc = 1.15</option>
+                                <option value="autre">Autre culture (Kc manuel)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Système d'irrigation</label>
+                            <select id="systeme_irrigation" onchange="verifierSysteme()">
+                                <option value="goutte_a_goutte">Goutte-à-goutte (η = 90%)</option>
+                                <option value="aspersion">Aspersion (η = 75%)</option>
+                                <option value="gravitaire">Gravitaire (η = 55%)</option>
+                            </select>
+                            <div id="message_irrigation"></div>
+                        </div>
+                    </div>
+                    <div id="kc_manuel_div" class="hidden">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Nom de la culture</label><input type="text" id="nom_culture" placeholder="Ex: Sésame..."/></div>
+                            <div class="form-group"><label class="form-label">Coefficient cultural Kc</label><input type="number" id="kc_manuel" placeholder="Ex: 1.10" step="0.01" min="0.1" max="2.0"/><div class="form-hint">Cherchez le Kc FAO pour votre culture</div></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Superficie</label><input type="number" id="superficie" placeholder="Ex: 2.5" step="0.1" min="0.01"/></div>
+                        <div class="form-group"><label class="form-label">Unité de superficie</label><select id="unite_superficie"><option value="ha">Hectares (ha)</option><option value="m2">Mètres carrés (m²)</option></select></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Type de sol</label><select id="type_sol"><option value="sableux">Sableux — arrosage 1 j/j</option><option value="limoneux">Limoneux — arrosage 1 j/2j</option><option value="argileux">Argileux — arrosage 1 j/3j</option></select></div>
+                        <div class="form-group"><label class="form-label">Sessions d'arrosage / jour</label><input type="number" id="sessions_arrosage" value="1" min="1" max="4"/><div class="form-hint">Nombre de fois que la pompe fonctionne par jour</div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Canalisation</div>
+                    <div class="form-row-3">
+                        <div class="form-group"><label class="form-label">Longueur canalisation (m)</label><input type="number" id="longueur_canalisation" placeholder="Ex: 200" step="1" min="1"/></div>
+                        <div class="form-group"><label class="form-label">Diamètre tuyau (mm)</label><select id="diametre_tuyau"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
+                        <div class="form-group"><label class="form-label">Source d'eau</label><select id="source_eau_irr"><option value="puits">Puits</option><option value="forage">Forage</option><option value="riviere">Rivière / Lac</option><option value="reservoir">Réservoir</option></select></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Paramètres hydrauliques</div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Profondeur d'aspiration (m)</label><input type="number" id="profondeur_aspiration" placeholder="Ex: 15" step="0.5" min="0"/><div class="form-hint">Distance verticale jusqu'à la surface de l'eau</div></div>
+                        <div class="form-group"><label class="form-label">Hauteur de refoulement (m)</label><input type="number" id="hauteur_refoulement" placeholder="Ex: 5" step="0.5" min="0"/><div class="form-hint">Hauteur jusqu'au point de distribution</div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Choix de la pompe</div>
+                    <div class="form-group">
+                        <label class="form-label">Avez-vous déjà une pompe en tête ?</label>
+                        <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                            <label class="option-radio"><input type="radio" name="choix_pompe_irr" value="base" onchange="afficherChoixPompe('irr','base')"/> Choisir dans la base de données</label>
+                            <label class="option-radio"><input type="radio" name="choix_pompe_irr" value="manuel" onchange="afficherChoixPompe('irr','manuel')"/> Saisir manuellement mes caractéristiques</label>
+                        </div>
+                    </div>
+                    <div id="pompe_bd_irr" class="hidden" style="margin-top:14px;">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Marque</label><select id="marque_pompe_irr" onchange="chargerModelesIrr()"><option value="">— Choisissez une marque —</option></select></div>
+                            <div class="form-group"><label class="form-label">Modèle</label><select id="modele_pompe_irr" onchange="chargerCaracteristiquesIrr()" disabled><option value="">— Choisissez d'abord une marque —</option></select></div>
+                        </div>
+                        <div id="caracteristiques_pompe_irr" class="hidden">
+                            <div class="pompe-carac-box">
+                                <div class="pompe-carac-title">Caractéristiques de la pompe</div>
+                                <div class="form-row">
+                                    <div>
+                                        <div class="result-row"><span class="result-label">Type</span><span class="result-value" id="carac_type_pompe_irr">—</span></div>
+                                        <div class="result-row"><span class="result-label">Installation</span><span class="result-value" id="carac_installation_irr">—</span></div>
+                                        <div class="result-row"><span class="result-label">Débit max</span><span class="result-value" id="carac_debit_irr">—</span></div>
+                                    </div>
+                                    <div>
+                                        <div class="result-row"><span class="result-label">HMT max</span><span class="result-value" id="carac_HMT_irr">—</span></div>
+                                        <div class="result-row"><span class="result-label">Puissance</span><span class="result-value" id="carac_puissance_irr">—</span></div>
+                                        <div class="result-row"><span class="result-label">Tension</span><span class="result-value" id="carac_tension_irr">—</span></div>
+                                    </div>
+                                </div>
+                                <div class="result-row"><span class="result-label">Rendement</span><span class="result-value" id="carac_rendement_irr">—</span></div>
+                                <div class="pompe-carac-desc" id="carac_description_irr"></div>
+                            </div>
+                            <div id="msg_compatibilite_pompe_irr" style="margin-top:10px;"></div>
+                        </div>
+                    </div>
+                    <div id="pompe_manuel_irr" class="hidden" style="margin-top:14px;">
+                        <div class="pompe-carac-box">
+                            <div class="pompe-carac-title">Saisie manuelle — Pompe</div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Marque</label><input type="text" id="man_pompe_marque_irr" placeholder="Ex: Grundfos"/></div>
+                                <div class="form-group"><label class="form-label">Modèle</label><input type="text" id="man_pompe_modele_irr" placeholder="Ex: SP 5A-10"/></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Débit max (m³/h)</label><input type="number" id="man_pompe_debit_irr" placeholder="Ex: 5.0" step="0.1"/></div>
+                                <div class="form-group"><label class="form-label">HMT max (m)</label><input type="number" id="man_pompe_hmt_irr" placeholder="Ex: 80" step="0.5"/></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="form-classique" class="hidden">
+                <div class="card">
+                    <div class="card-title">Type d'usage</div>
+                    <div class="form-group">
+                        <label class="form-label">Type d'usage</label>
+                        <select id="type_usage" onchange="mettreAJourLabelBeneficiaires()">
+                            <option value="eau_potable_rural">Eau potable rural</option>
+                            <option value="eau_potable_urbain">Eau potable urbain</option>
+                            <option value="elevage_bovin">Élevage bovin</option>
+                            <option value="elevage_ovin">Élevage ovin/caprin</option>
+                            <option value="elevage_volaille">Élevage volaille</option>
+                            <option value="batiment_ecole">Bâtiment — École</option>
+                            <option value="batiment_hopital">Bâtiment — Hôpital</option>
+                            <option value="batiment_admin">Bâtiment — Administratif</option>
+                            <option value="chateau_eau">Château d'eau / Réservoir</option>
+                            <option value="industrie">Usage industriel</option>
+                            <option value="autre_classique">Autre usage</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label" id="label_beneficiaires">Nombre de bénéficiaires</label><input type="number" id="nb_beneficiaires" placeholder="Ex: 500" min="1" onchange="calculerBesoinAuto()"/><div class="form-hint" id="hint_beneficiaires">Nombre de personnes desservies</div></div>
+                        <div class="form-group"><label class="form-label">Besoin journalier total (m³/jour)</label><input type="number" id="besoin_journalier" placeholder="Calculé automatiquement" step="0.1" min="0.1"/><div class="form-hint">Calculé automatiquement ou saisissez manuellement</div></div>
+                    </div>
+                    <div id="msg_besoin_auto"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Type de système hydraulique</div>
+                    <div class="form-group"><label class="form-label">Source d'eau</label><select id="type_systeme_hydraulique" onchange="afficherParamsSysteme()"><option value="forage_reservoir">Forage → Réservoir</option><option value="lac_reservoir">Lac / Rivière → Réservoir</option></select></div>
+                </div>
+
+                <div id="params-forage">
+                    <div class="card">
+                        <div class="card-title">Caractéristiques du forage</div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Niveau statique (m)</label><input type="number" id="niveau_statique" placeholder="Ex: 20" step="0.5" min="0" onchange="calculerRabattement()"/><div class="form-hint">Profondeur de l'eau au repos</div></div>
+                            <div class="form-group"><label class="form-label">Niveau dynamique (m)</label><input type="number" id="niveau_dynamique" placeholder="Ex: 25" step="0.5" min="0" onchange="calculerRabattement()"/><div class="form-hint">Profondeur de l'eau pendant le pompage</div></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Rabattement (m)</label><input type="number" id="rabattement" placeholder="Calculé automatiquement" readonly style="background:var(--green-50);color:var(--forest);font-weight:600;"/><div class="form-hint">= Niveau dynamique − Niveau statique</div></div>
+                            <div class="form-group"><label class="form-label">Diamètre du forage</label><select id="diametre_forage"><option value="100">100 mm (4 pouces)</option><option value="125">125 mm (5 pouces)</option><option value="150">150 mm (6 pouces)</option><option value="200">200 mm (8 pouces)</option></select></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Caractéristiques du réservoir</div>
+                        <div class="form-row-3">
+                            <div class="form-group"><label class="form-label">Volume (m³)</label><input type="number" id="volume_reservoir_f" placeholder="Ex: 10" step="0.5" onchange="verifierReservoir('f')"/></div>
+                            <div class="form-group"><label class="form-label">Diamètre (m)</label><input type="number" id="diametre_reservoir_f" placeholder="Ex: 2" step="0.1" onchange="verifierReservoir('f')"/></div>
+                            <div class="form-group"><label class="form-label">Hauteur (m)</label><input type="number" id="hauteur_reservoir_f" placeholder="Ex: 3" step="0.1" onchange="verifierReservoir('f')"/></div>
+                        </div>
+                        <div id="msg_reservoir_f"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Paramètres hydrauliques</div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Longueur du tuyau (m)</label><input type="number" id="longueur_tuyau_f" placeholder="Ex: 150" step="1"/></div>
+                            <div class="form-group"><label class="form-label">Diamètre du tuyau (mm)</label><select id="diametre_tuyau_f"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
+                        </div>
+                        <div class="form-group"><label class="form-label">Type d'alimentation du réservoir</label><select id="type_alimentation_f"><option value="bas">Par le bas</option><option value="haut">Par le haut</option></select></div>
+                    </div>
+                </div>
+
+                <div id="params-lac" class="hidden">
+                    <div class="card">
+                        <div class="card-title">Caractéristiques du lac / rivière</div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Niveau de l'eau / sol (m)</label><input type="number" id="niveau_eau_lac" placeholder="Ex: -2" step="0.5" onchange="calculerNiveauPompeLac()"/><div class="form-hint">Négatif si l'eau est en dessous du sol</div></div>
+                            <div class="form-group"><label class="form-label">Hauteur d'aspiration (m)</label><input type="number" id="hauteur_aspiration_lac" placeholder="Max 5m" step="0.5" min="0" max="5" onchange="calculerNiveauPompeLac()"/><div id="msg_aspiration_lac"></div></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Caractéristiques du réservoir</div>
+                        <div class="form-row-3">
+                            <div class="form-group"><label class="form-label">Volume (m³)</label><input type="number" id="volume_reservoir_l" placeholder="Ex: 10" step="0.5" onchange="verifierReservoir('l')"/></div>
+                            <div class="form-group"><label class="form-label">Diamètre (m)</label><input type="number" id="diametre_reservoir_l" placeholder="Ex: 2" step="0.1" onchange="verifierReservoir('l')"/></div>
+                            <div class="form-group"><label class="form-label">Hauteur (m)</label><input type="number" id="hauteur_reservoir_l" placeholder="Ex: 3" step="0.1" onchange="verifierReservoir('l')"/></div>
+                        </div>
+                        <div id="msg_reservoir_l"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Paramètres hydrauliques</div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Longueur du tuyau (m)</label><input type="number" id="longueur_tuyau_l" placeholder="Ex: 100" step="1"/></div>
+                            <div class="form-group"><label class="form-label">Diamètre du tuyau (mm)</label><select id="diametre_tuyau_l"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
+                        </div>
+                        <div class="form-group"><label class="form-label">Type d'alimentation du réservoir</label><select id="type_alimentation_l"><option value="bas">Par le bas</option><option value="haut">Par le haut</option></select></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Disponibilité de l'eau</div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Heures de disponibilité souhaitées</label><input type="number" id="heures_disponibilite" placeholder="Ex: 8" min="1" max="24" value="8"/></div>
+                        <div class="form-group"><label class="form-label">Coefficient de majoration</label><input type="number" id="coeff_fuite" value="1.10" step="0.05" min="1.0" max="1.5"/><div class="form-hint">Pertes et fuites (1.10 = 10% de marge)</div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Choix de la pompe</div>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                        <label class="option-radio"><input type="radio" name="choix_pompe_cl" value="base" onchange="afficherChoixPompe('cl','base')"/> Choisir dans la base de données</label>
+                        <label class="option-radio"><input type="radio" name="choix_pompe_cl" value="manuel" onchange="afficherChoixPompe('cl','manuel')"/> Saisir manuellement mes caractéristiques</label>
+                    </div>
+                    <div id="pompe_bd_cl" class="hidden" style="margin-top:14px;">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Marque</label><select id="marque_pompe" onchange="chargerModeles()"><option value="">— Choisissez une marque —</option></select></div>
+                            <div class="form-group"><label class="form-label">Modèle</label><select id="modele_pompe" onchange="chargerCaracteristiques()" disabled><option value="">— Choisissez d'abord une marque —</option></select></div>
+                        </div>
+                        <div id="caracteristiques_pompe" class="hidden">
+                            <div class="pompe-carac-box">
+                                <div class="pompe-carac-title">Caractéristiques de la pompe</div>
+                                <div class="form-row">
+                                    <div>
+                                        <div class="result-row"><span class="result-label">Type</span><span class="result-value" id="carac_type_pompe">—</span></div>
+                                        <div class="result-row"><span class="result-label">Installation</span><span class="result-value" id="carac_installation">—</span></div>
+                                        <div class="result-row"><span class="result-label">Débit max</span><span class="result-value" id="carac_debit">—</span></div>
+                                    </div>
+                                    <div>
+                                        <div class="result-row"><span class="result-label">HMT max</span><span class="result-value" id="carac_HMT">—</span></div>
+                                        <div class="result-row"><span class="result-label">Puissance</span><span class="result-value" id="carac_puissance">—</span></div>
+                                        <div class="result-row"><span class="result-label">Tension</span><span class="result-value" id="carac_tension">—</span></div>
+                                    </div>
+                                </div>
+                                <div class="result-row"><span class="result-label">Rendement</span><span class="result-value" id="carac_rendement">—</span></div>
+                                <div class="pompe-carac-desc" id="carac_description"></div>
+                            </div>
+                            <div id="msg_compatibilite_pompe" style="margin-top:10px;"></div>
+                        </div>
+                    </div>
+                    <div id="pompe_manuel_cl" class="hidden" style="margin-top:14px;">
+                        <div class="pompe-carac-box">
+                            <div class="pompe-carac-title">Saisie manuelle — Pompe</div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Marque</label><input type="text" id="man_pompe_marque" placeholder="Ex: Grundfos"/></div>
+                                <div class="form-group"><label class="form-label">Modèle</label><input type="text" id="man_pompe_modele" placeholder="Ex: SP 5A-10"/></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn-back" onclick="allerVers('localisation')">← Retour</button>
+                <button class="btn-next" onclick="allerVers('energie')">Suivant →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE ÉNERGIE & RÉSULTATS : identiques à l'original, copiées ici -->
+<div id="page-energie" class="page">
+    <nav class="app-navbar"><div class="logo"><div class="logo-icon">💧</div>Hydro</div></nav>
+    <div class="stepper-bar">
+        <div class="stepper">
+            <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl">Localisation</div><div class="step-sub-lbl">Site & climat</div></div></div>
+            <div class="step-line done"></div>
+            <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl">Besoins</div><div class="step-sub-lbl">Usage & eau</div></div></div>
+            <div class="step-line done"></div>
+            <div class="step-item active"><div class="step-circle">3</div><div class="step-info"><div class="step-lbl">Énergie</div><div class="step-sub-lbl">Source & hydraulique</div></div></div>
+            <div class="step-line"></div>
+            <div class="step-item"><div class="step-circle">4</div><div class="step-info"><div class="step-lbl">Résultats</div><div class="step-sub-lbl">Dimensionnement</div></div></div>
+        </div>
+    </div>
+    <div class="app-layout">
+        <div class="sidebar">
+            <div class="sidebar-section-title">Étapes</div>
+            <div class="sidebar-item">Localisation <span class="sidebar-badge done">✓</span></div>
+            <div class="sidebar-item">Besoins <span class="sidebar-badge done">✓</span></div>
+            <div class="sidebar-item active">Énergie <span class="sidebar-badge active">En cours</span></div>
+            <div class="sidebar-item">Résultats</div>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-info-title">Données site</div>
+            <div class="sidebar-info-row">ET0 max <span id="sb_ET0_e">—</span></div>
+            <div class="sidebar-info-row">Irradiation <span id="sb_irr_e">—</span></div>
+        </div>
+        <div class="main-content">
+            <h2 class="page-title">Source d'énergie</h2>
+            <p class="page-sub">Choisissez votre source d'énergie et vos équipements</p>
+            <div class="card">
+                <div class="card-title">Source d'énergie</div>
+                <div class="form-group">
+                    <label class="form-label">Type de source d'énergie</label>
+                    <select id="source_energie" onchange="afficherHeuresPompage(); mettreAJourEquipements();">
+                        <option value="solaire">☀️ Solaire PV (photovoltaïque)</option>
+                        <option value="groupe">⚡ Groupe électrogène</option>
+                        <option value="hybride_groupe">🔌 Hybride — Solaire + Groupe</option>
+                        <option value="hybride_batteries">🔋 Hybride — Solaire + Batteries</option>
+                    </select>
+                </div>
+                <div id="tension_pv_div" class="form-group">
+                    <label class="form-label">Tension du système PV</label>
+                    <select id="tension_pv">
+                        <option value="12V">12V — Très petite installation</option>
+                        <option value="24V">24V — Petite installation</option>
+                        <option value="48V">48V — Installation moyenne</option>
+                        <option value="96V">96V — Grande installation</option>
+                    </select>
+                </div>
+                <div id="batteries_div" class="hidden">
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Tension des batteries</label><select id="tension_batterie"><option value="12V">12V</option><option value="24V">24V</option><option value="48V">48V</option></select></div>
+                        <div class="form-group"><label class="form-label">Capacité unitaire</label><select id="capacite_batterie"><option value="100Ah">100 Ah</option><option value="150Ah">150 Ah</option><option value="200Ah">200 Ah</option><option value="250Ah">250 Ah</option></select></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Jours d'autonomie</label><input type="number" id="jours_autonomie" value="2" min="1" max="5"/></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Heures de pompage / jour</label>
+                    <input type="number" id="heures_pompage" value="6" step="0.5" min="1" max="16"/>
+                    <div id="heures_recommandees" class="msg msg-green" style="margin-top:8px;">Pour le solaire : entre 4h et 8h recommandées</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Choix des équipements</div>
+                <div id="div_choix_panneaux">
+                    <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Panneau solaire</p>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+                        <label class="option-radio"><input type="radio" name="choix_panneau" value="base" onchange="afficherChoixEquipement('panneau','base')"/> Choisir dans la base de données</label>
+                        <label class="option-radio"><input type="radio" name="choix_panneau" value="manuel" onchange="afficherChoixEquipement('panneau','manuel')"/> Saisir manuellement mes caractéristiques</label>
+                    </div>
+                    <div id="panneau_bd" class="hidden">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Marque</label><select id="marque_panneau" onchange="chargerModelesPanneaux()"><option value="">— Choisissez une marque —</option></select></div>
+                            <div class="form-group"><label class="form-label">Modèle</label><select id="modele_panneau" onchange="afficherCaracPanneau()" disabled><option value="">— Choisissez d'abord une marque —</option></select></div>
+                        </div>
+                        <div id="carac_panneau" class="hidden">
+                            <div class="pompe-carac-box">
+                                <div class="pompe-carac-title">Caractéristiques du panneau</div>
+                                <div class="form-row">
+                                    <div>
+                                        <div class="result-row"><span class="result-label">Type</span><span class="result-value" id="pan_type">—</span></div>
+                                        <div class="result-row"><span class="result-label">Puissance</span><span class="result-value" id="pan_puissance">—</span></div>
+                                        <div class="result-row"><span class="result-label">Tension</span><span class="result-value" id="pan_tension">—</span></div>
+                                    </div>
+                                    <div>
+                                        <div class="result-row"><span class="result-label">Vmp</span><span class="result-value" id="pan_vmp">—</span></div>
+                                        <div class="result-row"><span class="result-label">Voc</span><span class="result-value" id="pan_voc">—</span></div>
+                                        <div class="result-row"><span class="result-label">Isc</span><span class="result-value" id="pan_isc">—</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="panneau_manuel" class="hidden">
+                        <div class="pompe-carac-box">
+                            <div class="pompe-carac-title">Saisie manuelle — Panneau</div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Marque</label><input type="text" id="man_pan_marque" placeholder="Ex: Canadian Solar"/></div>
+                                <div class="form-group"><label class="form-label">Type</label><select id="man_pan_type"><option value="Monocristallin">Monocristallin</option><option value="Polycristallin">Polycristallin</option></select></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Puissance (W)</label><input type="number" id="man_pan_puissance" placeholder="Ex: 300" step="5"/></div>
+                                <div class="form-group"><label class="form-label">Tension (V)</label><input type="number" id="man_pan_tension" placeholder="Ex: 24" step="12"/></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height:1px;background:var(--gray-200);margin:20px 0;"></div>
+
+                <div id="div_choix_regulateur">
+                    <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Régulateur de charge</p>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+                        <label class="option-radio"><input type="radio" name="choix_regulateur" value="base" onchange="afficherChoixEquipement('regulateur','base')"/> Choisir dans la base de données</label>
+                        <label class="option-radio"><input type="radio" name="choix_regulateur" value="manuel" onchange="afficherChoixEquipement('regulateur','manuel')"/> Saisir manuellement mes caractéristiques</label>
+                    </div>
+                    <div id="regulateur_bd" class="hidden">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Marque</label><select id="marque_regulateur" onchange="chargerRegulateurs()"><option value="">— Choisissez une marque —</option></select></div>
+                            <div class="form-group"><label class="form-label">Type</label><select id="type_regulateur" onchange="chargerRegulateurs()"><option value="">Tous</option><option value="MPPT">MPPT</option><option value="PWM">PWM</option></select></div>
+                        </div>
+                        <div class="form-group"><label class="form-label">Modèle</label><select id="modele_regulateur" disabled><option value="">— Choisissez d'abord une marque —</option></select></div>
+                    </div>
+                    <div id="regulateur_manuel" class="hidden">
+                        <div class="pompe-carac-box">
+                            <div class="pompe-carac-title">Saisie manuelle — Régulateur</div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Marque</label><input type="text" id="man_reg_marque" placeholder="Ex: EPsolar"/></div>
+                                <div class="form-group"><label class="form-label">Modèle</label><input type="text" id="man_reg_modele" placeholder="Ex: Tracer 4210A"/></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height:1px;background:var(--gray-200);margin:20px 0;"></div>
+
+                <div id="div_choix_batteries" class="hidden">
+                    <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Batterie</p>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+                        <label class="option-radio"><input type="radio" name="choix_batterie" value="base" onchange="afficherChoixEquipement('batterie','base')"/> Choisir dans la base de données</label>
+                        <label class="option-radio"><input type="radio" name="choix_batterie" value="manuel" onchange="afficherChoixEquipement('batterie','manuel')"/> Saisir manuellement mes caractéristiques</label>
+                    </div>
+                    <div id="batterie_bd" class="hidden">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Marque</label><select id="marque_batterie" onchange="chargerModelesBatteries()"><option value="">— Choisissez une marque —</option></select></div>
+                            <div class="form-group"><label class="form-label">Modèle</label><select id="modele_batterie" onchange="afficherCaracBatterie()" disabled><option value="">— Choisissez d'abord une marque —</option></select></div>
+                        </div>
+                        <div id="carac_batterie" class="hidden">
+                            <div class="pompe-carac-box">
+                                <div class="pompe-carac-title">Caractéristiques de la batterie</div>
+                                <div class="form-row">
+                                    <div>
+                                        <div class="result-row"><span class="result-label">Type</span><span class="result-value" id="bat_type">—</span></div>
+                                        <div class="result-row"><span class="result-label">Capacité</span><span class="result-value" id="bat_capacite">—</span></div>
+                                    </div>
+                                    <div>
+                                        <div class="result-row"><span class="result-label">Tension</span><span class="result-value" id="bat_tension">—</span></div>
+                                        <div class="result-row"><span class="result-label">DoD</span><span class="result-value" id="bat_dod">—</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="batterie_manuel" class="hidden">
+                        <div class="pompe-carac-box">
+                            <div class="pompe-carac-title">Saisie manuelle — Batterie</div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Marque</label><input type="text" id="man_bat_marque" placeholder="Ex: Trojan"/></div>
+                                <div class="form-group"><label class="form-label">Type</label><select id="man_bat_type"><option value="GEL">GEL</option><option value="Plomb-acide">Plomb-acide</option><option value="Lithium">Lithium</option></select></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Capacité (Ah)</label><input type="number" id="man_bat_capacite" placeholder="Ex: 200" step="10"/></div>
+                                <div class="form-group"><label class="form-label">Tension (V)</label><input type="number" id="man_bat_tension" placeholder="Ex: 12" step="12"/></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn-back" onclick="allerVers('besoins')">← Retour</button>
+                <button class="btn-calculate" onclick="calculer()">⚡ Calculer le dimensionnement</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="page-resultats" class="page">
+    <nav class="app-navbar"><div class="logo"><div class="logo-icon">💧</div>Hydro</div></nav>
+    <div class="stepper-bar">
+        <div class="stepper">
+            <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl">Localisation</div><div class="step-sub-lbl">Site & climat</div></div></div>
+            <div class="step-line done"></div>
+            <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl">Besoins</div><div class="step-sub-lbl">Usage & eau</div></div></div>
+            <div class="step-line done"></div>
+            <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl">Énergie</div><div class="step-sub-lbl">Source & hydraulique</div></div></div>
+            <div class="step-line done"></div>
+            <div class="step-item active"><div class="step-circle">4</div><div class="step-info"><div class="step-lbl">Résultats</div><div class="step-sub-lbl">Dimensionnement</div></div></div>
+        </div>
+    </div>
+    <div class="app-layout">
+        <div class="sidebar">
+            <div class="sidebar-section-title">Étapes</div>
+            <div class="sidebar-item">Localisation <span class="sidebar-badge done">✓</span></div>
+            <div class="sidebar-item">Besoins <span class="sidebar-badge done">✓</span></div>
+            <div class="sidebar-item">Énergie <span class="sidebar-badge done">✓</span></div>
+            <div class="sidebar-item active">Résultats <span class="sidebar-badge active">En cours</span></div>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-info-title">Données site</div>
+            <div class="sidebar-info-row">ET0 max <span id="sb_ET0_r">—</span></div>
+            <div class="sidebar-info-row">Irradiation <span id="sb_irr_r">—</span></div>
+        </div>
+        <div class="main-content">
+            <h2 class="page-title">Résultats du dimensionnement</h2>
+            <p class="page-sub">Voici tous les paramètres calculés pour votre système</p>
+            <div id="loading-calcul" class="hidden" style="margin-bottom:16px;">
+                <div class="loading-bar"><div class="spinner"></div>Calcul en cours...</div>
+            </div>
+            <div id="resultats-content" class="hidden">
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-card-title">Besoins en eau</div>
+                        <div class="result-row"><span class="result-label">ETc / Besoin journalier</span><span class="result-value"><span id="res_ETc">—</span><span class="result-unit">mm/j</span></span></div>
+                        <div class="result-row"><span class="result-label">Besoin net</span><span class="result-value"><span id="res_besoin_net">—</span><span class="result-unit">m³/j</span></span></div>
+                        <div class="result-row"><span class="result-label">Besoin brut</span><span class="result-value"><span id="res_besoin_brut">—</span><span class="result-unit">m³/j</span></span></div>
+                        <div class="result-row"><span class="result-label">Besoin par session</span><span class="result-value"><span id="res_besoin_session">—</span><span class="result-unit">m³</span></span></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-title">Hydraulique</div>
+                        <div class="result-row"><span class="result-label">Débit Q</span><span class="result-value"><span id="res_debit">—</span><span class="result-unit">m³/h</span></span></div>
+                        <div class="result-row"><span class="result-label">Hauteur géométrique</span><span class="result-value"><span id="res_hgeo">—</span><span class="result-unit">m</span></span></div>
+                        <div class="result-row"><span class="result-label">Pertes de charge</span><span class="result-value"><span id="res_pertes">—</span><span class="result-unit">m</span></span></div>
+                        <div class="result-row"><span class="result-label">HMT totale</span><span class="result-value highlight"><span id="res_HMT">—</span><span class="result-unit">m</span></span></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-title">Pompe</div>
+                        <div class="result-row"><span class="result-label">Puissance hydraulique Ph</span><span class="result-value"><span id="res_Ph">—</span><span class="result-unit">kW</span></span></div>
+                        <div class="result-row"><span class="result-label">Puissance pompe Pp</span><span class="result-value"><span id="res_Pp">—</span><span class="result-unit">kW</span></span></div>
+                        <div class="result-row"><span class="result-label">Puissance moteur Pm</span><span class="result-value highlight"><span id="res_Pm">—</span><span class="result-unit">kW</span></span></div>
+                        <div class="result-row"><span class="result-label">Puissance commerciale</span><span class="result-value"><span id="res_Pm_commercial">—</span><span class="result-unit">kW</span></span></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-card-title">Énergie</div>
+                        <div id="res_energie_solaire" class="hidden">
+                            <div class="result-row"><span class="result-label">Énergie / jour</span><span class="result-value"><span id="res_energie_jour">—</span><span class="result-unit">kWh</span></span></div>
+                            <div class="result-row"><span class="result-label">Puissance crête</span><span class="result-value"><span id="res_puissance_crete">—</span><span class="result-unit">kWc</span></span></div>
+                            <div class="result-row"><span class="result-label">Panneaux 300Wc</span><span class="result-value highlight"><span id="res_nb_panneaux">—</span><span class="result-unit">panneaux</span></span></div>
+                            <div class="result-row"><span class="result-label">Courant</span><span class="result-value"><span id="res_courant_pv">—</span><span class="result-unit">A</span></span></div>
+                        </div>
+                        <div id="res_energie_groupe" class="hidden">
+                            <div class="result-row"><span class="result-label">Puissance groupe</span><span class="result-value"><span id="res_puissance_groupe">—</span><span class="result-unit">kW</span></span></div>
+                            <div class="result-row"><span class="result-label">Consommation / jour</span><span class="result-value"><span id="res_conso_jour">—</span><span class="result-unit">L</span></span></div>
+                            <div class="result-row"><span class="result-label">Consommation / mois</span><span class="result-value"><span id="res_conso_mois">—</span><span class="result-unit">L</span></span></div>
+                        </div>
+                        <div id="res_energie_batteries" class="hidden">
+                            <div class="result-row"><span class="result-label">Énergie à stocker</span><span class="result-value"><span id="res_energie_stockage">—</span><span class="result-unit">kWh</span></span></div>
+                            <div class="result-row"><span class="result-label">Capacité totale</span><span class="result-value"><span id="res_capacite_totale">—</span><span class="result-unit">Ah</span></span></div>
+                            <div class="result-row"><span class="result-label">Nombre de batteries</span><span class="result-value highlight"><span id="res_nb_batteries">—</span></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="res_equipements" class="result-card result-card-full hidden" style="margin-bottom:14px;">
+                    <div class="result-card-title">Équipements sélectionnés</div>
+                    <div id="res_equipements_content"></div>
+                </div>
+                <div id="res_verification_pompe" class="result-card result-card-full hidden" style="margin-bottom:14px;">
+                    <div class="result-card-title">Pompe sélectionnée</div>
+                    <div id="res_pompe_choisie_info" style="margin-bottom:12px;"></div>
+                    <div id="res_verification_pompe_content"></div>
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn-back" onclick="allerVers('energie')">← Modifier</button>
+                    <button class="btn-pdf" onclick="genererPDF()">📄 Télécharger le rapport PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function allerVers(page) {
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    document.getElementById('page-' + page).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (page === 'localisation') { setTimeout(function() { carte.invalidateSize(); }, 300); }
+    if (page === 'besoins')   { mettreAJourSidebar(); }
+    if (page === 'energie')   { mettreAJourSidebarEnergie(); }
+    if (page === 'resultats') { mettreAJourSidebarResultats(); }
+}
+
+var carte = L.map('carte', { zoomControl: true, preferCanvas: true }).setView([9.3077, 2.3158], 6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(carte);
+setTimeout(function() { carte.invalidateSize(); }, 500);
+
+var marqueur = null, lat_choisie = null, lon_choisie = null, timer_click = null, climate_request_id = 0;
+
+carte.on('click', function(e) {
+    lat_choisie = e.latlng.lat.toFixed(6);
+    lon_choisie = e.latlng.lng.toFixed(6);
+    document.getElementById('lat').innerText = lat_choisie;
+    document.getElementById('lon').innerText = lon_choisie;
+    if (marqueur) { carte.removeLayer(marqueur); }
+    marqueur = L.marker([lat_choisie, lon_choisie]).addTo(carte);
+    if (timer_click) { clearTimeout(timer_click); }
+    timer_click = setTimeout(function() { recupererDonnees(); }, 500);
+});
+
+function rechercherVille() {
+    var ville = document.getElementById('recherche_ville').value.trim();
+    if (!ville) { return; }
+    fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(ville) + '&format=json&limit=1')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.length > 0) {
+            lat_choisie = parseFloat(data[0].lat).toFixed(6);
+            lon_choisie = parseFloat(data[0].lon).toFixed(6);
+            carte.setView([lat_choisie, lon_choisie], 11);
+            if (marqueur) { carte.removeLayer(marqueur); }
+            marqueur = L.marker([lat_choisie, lon_choisie]).addTo(carte);
+            document.getElementById('lat').innerText = lat_choisie;
+            document.getElementById('lon').innerText = lon_choisie;
+            recupererDonnees();
+        } else { alert('Ville non trouvée.'); }
+    });
+}
+
+function recupererDonnees() {
+    if (!lat_choisie || !lon_choisie) { return; }
+    document.getElementById('loading-climate').classList.remove('hidden');
+    document.getElementById('climate-section').classList.add('hidden');
+    climate_request_id += 1;
+    var current_id = climate_request_id;
+    fetch('/get_climate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lat: lat_choisie, lon: lon_choisie }) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (current_id !== climate_request_id) { return; }
+        document.getElementById('loading-climate').classList.add('hidden');
+        if (data.succes) {
+            document.getElementById('ET0_max').innerText         = data.ET0_max;
+            document.getElementById('mois_critique').innerText   = data.mois_critique;
+            document.getElementById('irradiation').innerText     = data.irradiation;
+            document.getElementById('temperature_max').innerText = data.temperature_max;
+            document.getElementById('temperature_min').innerText = data.temperature_min;
+            document.getElementById('climate-section').classList.remove('hidden');
+        } else { alert('Erreur données climatiques : ' + data.erreur); }
+    });
+}
+
+function mettreAJourSidebar() {
+    document.getElementById('sb_ET0').innerText  = document.getElementById('ET0_max').innerText + ' mm/j';
+    document.getElementById('sb_irr').innerText  = document.getElementById('irradiation').innerText + ' kWh/m²';
+    document.getElementById('sb_mois').innerText = document.getElementById('mois_critique').innerText;
+}
+function mettreAJourSidebarEnergie() {
+    document.getElementById('sb_ET0_e').innerText = document.getElementById('ET0_max').innerText + ' mm/j';
+    document.getElementById('sb_irr_e').innerText = document.getElementById('irradiation').innerText + ' kWh/m²';
+}
+function mettreAJourSidebarResultats() {
+    document.getElementById('sb_ET0_r').innerText = document.getElementById('ET0_max').innerText + ' mm/j';
+    document.getElementById('sb_irr_r').innerText = document.getElementById('irradiation').innerText + ' kWh/m²';
+}
+
+var modeActuel = 'irrigation';
+function selectionnerMode(mode) {
+    modeActuel = mode;
+    var cardIrr = document.getElementById('mode-irrigation');
+    var cardCl  = document.getElementById('mode-classique');
+    if (mode === 'irrigation') {
+        cardIrr.classList.add('selected'); cardCl.classList.remove('selected');
+        cardIrr.querySelector('.mode-check').innerText = '✓';
+        cardCl.querySelector('.mode-check').innerText  = '';
+        document.getElementById('form-irrigation').classList.remove('hidden');
+        document.getElementById('form-classique').classList.add('hidden');
+    } else {
+        cardCl.classList.add('selected'); cardIrr.classList.remove('selected');
+        cardCl.querySelector('.mode-check').innerText  = '✓';
+        cardIrr.querySelector('.mode-check').innerText = '';
+        document.getElementById('form-classique').classList.remove('hidden');
+        document.getElementById('form-irrigation').classList.add('hidden');
+    }
+}
+
+var SYSTEME_RECOMMANDE = {
+    'tomate':'goutte_a_goutte','oignon':'goutte_a_goutte','piment':'goutte_a_goutte',
+    'chou':'goutte_a_goutte','laitue':'goutte_a_goutte','gombo':'goutte_a_goutte',
+    'patate_douce':'goutte_a_goutte','maïs':'aspersion','haricot':'aspersion',
+    'arachide':'aspersion','manioc':'aspersion','igname':'aspersion',
+    'sorgho':'aspersion','coton':'aspersion','riz':'gravitaire'
+};
+var NOMS_SYSTEMES = { 'goutte_a_goutte':'Goutte-à-goutte','aspersion':'Aspersion','gravitaire':'Gravitaire' };
+
+function afficherKcManuel() {
+    var culture = document.getElementById('culture').value;
+    var divKc   = document.getElementById('kc_manuel_div');
+    var msgDiv  = document.getElementById('message_irrigation');
+    if (culture === 'autre') {
+        divKc.classList.remove('hidden');
+        msgDiv.innerHTML = '<div class="msg msg-warning">⚠️ Choisissez le système d\'irrigation adapté.</div>';
+    } else {
+        divKc.classList.add('hidden');
+        var systeme = SYSTEME_RECOMMANDE[culture];
+        if (systeme) {
+            document.getElementById('systeme_irrigation').value = systeme;
+            msgDiv.innerHTML = '<div class="msg msg-success">✅ ' + NOMS_SYSTEMES[systeme] + ' recommandé pour cette culture !</div>';
+        }
+    }
+}
+
+function verifierSysteme() {
+    var culture = document.getElementById('culture').value;
+    var systeme = document.getElementById('systeme_irrigation').value;
+    var msgDiv  = document.getElementById('message_irrigation');
+    var rec     = SYSTEME_RECOMMANDE[culture];
+    if (culture === 'autre' || !rec) { return; }
+    if (systeme === rec) {
+        msgDiv.innerHTML = '<div class="msg msg-success">✅ Système optimal pour cette culture !</div>';
+    } else {
+        msgDiv.innerHTML = '<div class="msg msg-warning">⚠️ Recommandé : ' + NOMS_SYSTEMES[rec] + '</div>';
+    }
+}
+
+var LABELS_BENEFICIAIRES = {
+    'eau_potable_rural': {label:'Nombre de personnes',hint:'Population rurale desservie',norme:20},
+    'eau_potable_urbain':{label:'Nombre de personnes',hint:'Population urbaine desservie',norme:50},
+    'elevage_bovin':     {label:'Nombre de bovins',hint:'Têtes de bétail bovin',norme:30},
+    'elevage_ovin':      {label:'Nombre d\'ovins/caprins',hint:'Têtes de bétail',norme:5},
+    'elevage_volaille':  {label:'Nombre de volailles',hint:'Nombre de têtes',norme:0.5},
+    'batiment_ecole':    {label:'Nombre d\'élèves',hint:'Effectif total',norme:10},
+    'batiment_hopital':  {label:'Nombre de lits',hint:'Capacité totale',norme:150},
+    'batiment_admin':    {label:'Nombre d\'occupants',hint:'Personnel et usagers',norme:15},
+    'chateau_eau':       {label:'Population desservie',hint:'Nombre total de personnes',norme:50},
+    'industrie':         {label:'Capacité journalière',hint:'Saisie manuelle du besoin',norme:0},
+    'autre_classique':   {label:'Nombre de bénéficiaires',hint:'Saisie manuelle du besoin',norme:0},
+};
+
+function mettreAJourLabelBeneficiaires() {
+    var usage  = document.getElementById('type_usage').value;
+    var config = LABELS_BENEFICIAIRES[usage];
+    if (config) {
+        document.getElementById('label_beneficiaires').innerText = config.label;
+        document.getElementById('hint_beneficiaires').innerText  = config.hint;
+    }
+    calculerBesoinAuto();
+}
+
+function calculerBesoinAuto() {
+    var usage  = document.getElementById('type_usage').value;
+    var nb     = parseFloat(document.getElementById('nb_beneficiaires').value);
+    var msgDiv = document.getElementById('msg_besoin_auto');
+    var config = LABELS_BENEFICIAIRES[usage];
+    if (!config || config.norme === 0) { msgDiv.innerHTML = '<div class="msg msg-info">ℹ️ Veuillez saisir le volume journalier manuellement.</div>'; return; }
+    if (nb && nb > 0) {
+        var besoin = (config.norme * nb) / 1000;
+        document.getElementById('besoin_journalier').value = besoin.toFixed(2);
+        msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour</div>';
+    }
+}
+
+function afficherParamsSysteme() {
+    var type = document.getElementById('type_systeme_hydraulique').value;
+    document.getElementById('params-forage').classList.toggle('hidden', type !== 'forage_reservoir');
+    document.getElementById('params-lac').classList.toggle('hidden', type !== 'lac_reservoir');
+}
+
+function calculerRabattement() {
+    var ns = parseFloat(document.getElementById('niveau_statique').value);
+    var nd = parseFloat(document.getElementById('niveau_dynamique').value);
+    if (ns && nd && nd >= ns) { document.getElementById('rabattement').value = (nd - ns).toFixed(2); }
+}
+
+function calculerNiveauPompeLac() {
+    var hasp = parseFloat(document.getElementById('hauteur_aspiration_lac').value);
+    var msg  = document.getElementById('msg_aspiration_lac');
+    if (hasp > 5) { msg.innerHTML = '<div class="msg msg-warning">⚠️ Hauteur d\'aspiration > 5m — risque de cavitation !</div>'; }
+    else if (hasp > 0) { msg.innerHTML = '<div class="msg msg-success">✅ Hauteur d\'aspiration acceptable.</div>'; }
+}
+
+function verifierReservoir(type) {
+    var volume   = parseFloat(document.getElementById('volume_reservoir_'   + type).value);
+    var diametre = parseFloat(document.getElementById('diametre_reservoir_' + type).value);
+    var hauteur  = parseFloat(document.getElementById('hauteur_reservoir_'  + type).value);
+    var msgDiv   = document.getElementById('msg_reservoir_' + type);
+    if (volume && diametre && hauteur) {
+        var vol_calc = Math.PI * Math.pow(diametre / 2, 2) * hauteur;
+        var ecart    = Math.abs(vol_calc - volume) / volume * 100;
+        if (ecart > 15) { msgDiv.innerHTML = '<div class="msg msg-warning">⚠️ Incohérence : volume calculé = ' + vol_calc.toFixed(1) + ' m³</div>'; }
+        else { msgDiv.innerHTML = '<div class="msg msg-success">✅ Dimensions cohérentes — Volume : ' + vol_calc.toFixed(1) + ' m³</div>'; }
+    }
+}
+
+function afficherChoixPompe(mode, choix) {
+    var bd     = document.getElementById('pompe_bd_' + mode);
+    var manuel = document.getElementById('pompe_manuel_' + mode);
+    if (bd)     bd.classList.add('hidden');
+    if (manuel) manuel.classList.add('hidden');
+    if (choix === 'base'   && bd)     bd.classList.remove('hidden');
+    if (choix === 'manuel' && manuel) manuel.classList.remove('hidden');
+}
+
+function afficherChoixEquipement(type, choix) {
+    var bd     = document.getElementById(type + '_bd');
+    var manuel = document.getElementById(type + '_manuel');
+    if (bd)     bd.classList.add('hidden');
+    if (manuel) manuel.classList.add('hidden');
+    if (choix === 'base'   && bd)     bd.classList.remove('hidden');
+    if (choix === 'manuel' && manuel) manuel.classList.remove('hidden');
+}
+
+function chargerMarques() {
+    fetch('/get_marques').then(function(r) { return r.json(); }).then(function(data) {
+        if (data.succes) {
+            ['marque_pompe','marque_pompe_irr'].forEach(function(id) {
+                var sel = document.getElementById(id);
+                if (sel) {
+                    sel.innerHTML = '<option value="">— Choisissez une marque —</option>';
+                    data.marques.forEach(function(m) { sel.innerHTML += '<option value="' + m + '">' + m + '</option>'; });
+                }
+            });
+        }
+    });
+}
+
+function chargerModeles() {
+    var marque = document.getElementById('marque_pompe').value;
+    var select = document.getElementById('modele_pompe');
+    var divC   = document.getElementById('caracteristiques_pompe');
+    select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
+    select.disabled  = true; divC.classList.add('hidden');
+    if (!marque) { return; }
+    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque}) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.succes && data.modeles.length > 0) {
+            data.modeles.forEach(function(m) { select.innerHTML += '<option value="' + m.modele + '">' + m.modele + ' — Q max ' + m.debit_max_m3h + ' m³/h — HMT ' + m.HMT_max_m + ' m</option>'; });
+            select.disabled = false;
+        }
+    });
+}
+
+function chargerCaracteristiques() {
+    var marque = document.getElementById('marque_pompe').value;
+    var modele = document.getElementById('modele_pompe').value;
+    var divC   = document.getElementById('caracteristiques_pompe');
+    var msgDiv = document.getElementById('msg_compatibilite_pompe');
+    divC.classList.add('hidden'); msgDiv.innerHTML = '';
+    if (!marque || !modele) { return; }
+    fetch('/get_pompe', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque,modele:modele}) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.succes) {
+            var p = data.pompe;
+            document.getElementById('carac_type_pompe').innerText  = p.type_pompe;
+            document.getElementById('carac_installation').innerText = p.type_installation;
+            document.getElementById('carac_debit').innerText       = p.debit_max_m3h + ' m³/h';
+            document.getElementById('carac_HMT').innerText         = p.HMT_max_m + ' m';
+            document.getElementById('carac_puissance').innerText   = p.puissance_kW + ' kW';
+            document.getElementById('carac_tension').innerText     = p.tension_V;
+            document.getElementById('carac_rendement').innerText   = (p.rendement * 100).toFixed(0) + '%';
+            document.getElementById('carac_description').innerText = p.description;
+            divC.classList.remove('hidden');
+        }
+    });
+}
+
+function chargerModelesIrr() {
+    var marque = document.getElementById('marque_pompe_irr').value;
+    var select = document.getElementById('modele_pompe_irr');
+    var divC   = document.getElementById('caracteristiques_pompe_irr');
+    select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
+    select.disabled  = true; divC.classList.add('hidden');
+    if (!marque) { return; }
+    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque}) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.succes && data.modeles.length > 0) {
+            data.modeles.forEach(function(m) { select.innerHTML += '<option value="' + m.modele + '">' + m.modele + ' — Q max ' + m.debit_max_m3h + ' m³/h — HMT ' + m.HMT_max_m + ' m</option>'; });
+            select.disabled = false;
+        }
+    });
+}
+
+function chargerCaracteristiquesIrr() {
+    var marque = document.getElementById('marque_pompe_irr').value;
+    var modele = document.getElementById('modele_pompe_irr').value;
+    var divC   = document.getElementById('caracteristiques_pompe_irr');
+    divC.classList.add('hidden');
+    if (!marque || !modele) { return; }
+    fetch('/get_pompe', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque,modele:modele}) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.succes) {
+            var p = data.pompe;
+            document.getElementById('carac_type_pompe_irr').innerText  = p.type_pompe;
+            document.getElementById('carac_installation_irr').innerText = p.type_installation;
+            document.getElementById('carac_debit_irr').innerText       = p.debit_max_m3h + ' m³/h';
+            document.getElementById('carac_HMT_irr').innerText         = p.HMT_max_m + ' m';
+            document.getElementById('carac_puissance_irr').innerText   = p.puissance_kW + ' kW';
+            document.getElementById('carac_tension_irr').innerText     = p.tension_V;
+            document.getElementById('carac_rendement_irr').innerText   = (p.rendement * 100).toFixed(0) + '%';
+            document.getElementById('carac_description_irr').innerText = p.description;
+            divC.classList.remove('hidden');
+        }
+    });
+}
+
+function chargerMarquesPanneaux() {
+    fetch('/get_marques_panneaux').then(function(r) { return r.json(); }).then(function(data) {
+        if (data.succes) {
+            var select = document.getElementById('marque_panneau');
+            select.innerHTML = '<option value="">— Choisissez une marque —</option>';
+            data.marques.forEach(function(m) { select.innerHTML += '<option value="' + m + '">' + m + '</option>'; });
+        }
+    });
+}
+
+function chargerModelesPanneaux() {
+    var marque = document.getElementById('marque_panneau').value;
+    var select = document.getElementById('modele_panneau');
+    var divC   = document.getElementById('carac_panneau');
+    select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
+    select.disabled  = true; divC.classList.add('hidden');
+    if (!marque) { return; }
+    fetch('/get_modeles_panneaux', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque}) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.succes && data.modeles.length > 0) {
+            data.modeles.forEach(function(p) { select.innerHTML += '<option value="' + p.puissance_W + '_' + p.tension_V + '">' + p.puissance_W + 'W — ' + p.type + ' — ' + p.tension_V + 'V</option>'; });
+            select.disabled = false; select._modeles = data.modeles;
+        }
+    });
+}
+
+function afficherCaracPanneau() {
+    var select  = document.getElementById('modele_panneau');
+    var valeur  = select.value;
+    var divC    = document.getElementById('carac_panneau');
+    var modeles = select._modeles || [];
+    if (!valeur || modeles.length === 0) { divC.classList.add('hidden'); return; }
+    var parts   = valeur.split('_');
+    var panneau = modeles.find(function(p) { return p.puissance_W === parseFloat(parts[0]) && p.tension_V === parseFloat(parts[1]); });
+    if (panneau) {
+        document.getElementById('pan_type').innerText      = panneau.type;
+        document.getElementById('pan_puissance').innerText = panneau.puissance_W + ' W';
+        document.getElementById('pan_tension').innerText   = panneau.tension_V + ' V';
+        document.getElementById('pan_vmp').innerText       = panneau.Vmp_V + ' V';
+        document.getElementById('pan_voc').innerText       = panneau.Voc_V + ' V';
+        document.getElementById('pan_isc').innerText       = panneau.Isc_A + ' A';
+        divC.classList.remove('hidden');
+    }
+}
+
+function chargerMarquesBatteries() {
+    fetch('/get_marques_batteries').then(function(r) { return r.json(); }).then(function(data) {
+        if (data.succes) {
+            var select = document.getElementById('marque_batterie');
+            select.innerHTML = '<option value="">— Choisissez une marque —</option>';
+            data.marques.forEach(function(m) { select.innerHTML += '<option value="' + m + '">' + m + '</option>'; });
+        }
+    });
+}
+
+function chargerModelesBatteries() {
+    var marque = document.getElementById('marque_batterie').value;
+    var select = document.getElementById('modele_batterie');
+    var divC   = document.getElementById('carac_batterie');
+    select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
+    select.disabled  = true; divC.classList.add('hidden');
+    if (!marque) { return; }
+    fetch('/get_modeles_batteries', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque}) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.succes && data.modeles.length > 0) {
+            data.modeles.forEach(function(b, i) { select.innerHTML += '<option value="' + i + '">' + b.capacite_Ah + 'Ah — ' + b.tension_V + 'V — ' + b.type + '</option>'; });
+            select.disabled = false; select._modeles = data.modeles;
+        }
+    });
+}
+
+function afficherCaracBatterie() {
+    var select  = document.getElementById('modele_batterie');
+    var index   = parseInt(select.value);
+    var divC    = document.getElementById('carac_batterie');
+    var modeles = select._modeles || [];
+    if (isNaN(index) || modeles.length === 0) { divC.classList.add('hidden'); return; }
+    var bat = modeles[index];
+    if (bat) {
+        document.getElementById('bat_type').innerText     = bat.type;
+        document.getElementById('bat_capacite').innerText = bat.capacite_Ah + ' Ah';
+        document.getElementById('bat_tension').innerText  = bat.tension_V + ' V';
+        document.getElementById('bat_dod').innerText      = (bat.DoD * 100).toFixed(0) + '%';
+        divC.classList.remove('hidden');
+    }
+}
+
+function chargerMarquesRegulateurs() {
+    fetch('/get_marques_regulateurs').then(function(r) { return r.json(); }).then(function(data) {
+        if (data.succes) {
+            var select = document.getElementById('marque_regulateur');
+            select.innerHTML = '<option value="">— Choisissez une marque —</option>';
+            data.marques.forEach(function(m) { select.innerHTML += '<option value="' + m + '">' + m + '</option>'; });
+        }
+    });
+}
+
+function chargerRegulateurs() {
+    var marque   = document.getElementById('marque_regulateur').value;
+    var type_reg = document.getElementById('type_regulateur').value;
+    var select   = document.getElementById('modele_regulateur');
+    select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
+    select.disabled  = true;
+    if (!marque) { return; }
+    fetch('/get_regulateurs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque,type_reg:type_reg||null}) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.succes && data.regulateurs.length > 0) {
+            data.regulateurs.forEach(function(r) { select.innerHTML += '<option value="' + r.designation + '">' + r.designation + ' — ' + r.tension_bat_V + 'V — ' + r.courant_nom_A + 'A (' + r.type + ')</option>'; });
+            select.disabled = false;
+        }
+    });
+}
+
+function mettreAJourEquipements() {
+    var source = document.getElementById('source_energie').value;
+    var hasPV  = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
+    var hasBat = (source === 'hybride_batteries');
+    document.getElementById('div_choix_panneaux').classList.toggle('hidden', !hasPV);
+    document.getElementById('div_choix_regulateur').classList.toggle('hidden', !hasPV);
+    document.getElementById('div_choix_batteries').classList.toggle('hidden', !hasBat);
+}
+
+var PLAGES_HEURES = {
+    'solaire':           {min:4,  max:8,  defaut:6,  msg:'Solaire : entre 4h et 8h recommandées'},
+    'groupe':            {min:6,  max:12, defaut:8,  msg:'Groupe : entre 6h et 12h recommandées'},
+    'hybride_groupe':    {min:6,  max:12, defaut:8,  msg:'Hybride groupe : entre 6h et 12h recommandées'},
+    'hybride_batteries': {min:8,  max:16, defaut:10, msg:'Hybride batteries : entre 8h et 16h recommandées'}
+};
+
+function afficherHeuresPompage() {
+    var source = document.getElementById('source_energie').value;
+    var plage  = PLAGES_HEURES[source];
+    document.getElementById('heures_pompage').value = plage.defaut;
+    document.getElementById('heures_pompage').min   = plage.min;
+    document.getElementById('heures_pompage').max   = plage.max;
+    document.getElementById('heures_recommandees').innerText = plage.msg;
+    var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
+    document.getElementById('tension_pv_div').classList.toggle('hidden', !hasPV);
+    document.getElementById('batteries_div').classList.toggle('hidden', source !== 'hybride_batteries');
+}
+
+function getMarquePompe() {
+    if (modeActuel === 'irrigation') {
+        var radio = document.querySelector('input[name="choix_pompe_irr"]:checked');
+        if (radio && radio.value === 'manuel') { return document.getElementById('man_pompe_marque_irr').value || ''; }
+        return document.getElementById('marque_pompe_irr') ? document.getElementById('marque_pompe_irr').value : '';
+    } else {
+        var radio = document.querySelector('input[name="choix_pompe_cl"]:checked');
+        if (radio && radio.value === 'manuel') { return document.getElementById('man_pompe_marque').value || ''; }
+        return document.getElementById('marque_pompe') ? document.getElementById('marque_pompe').value : '';
+    }
+}
+function getModelePompe() {
+    if (modeActuel === 'irrigation') {
+        var radio = document.querySelector('input[name="choix_pompe_irr"]:checked');
+        if (radio && radio.value === 'manuel') { return document.getElementById('man_pompe_modele_irr').value || ''; }
+        var sel = document.getElementById('modele_pompe_irr'); return sel ? sel.value : '';
+    } else {
+        var radio = document.querySelector('input[name="choix_pompe_cl"]:checked');
+        if (radio && radio.value === 'manuel') { return document.getElementById('man_pompe_modele').value || ''; }
+        var sel = document.getElementById('modele_pompe'); return sel ? sel.value : '';
+    }
+}
+function getMarquePanneau() {
+    var radio = document.querySelector('input[name="choix_panneau"]:checked');
+    if (radio && radio.value === 'manuel') { return document.getElementById('man_pan_marque').value || ''; }
+    return document.getElementById('marque_panneau').value || '';
+}
+function getModelePanneau() {
+    var radio  = document.querySelector('input[name="choix_panneau"]:checked');
+    var select = document.getElementById('modele_panneau');
+    if (radio && radio.value === 'manuel') {
+        return document.getElementById('man_pan_puissance').value + 'W — ' + document.getElementById('man_pan_type').value + ' — ' + document.getElementById('man_pan_tension').value + 'V';
+    }
+    return select && select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+}
+function getMarqueRegulateur() {
+    var radio = document.querySelector('input[name="choix_regulateur"]:checked');
+    if (radio && radio.value === 'manuel') { return document.getElementById('man_reg_marque').value || ''; }
+    return document.getElementById('marque_regulateur').value || '';
+}
+function getModeleRegulateur() {
+    var radio  = document.querySelector('input[name="choix_regulateur"]:checked');
+    var select = document.getElementById('modele_regulateur');
+    if (radio && radio.value === 'manuel') { return document.getElementById('man_reg_modele').value || ''; }
+    return select && select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+}
+function getMarqueBatterie() {
+    var radio = document.querySelector('input[name="choix_batterie"]:checked');
+    if (radio && radio.value === 'manuel') { return document.getElementById('man_bat_marque').value || ''; }
+    return document.getElementById('marque_batterie') ? document.getElementById('marque_batterie').value : '';
+}
+function getModeleBatterie() {
+    var radio  = document.querySelector('input[name="choix_batterie"]:checked');
+    var select = document.getElementById('modele_batterie');
+    if (radio && radio.value === 'manuel') {
+        return document.getElementById('man_bat_capacite').value + 'Ah — ' + document.getElementById('man_bat_tension').value + 'V — ' + document.getElementById('man_bat_type').value;
+    }
+    return select && select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+}
+function convertirSuperficie() {
+    var s     = parseFloat(document.getElementById('superficie').value);
+    var unite = document.getElementById('unite_superficie').value;
+    return unite === 'm2' ? s / 10000 : s;
+}
+
+function calculer() {
+    if (!lat_choisie) { alert('Veuillez localiser votre site sur la carte !'); return; }
+    if (modeActuel === 'irrigation') {
+        if (!document.getElementById('superficie').value) { alert('Veuillez renseigner la superficie !'); return; }
+        if (!document.getElementById('profondeur_aspiration').value) { alert('Veuillez renseigner la profondeur d\'aspiration !'); return; }
+        if (!document.getElementById('hauteur_refoulement').value) { alert('Veuillez renseigner la hauteur de refoulement !'); return; }
+    }
+    if (modeActuel === 'classique') {
+        if (!document.getElementById('besoin_journalier').value) { alert('Veuillez renseigner le besoin journalier !'); return; }
+    }
+    var source_energie = document.getElementById('source_energie').value;
+    var hasPV = (source_energie === 'solaire' || source_energie === 'hybride_groupe' || source_energie === 'hybride_batteries');
+    if (hasPV) {
+        if (!getMarquePanneau()) { alert('Veuillez choisir un panneau solaire !'); allerVers('energie'); return; }
+        if (!getMarqueRegulateur()) { alert('Veuillez choisir un régulateur !'); allerVers('energie'); return; }
+    }
+    if (source_energie === 'hybride_batteries') {
+        if (!getMarqueBatterie()) { alert('Veuillez choisir une batterie !'); allerVers('energie'); return; }
+    }
+    allerVers('resultats');
+    document.getElementById('loading-calcul').classList.remove('hidden');
+    document.getElementById('resultats-content').classList.add('hidden');
+    var tension_batterie = null, capacite_batterie = null, jours_autonomie = null;
+    if (source_energie === 'hybride_batteries') {
+        tension_batterie  = document.getElementById('tension_batterie').value;
+        capacite_batterie = document.getElementById('capacite_batterie').value;
+        jours_autonomie   = parseInt(document.getElementById('jours_autonomie').value);
+    }
+    var payload = {
+        mode: modeActuel, source_energie: source_energie,
+        heures_pompage:    parseFloat(document.getElementById('heures_pompage').value),
+        ET0:               parseFloat(document.getElementById('ET0_max').innerText),
+        irradiation:       parseFloat(document.getElementById('irradiation').innerText),
+        tension_pv:        document.getElementById('tension_pv').value,
+        tension_batterie: tension_batterie, capacite_batterie: capacite_batterie, jours_autonomie: jours_autonomie,
+        nom_projet:        document.getElementById('nom_projet').value,
+        realise_par:       document.getElementById('realise_par').value,
+        date_projet:       document.getElementById('date_projet').value,
+        marque_pompe:      getMarquePompe(), modele_pompe: getModelePompe(),
+        lat: lat_choisie, lon: lon_choisie
+    };
+    if (modeActuel === 'irrigation') {
+        var culture = document.getElementById('culture').value;
+        payload.culture = culture; payload.superficie = convertirSuperficie();
+        payload.systeme_irrigation = document.getElementById('systeme_irrigation').value;
+        payload.type_sol = document.getElementById('type_sol').value;
+        payload.sessions_arrosage = parseInt(document.getElementById('sessions_arrosage').value);
+        payload.longueur_canalisation = parseFloat(document.getElementById('longueur_canalisation').value) || 0;
+        payload.diametre_tuyau = parseFloat(document.getElementById('diametre_tuyau').value);
+        payload.profondeur_aspiration = parseFloat(document.getElementById('profondeur_aspiration').value);
+        payload.hauteur_refoulement = parseFloat(document.getElementById('hauteur_refoulement').value);
+        payload.kc_manuel = culture === 'autre' ? parseFloat(document.getElementById('kc_manuel').value) : null;
+    } else {
+        var type_sys = document.getElementById('type_systeme_hydraulique').value;
+        payload.culture = 'classique';
+        payload.besoin_journalier = parseFloat(document.getElementById('besoin_journalier').value);
+        payload.type_usage = document.getElementById('type_usage').value;
+        payload.heures_disponibilite = parseFloat(document.getElementById('heures_disponibilite').value);
+        payload.coeff_fuite = parseFloat(document.getElementById('coeff_fuite').value);
+        payload.systeme_irrigation = 'gravitaire'; payload.type_sol = 'limoneux';
+        payload.type_systeme_hydraulique = type_sys;
+        if (type_sys === 'forage_reservoir') {
+            payload.niveau_dynamique = parseFloat(document.getElementById('niveau_dynamique').value) || 0;
+            payload.hauteur_reservoir = parseFloat(document.getElementById('hauteur_reservoir_f').value) || 0;
+            payload.longueur_canalisation = parseFloat(document.getElementById('longueur_tuyau_f').value) || 0;
+            payload.diametre_tuyau = parseFloat(document.getElementById('diametre_tuyau_f').value) || 63;
+            payload.type_alimentation = document.getElementById('type_alimentation_f').value;
+        } else {
+            payload.niveau_eau_lac = parseFloat(document.getElementById('niveau_eau_lac').value) || 0;
+            payload.hauteur_aspiration = parseFloat(document.getElementById('hauteur_aspiration_lac').value) || 0;
+            payload.hauteur_reservoir = parseFloat(document.getElementById('hauteur_reservoir_l').value) || 0;
+            payload.longueur_canalisation = parseFloat(document.getElementById('longueur_tuyau_l').value) || 0;
+            payload.diametre_tuyau = parseFloat(document.getElementById('diametre_tuyau_l').value) || 63;
+            payload.type_alimentation = document.getElementById('type_alimentation_l').value;
+        }
+    }
+    fetch('/calculer', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        document.getElementById('loading-calcul').classList.add('hidden');
+        if (data.succes) { afficherResultats(data); document.getElementById('resultats-content').classList.remove('hidden'); }
+        else { alert('Erreur de calcul : ' + data.erreur); allerVers('energie'); }
+    })
+    .catch(function(err) {
+        document.getElementById('loading-calcul').classList.add('hidden');
+        alert('Erreur réseau : ' + err); allerVers('energie');
+    });
+}
+
+function afficherResultats(data) {
+    document.getElementById('res_ETc').innerText            = data.besoins.ETc;
+    document.getElementById('res_besoin_net').innerText     = data.besoins.besoin_net_m3_jour;
+    document.getElementById('res_besoin_brut').innerText    = data.besoins.besoin_brut_m3_jour;
+    document.getElementById('res_besoin_session').innerText = data.besoins.besoin_session_m3;
+    document.getElementById('res_debit').innerText          = data.hydraulique.debit_m3_h;
+    document.getElementById('res_hgeo').innerText           = data.hydraulique.hauteur_geo_m;
+    document.getElementById('res_pertes').innerText         = data.hydraulique.pertes_charge_m;
+    document.getElementById('res_HMT').innerText            = data.hydraulique.HMT_m;
+    document.getElementById('res_Ph').innerText             = data.pompe.Ph_kW;
+    document.getElementById('res_Pp').innerText             = data.pompe.Pp_kW;
+    document.getElementById('res_Pm').innerText             = data.pompe.Pm_kW;
+    document.getElementById('res_Pm_commercial').innerText  = data.pompe.Pm_commercial_kW;
+    document.getElementById('res_energie_solaire').classList.add('hidden');
+    document.getElementById('res_energie_groupe').classList.add('hidden');
+    document.getElementById('res_energie_batteries').classList.add('hidden');
+    var s = data.source_energie;
+    if (s === 'solaire' || s === 'hybride_groupe' || s === 'hybride_batteries') {
+        document.getElementById('res_energie_solaire').classList.remove('hidden');
+        var sol = (s === 'solaire') ? data.energie : data.energie.solaire;
+        document.getElementById('res_energie_jour').innerText    = sol.energie_jour_kWh;
+        document.getElementById('res_puissance_crete').innerText = sol.puissance_crete_kWp;
+        document.getElementById('res_nb_panneaux').innerText     = sol.nb_panneaux_300Wc;
+        document.getElementById('res_courant_pv').innerText      = sol.courant_A;
+    }
+    if (s === 'groupe' || s === 'hybride_groupe') {
+        document.getElementById('res_energie_groupe').classList.remove('hidden');
+        var grp = (s === 'groupe') ? data.energie : data.energie.groupe;
+        document.getElementById('res_puissance_groupe').innerText = grp.puissance_groupe_kW;
+        document.getElementById('res_conso_jour').innerText       = grp.consommation_jour_litres;
+        document.getElementById('res_conso_mois').innerText       = grp.consommation_mois_litres;
+    }
+    if (s === 'hybride_batteries') {
+        document.getElementById('res_energie_batteries').classList.remove('hidden');
+        document.getElementById('res_energie_stockage').innerText = data.energie.energie_stockage_kWh;
+        document.getElementById('res_capacite_totale').innerText  = data.energie.capacite_totale_Ah;
+        document.getElementById('res_nb_batteries').innerText     = data.energie.nb_batteries;
+    }
+    afficherVerificationPompe(data);
+    afficherEquipementsChoisis(data);
+}
+
+function afficherVerificationPompe(data) {
+    var divVerif = document.getElementById('res_verification_pompe');
+    var divContent = document.getElementById('res_verification_pompe_content');
+    var divInfo = document.getElementById('res_pompe_choisie_info');
+    var marque = data.marque_pompe || '';
+    var modele = data.modele_pompe || '';
+    if (!marque || !modele) { divVerif.classList.add('hidden'); return; }
+    divVerif.classList.remove('hidden');
+    var Q = data.hydraulique.debit_m3_h, HMT = data.hydraulique.HMT_m;
+    fetch('/get_pompe', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque,modele:modele}) })
+    .then(function(r) { return r.json(); })
+    .then(function(resp) {
+        if (resp.succes) {
+            var p = resp.pompe;
+            divInfo.innerHTML = '<div class="pompe-card best"><div class="pompe-rank rank-1">✓</div><div class="pompe-info"><div class="pompe-name">' + p.marque + ' — ' + p.modele + '</div><div class="pompe-specs"><span>Débit max : <strong>' + p.debit_max_m3h + ' m³/h</strong></span><span>HMT max : <strong>' + p.HMT_max_m + ' m</strong></span><span>Puissance : <strong>' + p.puissance_kW + ' kW</strong></span></div></div></div>';
+            var ok_debit = p.debit_max_m3h >= Q, ok_HMT = p.HMT_max_m >= HMT, ok_src = p.source_energie.includes(data.source_energie);
+            if (ok_debit && ok_HMT && ok_src) { divContent.innerHTML = '<div class="msg msg-success">✅ La pompe ' + marque + ' ' + modele + ' est compatible.</div>'; }
+            else {
+                var msg = '⚠️ Incompatibilités : ';
+                if (!ok_debit) msg += 'Débit insuffisant. ';
+                if (!ok_HMT) msg += 'HMT insuffisante. ';
+                if (!ok_src) msg += 'Source d\'énergie incompatible.';
+                divContent.innerHTML = '<div class="msg msg-warning">' + msg + '</div>';
+            }
+        }
+    });
+}
+
+function afficherEquipementsChoisis(data) {
+    var div = document.getElementById('res_equipements');
+    var content = document.getElementById('res_equipements_content');
+    var src = data.source_energie;
+    var hasPV = (src === 'solaire' || src === 'hybride_groupe' || src === 'hybride_batteries');
+    if (!hasPV) { div.classList.add('hidden'); return; }
+    div.classList.remove('hidden');
+    var html = '';
+    var marque_pan = getMarquePanneau(), modele_pan = getModelePanneau();
+    if (marque_pan) { html += '<div class="pompe-card"><div class="pompe-rank rank-2">☀️</div><div class="pompe-info"><div class="pompe-name">Panneau — ' + marque_pan + '</div><div class="pompe-specs"><span>' + modele_pan + '</span><span>Nombre calculé : <strong>' + document.getElementById('res_nb_panneaux').innerText + ' panneaux</strong></span></div></div></div>'; }
+    var marque_reg = getMarqueRegulateur(), modele_reg = getModeleRegulateur();
+    if (marque_reg) { html += '<div class="pompe-card"><div class="pompe-rank rank-3">⚡</div><div class="pompe-info"><div class="pompe-name">Régulateur — ' + marque_reg + '</div><div class="pompe-specs"><span>' + modele_reg + '</span></div></div></div>'; }
+    if (src === 'hybride_batteries') {
+        var marque_bat = getMarqueBatterie(), modele_bat = getModeleBatterie();
+        if (marque_bat) { html += '<div class="pompe-card"><div class="pompe-rank rank-3">🔋</div><div class="pompe-info"><div class="pompe-name">Batterie — ' + marque_bat + '</div><div class="pompe-specs"><span>' + modele_bat + '</span><span>Nombre : <strong>' + document.getElementById('res_nb_batteries').innerText + '</strong></span></div></div></div>'; }
+    }
+    content.innerHTML = html;
+}
+
+function genererPDF() {
+    if (!lat_choisie) { alert('Données incomplètes !'); return; }
+    var source_energie = document.getElementById('source_energie').value;
+    var tension_batterie = null, capacite_batterie = null, jours_autonomie = null;
+    if (source_energie === 'hybride_batteries') {
+        tension_batterie  = document.getElementById('tension_batterie').value;
+        capacite_batterie = document.getElementById('capacite_batterie').value;
+        jours_autonomie   = parseInt(document.getElementById('jours_autonomie').value);
+    }
+    fetch('/generer_pdf', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            lat:lat_choisie, lon:lon_choisie,
+            nom_projet:document.getElementById('nom_projet').value,
+            realise_par:document.getElementById('realise_par').value,
+            date_projet:document.getElementById('date_projet').value,
+            temperature_max:document.getElementById('temperature_max').innerText,
+            temperature_min:document.getElementById('temperature_min').innerText,
+            irradiation:document.getElementById('irradiation').innerText,
+            ET0_max:document.getElementById('ET0_max').innerText,
+            mois_critique:document.getElementById('mois_critique').innerText,
+            source_energie:source_energie,
+            heures_pompage:parseFloat(document.getElementById('heures_pompage').value),
+            tension_pv:document.getElementById('tension_pv').value,
+            tension_batterie:tension_batterie, capacite_batterie:capacite_batterie, jours_autonomie:jours_autonomie,
+            marque_pompe:getMarquePompe(), modele_pompe:getModelePompe(),
+            marque_panneau:getMarquePanneau(), modele_panneau:getModelePanneau(),
+            marque_regulateur:getMarqueRegulateur(), modele_regulateur:getModeleRegulateur(),
+            marque_batterie:getMarqueBatterie(), modele_batterie:getModeleBatterie(),
+            nb_panneaux_calcul:document.getElementById('res_nb_panneaux').innerText,
+            besoins:{ETc:document.getElementById('res_ETc').innerText,besoin_net_m3_jour:document.getElementById('res_besoin_net').innerText,besoin_brut_m3_jour:document.getElementById('res_besoin_brut').innerText,besoin_session_m3:document.getElementById('res_besoin_session').innerText},
+            hydraulique:{debit_m3_h:document.getElementById('res_debit').innerText,hauteur_geo_m:document.getElementById('res_hgeo').innerText,pertes_charge_m:document.getElementById('res_pertes').innerText,HMT_m:document.getElementById('res_HMT').innerText,debit_L_s:'—',vitesse_m_s:'—'},
+            pompe:{Ph_kW:document.getElementById('res_Ph').innerText,Pp_kW:document.getElementById('res_Pp').innerText,Pm_kW:document.getElementById('res_Pm').innerText,Pm_commercial_kW:document.getElementById('res_Pm_commercial').innerText,debit_L_s:'—'},
+            energie:obtenirDonneesEnergie(source_energie)
+        })
+    })
+    .then(function(r) { return r.blob(); })
+    .then(function(blob) {
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'rapport_hydro.pdf'; a.click();
+        window.URL.revokeObjectURL(url);
+    });
+}
+
+function obtenirDonneesEnergie(s) {
+    if (s === 'solaire') return {energie_jour_kWh:document.getElementById('res_energie_jour').innerText,puissance_crete_kWp:document.getElementById('res_puissance_crete').innerText,nb_panneaux_300Wc:document.getElementById('res_nb_panneaux').innerText,courant_A:document.getElementById('res_courant_pv').innerText};
+    if (s === 'groupe')  return {puissance_groupe_kW:document.getElementById('res_puissance_groupe').innerText,consommation_jour_litres:document.getElementById('res_conso_jour').innerText,consommation_mois_litres:document.getElementById('res_conso_mois').innerText};
+    if (s === 'hybride_groupe') return {solaire:{puissance_crete_kWp:document.getElementById('res_puissance_crete').innerText,nb_panneaux_300Wc:document.getElementById('res_nb_panneaux').innerText},groupe:{puissance_groupe_kW:document.getElementById('res_puissance_groupe').innerText,consommation_jour_litres:document.getElementById('res_conso_jour').innerText}};
+    if (s === 'hybride_batteries') return {solaire:{puissance_crete_kWp:document.getElementById('res_puissance_crete').innerText,nb_panneaux_300Wc:document.getElementById('res_nb_panneaux').innerText},energie_stockage_kWh:document.getElementById('res_energie_stockage').innerText,capacite_totale_Ah:document.getElementById('res_capacite_totale').innerText,nb_batteries:document.getElementById('res_nb_batteries').innerText};
+    return {};
+}
+
+afficherKcManuel();
+setTimeout(function() {
+    chargerMarques();
+    chargerMarquesPanneaux();
+    chargerMarquesBatteries();
+    chargerMarquesRegulateurs();
+    mettreAJourEquipements();
+}, 1000);
+</script>
+</body>
+</html>
