@@ -106,7 +106,7 @@ def get_climate():
             "community": "AG", "format": "JSON",
             "start": "2020", "end": "2023"
         }
-        response = requests.get(url, params=params, timeout=30)
+        response = requests.get(url, params=params, timeout=60)
         donnees     = response.json()
         T_max       = list(donnees['properties']['parameter']['T2M_MAX'].values())
         T_min       = list(donnees['properties']['parameter']['T2M_MIN'].values())
