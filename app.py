@@ -53,8 +53,9 @@ selectionner_pompes        = pompes_bd_mod.selectionner_pompes
 
 app = Flask(__name__)
 app.secret_key = 'solarpump_secret_key_2026_esmer'
-app.config['SESSION_PERMANENT'] = False
-app.config['PERMANENT_SESSION_LIFETIME'] = 0
+from datetime import timedelta
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 bcrypt = Bcrypt(app)
 
 from auth import auth as auth_blueprint
