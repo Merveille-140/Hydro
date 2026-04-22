@@ -71,6 +71,8 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'user_id' not in session:
+            if request.is_json or request.headers.get('Content-Type') == 'application/json':
+                return jsonify({"succes": False, "erreur": "Non connecté"}), 401
             return redirect(url_for('auth.connexion'))
         return f(*args, **kwargs)
     return decorated
