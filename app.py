@@ -93,9 +93,11 @@ def choix_systeme():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    projets = get_projets_utilisateur(session['user_id'])
     return render_template('dashboard.html',
                            user_nom=session['user_nom'],
-                           user_email=session.get('user_email', ''))
+                           user_email=session.get('user_email', ''),
+                           projets=projets)
 # ============================================================
 # DONNÉES CLIMATIQUES NASA POWER
 # ============================================================

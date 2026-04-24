@@ -55,7 +55,7 @@
             line-height: 1.5;
         }
 
-        .page { display: none; animation: fadeUp 0.3s ease; }
+        .page { display: none; animation: fadeUp 0.3s ease; margin-left: 52px; }
         .page.active { display: block; }
 
         @keyframes fadeUp {
@@ -340,7 +340,8 @@
             transition: all 0.3s ease;
         }
 
-        .step-item.active .step-circle { background: var(--forest); border-color: var(--forest); color: white; }
+        .step-item.active { background: rgba(212,160,23,0.15); border: 1px solid rgba(212,160,23,0.4); border-radius: 20px; padding: 4px 10px 4px 6px; }
+        .step-item.active .step-circle { background: #d4a017; border-color: #d4a017; color: #000; font-weight: 700; }
         .step-item.done .step-circle   { background: var(--forest-lite); border-color: var(--forest-lite); color: white; font-size: 11px; }
 
         .step-info { display: flex; flex-direction: column; }
@@ -351,7 +352,7 @@
             transition: color 0.3s;
         }
 
-        .step-item.active .step-lbl { color: var(--forest); }
+        .step-item.active .step-lbl { color: #d4a017; }
         .step-item.done .step-lbl   { color: var(--forest-lite); }
         .step-sub-lbl { font-size: 10px; color: rgba(255,255,255,0.3); }
 
@@ -883,32 +884,154 @@
         .spinner { border: 2px solid rgba(82,183,136,0.3) !important; border-top-color: #86efac !important; }
         .btn-back, .btn-next,.climate-value { color: var(--gold) !important; }
 .coord-chip strong { color: var(--gold) !important; } .btn-calculate, .btn-search, .btn-pdf { font-family: 'Poppins', sans-serif !important; }
+        /* ============================================================
+           BARRE FINE FIXE + SIDEBAR PROJETS
+        ============================================================ */
+        .thin-bar {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            width: 52px;
+            background: #0a1f10;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            z-index: 150;
+        }
+        .menu-btn {
+            width: 36px; height: 36px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            color: rgba(255,255,255,0.65);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+        .menu-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+        .bar-avatar {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d4a017, #f0c040);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700; color: #000;
+            cursor: pointer; border: none;
+            box-shadow: 0 2px 8px rgba(212,160,23,0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+        .bar-avatar:hover { transform: scale(1.08); box-shadow: 0 4px 14px rgba(212,160,23,0.5); }
+        .proj-sidebar {
+            position: fixed;
+            left: 52px; top: 0; bottom: 0;
+            width: 0;
+            background: #0d2218;
+            overflow: hidden;
+            transition: width 0.25s ease;
+            z-index: 99;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.35);
+        }
+        .proj-sidebar.open { width: 240px; }
+        .proj-sidebar-content { min-width: 240px; height: 100%; display: flex; flex-direction: column; }
+        .proj-sidebar-header { display:flex; align-items:center; justify-content:space-between; padding:18px 18px 14px; border-bottom:1px solid rgba(255,255,255,0.07); flex-shrink:0; }
+        .proj-sidebar-title { font-size:13px; font-weight:700; color:rgba(255,255,255,0.85); text-transform:uppercase; letter-spacing:0.8px; font-family:'Poppins',sans-serif; }
+        .proj-close-btn { width:28px; height:28px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:rgba(255,255,255,0.5); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all 0.2s; }
+        .proj-close-btn:hover { background:rgba(255,255,255,0.12); color:white; }
+        .proj-list { flex:1; overflow-y:auto; padding:10px 0; }
+        .proj-list::-webkit-scrollbar { width:4px; }
+        .proj-list::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }
+        .proj-item { padding:12px 18px; border-bottom:1px solid rgba(255,255,255,0.05); transition:background 0.15s; }
+        .proj-item:hover { background:rgba(255,255,255,0.04); }
+        .proj-name { font-size:13px; font-weight:600; color:white; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'Poppins',sans-serif; }
+        .proj-meta { font-size:11px; color:rgba(255,255,255,0.35); margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'Poppins',sans-serif; }
+        .proj-resume-btn { display:inline-block; font-size:11px; font-weight:700; color:#52b788; text-decoration:none; transition:color 0.2s; font-family:'Poppins',sans-serif; }
+        .proj-resume-btn:hover { color:#86efac; }
+        .proj-no-items { padding:20px 18px; font-size:12px; color:rgba(255,255,255,0.3); line-height:1.6; font-family:'Poppins',sans-serif; }
+        .proj-sidebar-footer { flex-shrink:0; padding:14px 18px 18px; border-top:1px solid rgba(255,255,255,0.07); }
+        .proj-user-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+        .proj-user-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#d4a017,#f0c040); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#0a1f10; flex-shrink:0; }
+        .proj-user-nom { font-size:13px; font-weight:600; color:rgba(255,255,255,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'Poppins',sans-serif; }
+        .proj-logout { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:#ef4444; text-decoration:none; padding:8px 10px; border-radius:8px; background:rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.15); transition:all 0.2s; font-family:'Poppins',sans-serif; }
+        .proj-logout:hover { background:rgba(220,38,38,0.15); border-color:rgba(220,38,38,0.3); }
+        .proj-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:98; }
+        .proj-overlay.visible { display:block; }
+
+        /* ---- responsive thin-bar ---- */
+        @media (max-width: 1024px) {
+            .page { margin-left: 52px; }
+        }
+        @media (max-width: 768px) {
+            .thin-bar { width: 44px; }
+            .proj-sidebar { left: 44px; }
+            .proj-sidebar.open { width: calc(100vw - 44px); }
+            .page { margin-left: 44px; }
+            .stepper { overflow-x: auto; padding-bottom: 4px; }
+            .stepper::-webkit-scrollbar { height: 3px; }
+            .stepper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius:2px; }
+            .step-lbl, .step-sub-lbl { white-space: nowrap; }
+        }
+        @media (max-width: 480px) {
+            .thin-bar { width: 44px; }
+            .page { margin-left: 44px; }
+        }
     </style>
 </head>
 <body>
 
 <!-- ================================================================
+     BARRE FINE FIXE + SIDEBAR PROJETS (partagés entre toutes les pages)
+================================================================ -->
+<div class="thin-bar">
+    <button class="menu-btn" onclick="toggleProjSidebar()" aria-label="Mes projets">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+    </button>
+    <button class="bar-avatar" onclick="toggleProjSidebar()" aria-label="Menu projets">{{ user_nom[0]|upper }}</button>
+</div>
+
+<div class="proj-sidebar" id="proj-sidebar">
+    <div class="proj-sidebar-content">
+        <div class="proj-sidebar-header">
+            <span class="proj-sidebar-title">Mes projets</span>
+            <button class="proj-close-btn" onclick="closeProjSidebar()" aria-label="Fermer">✕</button>
+        </div>
+        <div class="proj-list">
+            {% for projet in projets %}
+            <div class="proj-item">
+                <div class="proj-name">{{ projet.nom_projet }}</div>
+                <div class="proj-meta">{{ projet.source_energie or '—' }}{% if projet.date_modif %} · {{ projet.date_modif[:10] }}{% endif %}</div>
+                <a href="/dashboard?projet_id={{ projet.id }}" class="proj-resume-btn">Reprendre →</a>
+            </div>
+            {% else %}
+            <p class="proj-no-items">Aucun projet sauvegardé.<br>Commencez un dimensionnement.</p>
+            {% endfor %}
+        </div>
+        <div class="proj-sidebar-footer">
+            <div class="proj-user-row">
+                <div class="proj-user-avatar">{{ user_nom[0]|upper }}</div>
+                <span class="proj-user-nom">{{ user_nom }}</span>
+            </div>
+            <a href="/deconnexion" class="proj-logout">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Se déconnecter
+            </a>
+        </div>
+    </div>
+</div>
+<div class="proj-overlay" id="proj-overlay" onclick="closeProjSidebar()"></div>
+
+<!-- ================================================================
      PAGE LOCALISATION
 ================================================================ -->
 <div id="page-localisation" class="page active">
-    <nav class="app-navbar" style="justify-content:space-between;">
-        <div class="logo"><div class="logo-icon">💧</div>Hydro</div>
-        <div class="nav-profile">
-            <div class="profile-btn" id="profileBtn2" onclick="toggleDropdown2()">
-                <div class="profile-avatar">{{ user_nom[0]|upper }}</div>
-                <span class="profile-name">{{ user_nom }}</span>
-                <span class="profile-chevron">▼</span>
-            </div>
-            <div class="profile-dropdown" id="profileDropdown2">
-                <div class="dropdown-header">
-                    <div class="dropdown-user-name">{{ user_nom }}</div>
-                    <div class="dropdown-user-email">{{ user_email }}</div>
-                </div>
-                <a href="/dashboard" class="dropdown-item"><div class="dropdown-icon icon-green">📁</div>Mes projets</a>
-                <div class="dropdown-divider"></div>
-                <a href="/deconnexion" class="dropdown-item danger"><div class="dropdown-icon icon-red">🚪</div>Se déconnecter</a>
-            </div>
-        </div>
+    <nav class="app-navbar" style="justify-content:center;">
+        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
     </nav>
     <div class="page-bg">
     <div class="stepper-bar">
@@ -976,24 +1099,8 @@
      PAGE BESOINS
 ================================================================ -->
 <div id="page-besoins" class="page">
-    <nav class="app-navbar" style="justify-content:space-between;">
-        <div class="logo"><div class="logo-icon">💧</div>Hydro</div>
-        <div class="nav-profile">
-            <div class="profile-btn" id="profileBtn2" onclick="toggleDropdown2()">
-                <div class="profile-avatar">{{ user_nom[0]|upper }}</div>
-                <span class="profile-name">{{ user_nom }}</span>
-                <span class="profile-chevron">▼</span>
-            </div>
-            <div class="profile-dropdown" id="profileDropdown2">
-                <div class="dropdown-header">
-                    <div class="dropdown-user-name">{{ user_nom }}</div>
-                    <div class="dropdown-user-email">{{ user_email }}</div>
-                </div>
-                <a href="/mes_projets" class="dropdown-item"><div class="dropdown-icon icon-green">📁</div>Mes projets</a>
-                <div class="dropdown-divider"></div>
-                <a href="/deconnexion" class="dropdown-item danger"><div class="dropdown-icon icon-red">🚪</div>Se déconnecter</a>
-            </div>
-        </div>
+    <nav class="app-navbar" style="justify-content:center;">
+        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
     </nav>
     <div class="page-bg">
     <div class="stepper-bar">
@@ -1310,24 +1417,8 @@
 
 <!-- PAGE ÉNERGIE & RÉSULTATS : identiques à l'original, copiées ici -->
 <div id="page-energie" class="page">
-    <nav class="app-navbar" style="justify-content:space-between;">
-        <div class="logo"><div class="logo-icon">💧</div>Hydro</div>
-        <div class="nav-profile">
-            <div class="profile-btn" id="profileBtn2" onclick="toggleDropdown2()">
-                <div class="profile-avatar">{{ user_nom[0]|upper }}</div>
-                <span class="profile-name">{{ user_nom }}</span>
-                <span class="profile-chevron">▼</span>
-            </div>
-            <div class="profile-dropdown" id="profileDropdown2">
-                <div class="dropdown-header">
-                    <div class="dropdown-user-name">{{ user_nom }}</div>
-                    <div class="dropdown-user-email">{{ user_email }}</div>
-                </div>
-                <a href="/mes_projets" class="dropdown-item"><div class="dropdown-icon icon-green">📁</div>Mes projets</a>
-                <div class="dropdown-divider"></div>
-                <a href="/deconnexion" class="dropdown-item danger"><div class="dropdown-icon icon-red">🚪</div>Se déconnecter</a>
-            </div>
-        </div>
+    <nav class="app-navbar" style="justify-content:center;">
+        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
     </nav>
     <div class="page-bg">
     <div class="stepper-bar">
@@ -1517,24 +1608,8 @@
 </div>
 
 <div id="page-resultats" class="page">
-    <nav class="app-navbar" style="justify-content:space-between;">
-        <div class="logo"><div class="logo-icon">💧</div>Hydro</div>
-        <div class="nav-profile">
-            <div class="profile-btn" id="profileBtn2" onclick="toggleDropdown2()">
-                <div class="profile-avatar">{{ user_nom[0]|upper }}</div>
-                <span class="profile-name">{{ user_nom }}</span>
-                <span class="profile-chevron">▼</span>
-            </div>
-            <div class="profile-dropdown" id="profileDropdown2">
-                <div class="dropdown-header">
-                    <div class="dropdown-user-name">{{ user_nom }}</div>
-                    <div class="dropdown-user-email">{{ user_email }}</div>
-                </div>
-                <a href="/mes_projets" class="dropdown-item"><div class="dropdown-icon icon-green">📁</div>Mes projets</a>
-                <div class="dropdown-divider"></div>
-                <a href="/deconnexion" class="dropdown-item danger"><div class="dropdown-icon icon-red">🚪</div>Se déconnecter</a>
-            </div>
-        </div>
+    <nav class="app-navbar" style="justify-content:center;">
+        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
     </nav>
     <div class="page-bg">
     <div class="stepper-bar">
@@ -2414,6 +2489,22 @@ function toggleDropdown() {
     document.getElementById('profileDropdown').classList.toggle('open');
 }
 
+
+/* ---- Thin-bar / Proj-sidebar ---- */
+(function() {
+    var projSidebar = document.getElementById('proj-sidebar');
+    var projOverlay = document.getElementById('proj-overlay');
+    function isMobile() { return window.innerWidth <= 768; }
+    window.toggleProjSidebar = function() {
+        if (projSidebar.classList.contains('open')) { closeProjSidebar(); }
+        else { projSidebar.classList.add('open'); if (isMobile()) projOverlay.classList.add('visible'); }
+    };
+    window.closeProjSidebar = function() {
+        projSidebar.classList.remove('open');
+        projOverlay.classList.remove('visible');
+    };
+    window.addEventListener('resize', function() { if (!isMobile()) projOverlay.classList.remove('visible'); });
+})();
 
 afficherKcManuel();
 setTimeout(function() {
