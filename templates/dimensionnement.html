@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydro — Dimensionnement</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('/static/images/irrigation.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 0;
+        }
+
+        /* ============================================================
+           NAVBAR
+        ============================================================ */
+        .navbar {
+            position: relative;
+            z-index: 30;
+            height: 64px;
+            background: #1a472a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
+        }
+
+        .logo { display:flex; align-items:center; gap:12px; text-decoration:none; }
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #d4a017, #f0c040);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 10px rgba(212,160,23,0.4);
+        }
+        .logo-text { font-size:20px; font-weight:800; color:white; letter-spacing:-0.5px; }
+
+        /* ============================================================
+           BARRE ÉTAPES — sous la navbar, pleine largeur
+        ============================================================ */
+        .steps-bar {
+            position: relative;
+            z-index: 29;
+            background: rgba(10,31,16,0.92);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            height: 52px;
+        }
+
+        .steps-list {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            list-style: none;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .step-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: none;
+            background: transparent;
+            cursor: default;
+            transition: all 0.2s;
+        }
+
+        .step-num {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            border: 1.5px solid rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.4);
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .step-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.35);
+            white-space: nowrap;
+            transition: color 0.2s;
+        }
+
+        /* Étape active */
+        .step-item.active .step-num {
+            background: #d4a017;
+            border-color: #d4a017;
+            color: #000;
+        }
+        .step-item.active .step-label {
+            color: #f0c040;
+        }
+
+        /* Étape complétée */
+        .step-item.done .step-num {
+            background: #52b788;
+            border-color: #52b788;
+            color: #000;
+        }
+        .step-item.done .step-label {
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Séparateur → */
+        .step-sep {
+            color: rgba(255,255,255,0.2);
+            font-size: 12px;
+            padding: 0 6px;
+            user-select: none;
+        }
+
+        /* ============================================================
+           PAGE BODY — layout deux colonnes
+        ============================================================ */
+        .page-body {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex: 1;
+            min-height: calc(100vh - 116px); /* 64 navbar + 52 steps */
+            overflow: hidden;
+        }
+
+        /* ============================================================
+           BARRE FINE GAUCHE
+        ============================================================ */
+        .thin-bar {
+            width: 52px;
+            flex-shrink: 0;
+            background: #0a1f10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            z-index: 20;
+            position: relative;
+        }
+
+        .menu-btn {
+            width: 36px; height: 36px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            color: rgba(255,255,255,0.65);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+        .menu-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+
+        .bar-avatar {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d4a017, #f0c040);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            box-shadow: 0 2px 8px rgba(212,160,23,0.35);
+        }
+        .bar-avatar:hover { transform: scale(1.08); box-shadow: 0 4px 14px rgba(212,160,23,0.5); }
+
+        /* ============================================================
+           PANNEAU SIDEBAR
+        ============================================================ */
+        .sidebar {
+            position: absolute;
+            left: 52px;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            background: #0d2218;
+            overflow: hidden;
+            transition: width 0.25s ease;
+            z-index: 15;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.35);
+        }
+        .sidebar.open { width: 240px; }
+
+        .sidebar-content {
+            min-width: 240px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            flex-shrink: 0;
+        }
+        .sidebar-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.85);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .close-btn {
+            width: 28px; height: 28px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+        .sidebar-list::-webkit-scrollbar { width: 4px; }
+        .sidebar-list::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+        .projet-item {
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.15s;
+        }
+        .projet-item:hover { background: rgba(255,255,255,0.04); }
+
+        .projet-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .projet-meta {
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .projet-btn {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #52b788;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .projet-btn:hover { color: #86efac; }
+
+        .no-projets {
+            padding: 20px 18px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            line-height: 1.6;
+        }
+
+        .sidebar-footer {
+            flex-shrink: 0;
+            padding: 14px 18px 18px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        .user-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .user-avatar-sb {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d4a017, #f0c040);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: #0a1f10;
+            flex-shrink: 0;
+        }
+        .user-nom-sb {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .logout-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ef4444;
+            text-decoration: none;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(239,68,68,0.2);
+            transition: all 0.2s;
+        }
+        .logout-link:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.4); }
+
+        /* ============================================================
+           OVERLAY MOBILE
+        ============================================================ */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 14;
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* ============================================================
+           MAIN CONTENT
+        ============================================================ */
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 32px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 760px;
+        }
+
+        /* ---- PANNEAUX ÉTAPES ---- */
+        .step-panel { display: none; }
+        .step-panel.active { display: block; }
+
+        .panel-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+        .panel-subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        /* ---- FORMULAIRE ---- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input, select {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            color: white;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        input::placeholder { color: rgba(255,255,255,0.25); }
+        input:focus, select:focus {
+            border-color: rgba(212,160,23,0.5);
+            background: rgba(255,255,255,0.1);
+        }
+        select option { background: #0d2218; color: white; }
+
+        /* ---- BOUTONS NAV ---- */
+        .nav-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .btn-prev, .btn-next {
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-prev {
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .btn-prev:hover { background: rgba(255,255,255,0.12); color: white; }
+        .btn-next {
+            background: #1a472a;
+            color: white;
+            box-shadow: 0 4px 16px rgba(26,71,42,0.45);
+        }
+        .btn-next:hover { background: #2d6a4f; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,71,42,0.55); }
+
+        /* ---- MAP ---- */
+        #map {
+            width: 100%;
+            height: 260px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+        @media (max-width: 768px) {
+            .navbar { height: 56px; }
+            .steps-bar { height: 44px; padding: 0 8px; }
+            .step-label { display: none; }
+            .step-btn { padding: 4px 8px; gap: 4px; }
+            .page-body { min-height: calc(100vh - 100px); }
+            .thin-bar { width: 44px; }
+            .sidebar { left: 44px; }
+            .sidebar.open { width: calc(100vw - 44px); }
+            .main { padding: 24px 16px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .panel-title { font-size: 18px; }
+        }
+
+        @media (max-width: 480px) {
+            .step-sep { display: none; }
+            .main { padding: 16px 12px; }
+        }
+    </style>
+    <!-- Leaflet pour la carte de localisation -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/>
+                    <line x1="12" y1="14" x2="12" y2="22"/>
+                    <line x1="8" y1="22" x2="16" y2="22"/>
+                </svg>
+            </div>
+            <span class="logo-text">Hydro</span>
+        </a>
+    </nav>
+
+    <!-- BARRE ÉTAPES -->
+    <div class="steps-bar">
+        <ul class="steps-list" id="steps-list">
+            <li class="step-item active" id="step-item-0">
+                <button class="step-btn" type="button">
+                    <span class="step-num">1</span>
+                    <span class="step-label">Localisation</span>
+                </button>
+            </li>
+            <li class="step-sep">→</li>
+            <li class="step-item" id="step-item-1">
+                <button class="step-btn" type="button">
+                    <span class="step-num">2</span>
+                    <span class="step-label">Besoins</span>
+                </button>
+            </li>
+            <li class="step-sep">→</li>
+            <li class="step-item" id="step-item-2">
+                <button class="step-btn" type="button">
+                    <span class="step-num">3</span>
+                    <span class="step-label">Énergie</span>
+                </button>
+            </li>
+            <li class="step-sep">→</li>
+            <li class="step-item" id="step-item-3">
+                <button class="step-btn" type="button">
+                    <span class="step-num">4</span>
+                    <span class="step-label">Résultats</span>
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+
+        <!-- BARRE FINE -->
+        <div class="thin-bar">
+            <button class="menu-btn" onclick="toggleSidebar()" aria-label="Menu projets">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <button class="bar-avatar" onclick="toggleSidebar()" aria-label="Ouvrir le menu">
+                {{ user_nom[0]|upper }}
+            </button>
+        </div>
+
+        <!-- SIDEBAR PANEL -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-content">
+
+                <div class="sidebar-header">
+                    <span class="sidebar-title">Mes projets</span>
+                    <button class="close-btn" onclick="closeSidebar()" aria-label="Fermer">✕</button>
+                </div>
+
+                <div class="sidebar-list">
+                    {% for projet in projets %}
+                    <div class="projet-item">
+                        <div class="projet-name">{{ projet.nom_projet }}</div>
+                        <div class="projet-meta">
+                            {{ projet.source_energie or '—' }}
+                            {% if projet.date_modif %}· {{ projet.date_modif[:10] }}{% endif %}
+                        </div>
+                        <a href="/dashboard?projet_id={{ projet.id }}" class="projet-btn">Reprendre →</a>
+                    </div>
+                    {% else %}
+                    <p class="no-projets">Aucun projet sauvegardé.<br>Créez votre premier dimensionnement.</p>
+                    {% endfor %}
+                </div>
+
+                <div class="sidebar-footer">
+                    <div class="user-row">
+                        <div class="user-avatar-sb">{{ user_nom[0]|upper }}</div>
+                        <span class="user-nom-sb">{{ user_nom }}</span>
+                    </div>
+                    <a href="/deconnexion" class="logout-link">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Se déconnecter
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- OVERLAY MOBILE -->
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+        <!-- CONTENU PRINCIPAL -->
+        <div class="main">
+            <div class="container">
+
+                <!-- ══ ÉTAPE 1 : LOCALISATION ══ -->
+                <div class="step-panel active" id="panel-0">
+                    <h2 class="panel-title">Localisation du site</h2>
+                    <p class="panel-subtitle">Cliquez sur la carte ou saisissez les coordonnées pour définir l'emplacement du projet.</p>
+
+                    <div id="map"></div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="lat">Latitude</label>
+                            <input type="number" id="lat" name="lat" placeholder="ex : 6.3654" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="lon">Longitude</label>
+                            <input type="number" id="lon" name="lon" placeholder="ex : 2.4183" step="any">
+                        </div>
+                        <div class="form-group full">
+                            <label for="nom_projet">Nom du projet</label>
+                            <input type="text" id="nom_projet" name="nom_projet" placeholder="ex : Irrigation Cotonou Nord">
+                        </div>
+                    </div>
+
+                    <div class="nav-btns">
+                        <button class="btn-next" onclick="goToStep(1)">Suivant →</button>
+                    </div>
+                </div>
+
+                <!-- ══ ÉTAPE 2 : BESOINS ══ -->
+                <div class="step-panel" id="panel-1">
+                    <h2 class="panel-title">Besoins en eau</h2>
+                    <p class="panel-subtitle">Renseignez la culture, la surface et les paramètres d'irrigation.</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="culture">Culture</label>
+                            <select id="culture" name="culture">
+                                <option value="">— Sélectionner —</option>
+                                <option value="maïs">Maïs</option>
+                                <option value="tomate">Tomate</option>
+                                <option value="riz">Riz</option>
+                                <option value="haricot">Haricot</option>
+                                <option value="manioc">Manioc</option>
+                                <option value="legumes">Légumes divers</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="superficie">Superficie (ha)</label>
+                            <input type="number" id="superficie" name="superficie" placeholder="ex : 2.5" min="0.01" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="heures_pompage">Heures de pompage / jour</label>
+                            <input type="number" id="heures_pompage" name="heures_pompage" placeholder="ex : 8" min="1" max="24">
+                        </div>
+                        <div class="form-group">
+                            <label for="profondeur">Profondeur nappe (m)</label>
+                            <input type="number" id="profondeur" name="profondeur" placeholder="ex : 15" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="hmt">HMT totale (m)</label>
+                            <input type="number" id="hmt" name="hmt" placeholder="ex : 25" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="distance">Distance refoulement (m)</label>
+                            <input type="number" id="distance" name="distance" placeholder="ex : 200" min="0">
+                        </div>
+                    </div>
+
+                    <div class="nav-btns">
+                        <button class="btn-prev" onclick="goToStep(0)">← Retour</button>
+                        <button class="btn-next" onclick="goToStep(2)">Suivant →</button>
+                    </div>
+                </div>
+
+                <!-- ══ ÉTAPE 3 : ÉNERGIE ══ -->
+                <div class="step-panel" id="panel-2">
+                    <h2 class="panel-title">Source d'énergie</h2>
+                    <p class="panel-subtitle">Paramètres spécifiques à la source d'énergie choisie.</p>
+
+                    <div class="form-grid" id="energie-fields">
+                        <!-- Champs injectés dynamiquement selon la source -->
+                        <div class="form-group full">
+                            <label for="source_energie">Source d'énergie</label>
+                            <select id="source_energie" name="source_energie" onchange="updateEnergieFields()">
+                                <option value="solaire">Solaire au fil du soleil</option>
+                                <option value="hybride_batteries">Solaire avec batteries</option>
+                                <option value="groupe">Groupe électrogène</option>
+                                <option value="reseau">Réseau électrique</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="field-irradiation">
+                            <label for="irradiation">Irradiation (kWh/m²/j)</label>
+                            <input type="number" id="irradiation" name="irradiation" placeholder="ex : 5.5" step="0.1">
+                        </div>
+                        <div class="form-group" id="field-rendement">
+                            <label for="rendement_pompe">Rendement pompe (%)</label>
+                            <input type="number" id="rendement_pompe" name="rendement_pompe" placeholder="ex : 65" min="10" max="100">
+                        </div>
+                    </div>
+
+                    <div class="nav-btns">
+                        <button class="btn-prev" onclick="goToStep(1)">← Retour</button>
+                        <button class="btn-next" onclick="lancerCalcul()">Calculer →</button>
+                    </div>
+                </div>
+
+                <!-- ══ ÉTAPE 4 : RÉSULTATS ══ -->
+                <div class="step-panel" id="panel-3">
+                    <h2 class="panel-title">Résultats du dimensionnement</h2>
+                    <p class="panel-subtitle">Récapitulatif des équipements calculés pour votre projet.</p>
+
+                    <div id="resultats-container" style="color:rgba(255,255,255,0.7); font-size:14px; line-height:2;">
+                        Les résultats s'afficheront ici après le calcul.
+                    </div>
+
+                    <div class="nav-btns" style="margin-top:32px;">
+                        <button class="btn-prev" onclick="goToStep(2)">← Modifier</button>
+                        <button class="btn-next" onclick="sauvegarder()">Sauvegarder le projet</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div><!-- .page-body -->
+
+    <script>
+        /* ── Sidebar ── */
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const isMobile = () => window.innerWidth <= 768;
+
+        function toggleSidebar() {
+            sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+        }
+        function openSidebar() {
+            sidebar.classList.add('open');
+            if (isMobile()) overlay.classList.add('visible');
+        }
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+        }
+        window.addEventListener('resize', () => {
+            if (!isMobile()) overlay.classList.remove('visible');
+        });
+
+        /* ── Étapes ── */
+        let currentStep = 0;
+        const TOTAL_STEPS = 4;
+
+        function goToStep(n) {
+            if (n < 0 || n >= TOTAL_STEPS) return;
+            document.getElementById('panel-' + currentStep).classList.remove('active');
+            document.getElementById('step-item-' + currentStep).classList.remove('active');
+            if (n > currentStep) {
+                document.getElementById('step-item-' + currentStep).classList.add('done');
+            } else {
+                document.getElementById('step-item-' + currentStep).classList.remove('done');
+            }
+            currentStep = n;
+            document.getElementById('panel-' + currentStep).classList.add('active');
+            document.getElementById('step-item-' + currentStep).classList.remove('done');
+            document.getElementById('step-item-' + currentStep).classList.add('active');
+        }
+
+        /* ── Carte Leaflet ── */
+        let map, marker;
+        document.addEventListener('DOMContentLoaded', () => {
+            map = L.map('map').setView([9.3, 2.3], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+            map.on('click', function(e) {
+                const { lat, lng } = e.latlng;
+                document.getElementById('lat').value = lat.toFixed(5);
+                document.getElementById('lon').value = lng.toFixed(5);
+                if (marker) marker.setLatLng(e.latlng);
+                else marker = L.marker(e.latlng).addTo(map);
+            });
+        });
+
+        /* ── Champs énergie dynamiques ── */
+        function updateEnergieFields() {
+            const src = document.getElementById('source_energie').value;
+            document.getElementById('field-irradiation').style.display =
+                (src === 'solaire' || src === 'hybride_batteries') ? '' : 'none';
+        }
+        updateEnergieFields();
+
+        /* ── Calcul (placeholder) ── */
+        function lancerCalcul() {
+            goToStep(3);
+            document.getElementById('resultats-container').innerHTML =
+                '<p style="color:#52b788; font-weight:600;">Calcul en cours…</p>';
+            // TODO: appel fetch('/calculer') avec les données du formulaire
+        }
+
+        /* ── Sauvegarde (placeholder) ── */
+        function sauvegarder() {
+            alert('Projet sauvegardé !');
+        }
+    </script>
+
+</body>
+</html>

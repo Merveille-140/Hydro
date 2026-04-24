@@ -69,218 +69,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ============================================================
-           NAVBAR DASHBOARD
-        ============================================================ */
-        .accueil-navbar {
-            background: var(--forest);
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
-            position: sticky;
-            top: 0;
-            z-index: 200;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .accueil-navbar .logo { display:flex; align-items:center; gap:12px; }
-        .accueil-navbar .logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--gold),var(--gold-lite)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
-        .accueil-navbar .logo-text { font-size:20px; font-weight:800; color:white; letter-spacing:-0.5px; font-family:'Poppins',sans-serif; }
-        .nav-profile { position:relative; }
-        .profile-btn { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:40px; padding:6px 14px 6px 8px; cursor:pointer; transition:background 0.2s; }
-        .profile-btn:hover { background:rgba(255,255,255,0.18); }
-        .profile-avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,var(--gold),var(--gold-lite)); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#000; flex-shrink:0; }
-        .profile-name { font-size:13px; font-weight:600; color:white; max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .profile-chevron { font-size:9px; color:rgba(255,255,255,0.6); transition:transform 0.2s; }
-        .profile-btn.open .profile-chevron { transform:rotate(180deg); }
-        .profile-dropdown { display:none; position:absolute; top:calc(100% + 10px); right:0; background:white; border:1px solid #e2e8f0; border-radius:14px; min-width:200px; box-shadow:0 10px 40px rgba(0,0,0,0.2); overflow:hidden; z-index:999; }
-        .profile-dropdown.open { display:block; }
-        .dropdown-header { padding:14px 16px; border-bottom:1px solid #f1f5f9; background:#f8fafc; }
-        .dropdown-user-name { font-size:14px; font-weight:700; color:#0f172a; }
-        .dropdown-user-email { font-size:11px; color:#94a3b8; margin-top:2px; }
-        .dropdown-item { display:flex; align-items:center; gap:10px; padding:11px 16px; font-size:13px; color:#334155; text-decoration:none; transition:background 0.15s; }
-        .dropdown-item:hover { background:#f8fafc; }
-        .dropdown-item.danger { color:#dc2626; }
-        .dropdown-item.danger:hover { background:#fef2f2; }
-        .dropdown-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
-        .icon-green { background:#f0fdf4; }
-        .icon-red   { background:#fef2f2; }
-        .dropdown-divider { height:1px; background:#f1f5f9; }
-
-        /* ============================================================
-           HERO
-        ============================================================ */
-        .hero {
-            position: relative;
-            min-height: calc(100vh - 64px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-image: url('/static/images/solar_pump1.jpg');
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
-            padding: 60px 80px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .hero-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(
-                160deg,
-                rgba(26,71,42,0.88) 0%,
-                rgba(26,71,42,0.70) 50%,
-                rgba(0,0,0,0.30) 100%
-            );
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            max-width: 700px;
-            width: 100%;
-        }
-
-        .hero-title {
-            font-family: 'Times New Roman', Georgia, serif;
-            font-size: 54px;
-            font-weight: 700;
-            line-height: 1.1;
-            letter-spacing: -1px;
-            margin-bottom: 20px;
-            color: white;
-            text-shadow: 0 2px 20px rgba(0,0,0,0.4);
-        }
-
-        .hero-title .shimmer {
-            background: linear-gradient(90deg, var(--gold), var(--gold-lite), var(--gold));
-            background-size: 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shimmer 3s linear infinite;
-        }
-
-        .hero-desc {
-            font-family: 'Times New Roman', Georgia, serif;
-            font-size: 17px;
-            color: rgba(255,255,255,0.85);
-            max-width: 480px;
-            margin: 0 auto 40px;
-            line-height: 1.8;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.3);
-        }
-
-        /* ============================================================
-           2 CARTES AUTH
-        ============================================================ */
-        .auth-cards {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-            max-width: 580px;
-            margin: 0 auto;
-        }
-
-        .auth-card {
-            border-radius: 18px;
-            padding: 24px 22px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: block;
-            text-align: left;
-        }
-
-        .auth-card-green {
-            background: rgba(255,255,255,0.08);
-            border: 1.5px solid rgba(255,255,255,0.18);
-        }
-
-        .auth-card-green:hover {
-            background: rgba(255,255,255,0.14);
-            border-color: rgba(82,183,136,0.6);
-            transform: translateY(-5px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-
-        .auth-card-gold {
-            background: rgba(212,160,23,0.1);
-            border: 1.5px solid rgba(212,160,23,0.35);
-        }
-
-        .auth-card-gold:hover {
-            background: rgba(212,160,23,0.18);
-            border-color: rgba(212,160,23,0.65);
-            transform: translateY(-5px);
-            box-shadow: 0 20px 50px rgba(212,160,23,0.2);
-        }
-
-        .auth-card-icon { font-size: 32px; margin-bottom: 12px; }
-
-        .auth-card-title {
-            font-family: 'Times New Roman', Georgia, serif;
-            font-size: 17px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 7px;
-        }
-
-        .auth-card-desc {
-            font-size: 12px;
-            color: rgba(255,255,255,0.55);
-            line-height: 1.6;
-            margin-bottom: 16px;
-        }
-
-        .auth-btn-green {
-            display: block;
-            width: 100%;
-            background: var(--forest);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 700;
-            text-align: center;
-            font-family:'Poppins', sans-serif;
-            transition: background 0.2s;
-            text-decoration: none;
-        }
-
-        .auth-btn-green:hover { background: var(--forest-mid); }
-
-        .auth-btn-gold {
-            display: block;
-            width: 100%;
-            background: var(--gold);
-            color: #000;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 700;
-            text-align: center;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: background 0.2s;
-            text-decoration: none;
-        }
-
-        .auth-btn-gold:hover { background: var(--gold-lite); }
-
-        .hero-note {
-            position: relative;
-            z-index: 2;
-            margin-top: 22px;
-            font-size: 11px;
-            color: rgba(255,255,255,0.3);
-        }
-
-        /* ============================================================
-           NAVBAR APP (pages intérieures)
+           NAVBAR APP
         ============================================================ */
         .app-navbar {
             background: var(--forest);
@@ -288,9 +77,11 @@
             padding: 0 32px;
             display: flex;
             align-items: center;
+            justify-content: center;
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
         .app-navbar .logo {
@@ -301,23 +92,24 @@
             font-size: 18px;
             font-weight: 800;
             letter-spacing: -0.3px;
+            text-decoration: none;
         }
 
         .app-navbar .logo-icon {
-            width: 32px; height: 32px;
-            background: rgba(255,255,255,0.15);
-            border-radius: var(--radius-sm);
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #d4a017, #f0c040);
+            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 16px;
+            box-shadow: 0 2px 10px rgba(212,160,23,0.4);
         }
 
         /* ============================================================
            STEPPER BAR
         ============================================================ */
         .stepper-bar {
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding: 0 32px;
+            background: rgba(0,0,0,0.25);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 10px 20px;
         }
 
         .stepper {
@@ -332,6 +124,7 @@
         .step-circle {
             width: 26px; height: 26px;
             border-radius: 50%;
+            background: rgba(255,255,255,0.15);
             border: 1.5px solid rgba(255,255,255,0.25);
             display: flex; align-items: center; justify-content: center;
             font-size: 12px; font-weight: 600;
@@ -1030,8 +823,8 @@
      PAGE LOCALISATION
 ================================================================ -->
 <div id="page-localisation" class="page active">
-    <nav class="app-navbar" style="justify-content:center;">
-        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
+    <nav class="app-navbar">
+        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
     </nav>
     <div class="page-bg">
     <div class="stepper-bar">
@@ -1099,8 +892,8 @@
      PAGE BESOINS
 ================================================================ -->
 <div id="page-besoins" class="page">
-    <nav class="app-navbar" style="justify-content:center;">
-        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
+    <nav class="app-navbar">
+        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
     </nav>
     <div class="page-bg">
     <div class="stepper-bar">
@@ -1417,8 +1210,8 @@
 
 <!-- PAGE ÉNERGIE & RÉSULTATS : identiques à l'original, copiées ici -->
 <div id="page-energie" class="page">
-    <nav class="app-navbar" style="justify-content:center;">
-        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
+    <nav class="app-navbar">
+        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
     </nav>
     <div class="page-bg">
     <div class="stepper-bar">
@@ -1608,8 +1401,8 @@
 </div>
 
 <div id="page-resultats" class="page">
-    <nav class="app-navbar" style="justify-content:center;">
-        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
+    <nav class="app-navbar">
+        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>Hydro</div>
     </nav>
     <div class="page-bg">
     <div class="stepper-bar">
@@ -2467,26 +2260,6 @@ function obtenirDonneesEnergie(s) {
     if (s === 'hybride_groupe') return {solaire:{puissance_crete_kWp:document.getElementById('res_puissance_crete').innerText,nb_panneaux_300Wc:document.getElementById('res_nb_panneaux').innerText},groupe:{puissance_groupe_kW:document.getElementById('res_puissance_groupe').innerText,consommation_jour_litres:document.getElementById('res_conso_jour').innerText}};
     if (s === 'hybride_batteries') return {solaire:{puissance_crete_kWp:document.getElementById('res_puissance_crete').innerText,nb_panneaux_300Wc:document.getElementById('res_nb_panneaux').innerText},energie_stockage_kWh:document.getElementById('res_energie_stockage').innerText,capacite_totale_Ah:document.getElementById('res_capacite_totale').innerText,nb_batteries:document.getElementById('res_nb_batteries').innerText};
     return {};
-}
-
-function toggleDropdown2() {
-    var b = document.getElementById('profileBtn2');
-    var d = document.getElementById('profileDropdown2');
-    if (b) b.classList.toggle('open');
-    if (d) d.classList.toggle('open');
-}
-document.addEventListener('click', function(e) {
-    var btns = document.querySelectorAll('.nav-profile');
-    btns.forEach(function(p) {
-        if (!p.contains(e.target)) {
-            p.querySelectorAll('.profile-btn').forEach(function(b) { b.classList.remove('open'); });
-            p.querySelectorAll('.profile-dropdown').forEach(function(d) { d.classList.remove('open'); });
-        }
-    });
-});
-function toggleDropdown() {
-    document.getElementById('profileBtn').classList.toggle('open');
-    document.getElementById('profileDropdown').classList.toggle('open');
 }
 
 
