@@ -27,17 +27,19 @@
             z-index: 0;
         }
 
-        /* ---- NAVBAR ---- */
+        /* ============================================================
+           NAVBAR
+        ============================================================ */
         .navbar {
             position: relative;
-            z-index: 10;
+            z-index: 30;
             height: 64px;
             background: #1a472a;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
+            justify-content: center;
             border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
         }
 
         .logo { display:flex; align-items:center; gap:12px; text-decoration:none; }
@@ -50,65 +52,250 @@
         }
         .logo-text { font-size:20px; font-weight:800; color:white; letter-spacing:-0.5px; }
 
-        .user-info {
+        /* ============================================================
+           PAGE BODY — layout deux colonnes
+        ============================================================ */
+        .page-body {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex: 1;
+            min-height: calc(100vh - 64px);
+            overflow: hidden;
+        }
+
+        /* ============================================================
+           BARRE FINE GAUCHE
+        ============================================================ */
+        .thin-bar {
+            width: 52px;
+            flex-shrink: 0;
+            background: #0a1f10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 14px;
+            z-index: 20;
+            position: relative;
+        }
+
+        .menu-btn {
+            width: 36px; height: 36px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            color: rgba(255,255,255,0.65);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px;
+            transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+        .menu-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+
+        /* ============================================================
+           PANNEAU SIDEBAR
+        ============================================================ */
+        .sidebar {
+            position: absolute;
+            left: 52px;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            background: #0d2218;
+            overflow: hidden;
+            transition: width 0.25s ease;
+            z-index: 15;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.35);
+        }
+        .sidebar.open { width: 240px; }
+
+        .sidebar-content {
+            min-width: 240px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            flex-shrink: 0;
+        }
+        .sidebar-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.85);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .close-btn {
+            width: 28px; height: 28px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+        .sidebar-list::-webkit-scrollbar { width: 4px; }
+        .sidebar-list::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+        .projet-item {
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.15s;
+        }
+        .projet-item:hover { background: rgba(255,255,255,0.04); }
+
+        .projet-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .projet-meta {
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .projet-btn {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #52b788;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .projet-btn:hover { color: #86efac; }
+
+        .no-projets {
+            padding: 20px 18px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            line-height: 1.6;
+        }
+
+        .sidebar-footer {
+            flex-shrink: 0;
+            padding: 14px 18px 18px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        .user-row {
             display: flex;
             align-items: center;
             gap: 10px;
-            color: rgba(255,255,255,0.75);
-            font-size: 14px;
+            margin-bottom: 12px;
         }
-        .user-avatar {
-            width: 34px; height: 34px;
-            background: rgba(255,255,255,0.12);
+        .user-avatar-sb {
+            width: 32px; height: 32px;
             border-radius: 50%;
+            background: linear-gradient(135deg, #d4a017, #f0c040);
             display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: #0a1f10;
+            flex-shrink: 0;
         }
-        .user-name { font-weight: 600; color: white; }
+        .user-nom-sb {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .logout-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ef4444;
+            text-decoration: none;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(239,68,68,0.2);
+            transition: all 0.2s;
+        }
+        .logout-link:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.4); }
 
-        /* ---- MAIN ---- */
+        /* ============================================================
+           OVERLAY MOBILE
+        ============================================================ */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 14;
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* ============================================================
+           MAIN CONTENT
+        ============================================================ */
         .main {
+            flex: 1;
+            overflow-y: auto;
             position: relative;
             z-index: 1;
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 48px 24px;
+            padding: 48px 32px;
         }
 
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 760px;
         }
 
         /* ---- HEADER ---- */
         .page-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 36px;
         }
-
         .page-title {
-            font-size: 30px;
+            font-size: 28px;
             font-weight: 700;
             color: white;
             letter-spacing: -0.5px;
-            line-height: 1.2;
-            margin-bottom: 12px;
+            line-height: 1.25;
+            margin-bottom: 10px;
             text-shadow: 0 2px 16px rgba(0,0,0,0.4);
         }
-
         .page-subtitle {
-            font-size: 15px;
-            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            color: rgba(255,255,255,0.55);
             line-height: 1.6;
         }
 
-        /* ---- CARDS GRID ---- */
+        /* ---- CARDS ---- */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
 
         .sys-card {
@@ -120,13 +307,11 @@
             transition: all 0.25s ease;
             user-select: none;
         }
-
         .sys-card:hover {
             background: rgba(255,255,255,0.11);
             border-color: rgba(255,255,255,0.25);
             transform: translateY(-3px);
         }
-
         .sys-card.selected {
             background: rgba(212,160,23,0.12);
             border-color: #d4a017;
@@ -139,14 +324,12 @@
             justify-content: space-between;
             margin-bottom: 14px;
         }
-
         .card-icon {
             width: 52px; height: 52px;
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             background: rgba(255,255,255,0.06);
         }
-
         .card-badge {
             font-size: 10px;
             font-weight: 700;
@@ -158,28 +341,25 @@
             color: rgba(255,255,255,0.6);
             border: 1px solid rgba(255,255,255,0.12);
         }
-
         .sys-card.selected .card-badge {
             background: rgba(212,160,23,0.15);
             color: #f0c040;
             border-color: rgba(212,160,23,0.3);
         }
-
         .card-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: white;
             margin-bottom: 6px;
             line-height: 1.3;
         }
-
         .card-desc {
             font-size: 12px;
             color: rgba(255,255,255,0.45);
             line-height: 1.6;
         }
 
-        /* ---- BUTTON ---- */
+        /* ---- BOUTON START ---- */
         .btn-start {
             display: block;
             width: 100%;
@@ -195,7 +375,6 @@
             color: rgba(255,255,255,0.3);
             pointer-events: none;
         }
-
         .btn-start.active {
             background: #1a472a;
             color: white;
@@ -203,47 +382,50 @@
             pointer-events: all;
             box-shadow: 0 4px 20px rgba(26,71,42,0.5);
         }
-
         .btn-start.active:hover {
             background: #2d6a4f;
             transform: translateY(-2px);
             box-shadow: 0 8px 28px rgba(26,71,42,0.55);
         }
 
-        /* ---- RESPONSIVE ---- */
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
         @media (max-width: 1024px) {
-            .navbar { padding: 0 28px; }
-            .page-title { font-size: 26px; }
+            .main { padding: 36px 24px; }
+            .page-title { font-size: 24px; }
+            .cards-grid { gap: 12px; }
+            .sys-card { padding: 20px 18px; }
         }
 
         @media (max-width: 768px) {
-            .navbar { padding: 0 20px; height: 56px; }
+            .navbar { height: 56px; }
             .logo-text { font-size: 18px; }
-            .user-info span.user-label { display: none; }
-            .main { padding: 32px 16px; }
-            .page-title { font-size: 22px; }
+            .page-body { min-height: calc(100vh - 56px); }
+            .thin-bar { width: 44px; }
+            .sidebar { left: 44px; }
+            .sidebar.open { width: calc(100vw - 44px); }
+            .main { padding: 28px 16px; }
+            .page-title { font-size: 20px; }
             .page-subtitle { font-size: 13px; }
-            .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .sys-card { padding: 18px 16px; }
-            .card-title { font-size: 14px; }
+            .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .sys-card { padding: 16px 14px; }
             .card-icon { width: 44px; height: 44px; }
+            .card-title { font-size: 13px; }
         }
 
         @media (max-width: 480px) {
-            .navbar { padding: 0 16px; }
-            .user-name { display: none; }
-            .main { padding: 24px 12px; align-items: flex-start; }
-            .page-header { margin-bottom: 24px; }
-            .page-title { font-size: 20px; }
+            .main { padding: 20px 12px; align-items: flex-start; }
+            .page-header { margin-bottom: 20px; }
+            .page-title { font-size: 18px; }
             .cards-grid { grid-template-columns: 1fr; gap: 10px; }
-            .sys-card { padding: 16px 14px; }
-            .card-top { flex-direction: row; align-items: center; }
             .btn-start { font-size: 15px; padding: 14px; }
         }
     </style>
 </head>
 <body>
 
+    <!-- NAVBAR -->
     <nav class="navbar">
         <a href="/" class="logo">
             <div class="logo-icon">
@@ -255,109 +437,181 @@
             </div>
             <span class="logo-text">Hydro</span>
         </a>
-        <div class="user-info">
-            <div class="user-avatar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                </svg>
-            </div>
-            <span class="user-name">{{ user_nom }}</span>
-            <a href="/deconnexion" style="color:rgba(255,255,255,0.4);font-size:12px;text-decoration:none;margin-left:4px;">Déconnexion</a>
-        </div>
     </nav>
 
-    <div class="main">
-        <div class="container">
+    <!-- PAGE BODY -->
+    <div class="page-body">
 
-            <div class="page-header">
-                <h1 class="page-title">Quel type de pompage souhaitez-vous dimensionner&nbsp;?</h1>
-                <p class="page-subtitle">Sélectionnez votre source d'énergie pour commencer le dimensionnement</p>
-            </div>
-
-            <div class="cards-grid">
-
-                <!-- Solaire fil du soleil -->
-                <div class="sys-card" data-value="solaire" onclick="selectCard(this)">
-                    <div class="card-top">
-                        <div class="card-icon">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="4"/>
-                                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-                            </svg>
-                        </div>
-                        <span class="card-badge">Sans batteries</span>
-                    </div>
-                    <div class="card-title">Pompage solaire au fil du soleil</div>
-                    <div class="card-desc">Pompage directement alimenté par les panneaux solaires, sans stockage d'énergie.</div>
-                </div>
-
-                <!-- Solaire avec batteries -->
-                <div class="sys-card" data-value="hybride_batteries" onclick="selectCard(this)">
-                    <div class="card-top">
-                        <div class="card-icon">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#52b788" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="7" width="18" height="10" rx="2"/>
-                                <path d="M22 11v2"/>
-                                <line x1="6" y1="11" x2="6" y2="13"/>
-                                <line x1="10" y1="11" x2="10" y2="13"/>
-                            </svg>
-                        </div>
-                        <span class="card-badge">Avec stockage</span>
-                    </div>
-                    <div class="card-title">Pompage solaire avec batteries</div>
-                    <div class="card-desc">Système solaire avec batteries permettant le pompage même sans ensoleillement direct.</div>
-                </div>
-
-                <!-- Groupe électrogène -->
-                <div class="sys-card" data-value="groupe" onclick="selectCard(this)">
-                    <div class="card-top">
-                        <div class="card-icon">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                            </svg>
-                        </div>
-                        <span class="card-badge">Thermique</span>
-                    </div>
-                    <div class="card-title">Pompage au groupe électrogène</div>
-                    <div class="card-desc">Système motorisé thermique, idéal pour les sites éloignés du réseau électrique.</div>
-                </div>
-
-                <!-- Réseau électrique -->
-                <div class="sys-card" data-value="reseau" onclick="selectCard(this)">
-                    <div class="card-top">
-                        <div class="card-icon">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 22v-5"/>
-                                <path d="M9 8V2"/>
-                                <path d="M15 8V2"/>
-                                <path d="M18 8H6a2 2 0 0 0-2 2v3a6 6 0 0 0 12 0v-3a2 2 0 0 0-2-2z"/>
-                            </svg>
-                        </div>
-                        <span class="card-badge">Réseau SBEE</span>
-                    </div>
-                    <div class="card-title">Pompage au réseau électrique</div>
-                    <div class="card-desc">Alimentation via le réseau électrique national, pour les sites desservis par la SBEE.</div>
-                </div>
-
-            </div>
-
-            <button class="btn-start" id="btn-start" onclick="goToDashboard()">
-                Commencer le dimensionnement →
+        <!-- BARRE FINE -->
+        <div class="thin-bar">
+            <button class="menu-btn" onclick="toggleSidebar()" aria-label="Menu projets">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
             </button>
-
         </div>
-    </div>
+
+        <!-- SIDEBAR PANEL -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-content">
+
+                <div class="sidebar-header">
+                    <span class="sidebar-title">Mes projets</span>
+                    <button class="close-btn" onclick="closeSidebar()" aria-label="Fermer">✕</button>
+                </div>
+
+                <div class="sidebar-list">
+                    {% for projet in projets %}
+                    <div class="projet-item">
+                        <div class="projet-name">{{ projet.nom_projet }}</div>
+                        <div class="projet-meta">
+                            {{ projet.source_energie or '—' }}
+                            {% if projet.date_modif %}· {{ projet.date_modif[:10] }}{% endif %}
+                        </div>
+                        <a href="/dashboard?projet_id={{ projet.id }}" class="projet-btn">Reprendre →</a>
+                    </div>
+                    {% else %}
+                    <p class="no-projets">Aucun projet sauvegardé.<br>Créez votre premier dimensionnement.</p>
+                    {% endfor %}
+                </div>
+
+                <div class="sidebar-footer">
+                    <div class="user-row">
+                        <div class="user-avatar-sb">{{ user_nom[0]|upper }}</div>
+                        <span class="user-nom-sb">{{ user_nom }}</span>
+                    </div>
+                    <a href="/deconnexion" class="logout-link">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Se déconnecter
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- OVERLAY MOBILE -->
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+        <!-- CONTENU PRINCIPAL -->
+        <div class="main">
+            <div class="container">
+
+                <div class="page-header">
+                    <h1 class="page-title">Quel type de pompage souhaitez-vous dimensionner&nbsp;?</h1>
+                    <p class="page-subtitle">Sélectionnez votre source d'énergie pour commencer le dimensionnement</p>
+                </div>
+
+                <div class="cards-grid">
+
+                    <!-- Solaire fil du soleil -->
+                    <div class="sys-card" data-value="solaire" onclick="selectCard(this)">
+                        <div class="card-top">
+                            <div class="card-icon">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="4"/>
+                                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                                </svg>
+                            </div>
+                            <span class="card-badge">Sans batteries</span>
+                        </div>
+                        <div class="card-title">Pompage solaire au fil du soleil</div>
+                        <div class="card-desc">Pompage directement alimenté par les panneaux solaires, sans stockage d'énergie.</div>
+                    </div>
+
+                    <!-- Solaire avec batteries -->
+                    <div class="sys-card" data-value="hybride_batteries" onclick="selectCard(this)">
+                        <div class="card-top">
+                            <div class="card-icon">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#52b788" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="7" width="18" height="10" rx="2"/>
+                                    <path d="M22 11v2"/>
+                                    <line x1="6" y1="11" x2="6" y2="13"/>
+                                    <line x1="10" y1="11" x2="10" y2="13"/>
+                                </svg>
+                            </div>
+                            <span class="card-badge">Avec stockage</span>
+                        </div>
+                        <div class="card-title">Pompage solaire avec batteries</div>
+                        <div class="card-desc">Système solaire avec batteries permettant le pompage même sans ensoleillement direct.</div>
+                    </div>
+
+                    <!-- Groupe électrogène -->
+                    <div class="sys-card" data-value="groupe" onclick="selectCard(this)">
+                        <div class="card-top">
+                            <div class="card-icon">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                                </svg>
+                            </div>
+                            <span class="card-badge">Thermique</span>
+                        </div>
+                        <div class="card-title">Pompage au groupe électrogène</div>
+                        <div class="card-desc">Système motorisé thermique, idéal pour les sites éloignés du réseau électrique.</div>
+                    </div>
+
+                    <!-- Réseau électrique -->
+                    <div class="sys-card" data-value="reseau" onclick="selectCard(this)">
+                        <div class="card-top">
+                            <div class="card-icon">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22v-5"/>
+                                    <path d="M9 8V2"/>
+                                    <path d="M15 8V2"/>
+                                    <path d="M18 8H6a2 2 0 0 0-2 2v3a6 6 0 0 0 12 0v-3a2 2 0 0 0-2-2z"/>
+                                </svg>
+                            </div>
+                            <span class="card-badge">Réseau SBEE</span>
+                        </div>
+                        <div class="card-title">Pompage au réseau électrique</div>
+                        <div class="card-desc">Alimentation via le réseau électrique national, pour les sites desservis par la SBEE.</div>
+                    </div>
+
+                </div>
+
+                <button class="btn-start" id="btn-start" onclick="goToDashboard()">
+                    Commencer le dimensionnement →
+                </button>
+
+            </div>
+        </div>
+
+    </div><!-- .page-body -->
 
     <script>
         let selectedValue = null;
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const isMobile = () => window.innerWidth <= 768;
+
+        function toggleSidebar() {
+            if (sidebar.classList.contains('open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            if (isMobile()) overlay.classList.add('visible');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+        }
 
         function selectCard(el) {
             document.querySelectorAll('.sys-card').forEach(c => c.classList.remove('selected'));
             el.classList.add('selected');
             selectedValue = el.dataset.value;
-            const btn = document.getElementById('btn-start');
-            btn.classList.add('active');
+            document.getElementById('btn-start').classList.add('active');
         }
 
         function goToDashboard() {
@@ -366,6 +620,10 @@
                 window.location.href = '/dashboard';
             }
         }
+
+        window.addEventListener('resize', () => {
+            if (!isMobile()) overlay.classList.remove('visible');
+        });
     </script>
 
 </body>

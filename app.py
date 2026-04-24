@@ -87,7 +87,8 @@ def index():
 @app.route('/choix_systeme')
 @login_required
 def choix_systeme():
-    return render_template('choix_systeme.html', user_nom=session['user_nom'])
+    projets = get_projets_utilisateur(session['user_id'])
+    return render_template('choix_systeme.html', user_nom=session['user_nom'], projets=projets)
 
 @app.route('/dashboard')
 @login_required
