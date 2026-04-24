@@ -48,7 +48,7 @@ def inscription():
             session['user_id']    = user['id']
             session['user_nom']   = nom_complet
             session['user_email'] = email
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('choix_systeme'))
         else:
             flash('Cet email est déjà utilisé.', 'error')
             return render_template('inscription.html')
@@ -79,7 +79,7 @@ def connexion():
             session['user_id']    = user['id']
             session['user_nom']   = user['nom']
             session['user_email'] = user['email']
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('choix_systeme'))
         else:
             flash('Email ou mot de passe incorrect.', 'error')
             return render_template('connexion.html')

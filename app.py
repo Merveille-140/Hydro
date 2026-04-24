@@ -84,6 +84,11 @@ def login_required(f):
 @app.route('/')
 def index():
     return render_template('index.html')
+@app.route('/choix_systeme')
+@login_required
+def choix_systeme():
+    return render_template('choix_systeme.html', user_nom=session['user_nom'])
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
