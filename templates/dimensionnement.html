@@ -1572,9 +1572,11 @@ carte.on('click', function(e) {
     fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat_choisie + '&lon=' + lon_choisie + '&format=json')
     .then(function(r) { return r.json(); })
     .then(function(d) {
-        nom_lieu = d.address ? (d.address.city || d.address.town || d.address.village || d.address.county || d.display_name || '') : (d.display_name || '');
+        var ville = (d.address && (d.address.city || d.address.town || d.address.village || d.address.county)) || (d.display_name ? d.display_name.split(',')[0] : '') || '';
+        var pays = (d.address && d.address.country) || '';
+        nom_lieu = pays ? ville + ', ' + pays : ville;
         var titleEl = document.getElementById('nasa-card-title');
-        if (titleEl && nom_lieu) { titleEl.innerText = 'Données climatiques — ' + nom_lieu; }
+        if (titleEl) { titleEl.innerText = nom_lieu || ''; }
     }).catch(function() {});
     if (timer_click) { clearTimeout(timer_click); }
     timer_click = setTimeout(function() { recupererDonnees(); }, 500);
@@ -1589,9 +1591,12 @@ function rechercherVille() {
         if (data.length > 0) {
             lat_choisie = parseFloat(data[0].lat).toFixed(6);
             lon_choisie = parseFloat(data[0].lon).toFixed(6);
-            nom_lieu = data[0].display_name ? data[0].display_name.split(',')[0] : ville;
+            var partiesNom = data[0].display_name ? data[0].display_name.split(',') : [ville];
+            var villeR = partiesNom[0].trim();
+            var paysR  = partiesNom[partiesNom.length - 1].trim();
+            nom_lieu = paysR ? villeR + ', ' + paysR : villeR;
             var titleEl = document.getElementById('nasa-card-title');
-            if (titleEl) { titleEl.innerText = 'Données climatiques — ' + nom_lieu; }
+            if (titleEl) { titleEl.innerText = nom_lieu || ''; }
             carte.setView([lat_choisie, lon_choisie], 11);
             if (marqueur) { carte.removeLayer(marqueur); }
             marqueur = L.marker([lat_choisie, lon_choisie]).addTo(carte);
