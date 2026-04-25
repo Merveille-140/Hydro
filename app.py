@@ -65,6 +65,13 @@ app.register_blueprint(auth_blueprint)
 
 init_db()
 
+@app.before_request
+def verifier_session():
+    if 'user_id' in session:
+        if not session.get('connecte'):
+            session.clear()
+            return redirect(url_for('auth.connexion'))
+
 # ============================================================
 # DÉCORATEUR LOGIN
 # ============================================================
