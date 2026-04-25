@@ -103,9 +103,12 @@ def dashboard():
 @login_required
 def dimensionnement():
     projets = get_projets_utilisateur(session['user_id'])
-    return render_template('dimensionnement.html',
-                           user_nom=session['user_nom'],
-                           projets=projets)
+    return render_template(
+        'dimensionnement.html',
+        user_nom=session['user_nom'],
+        projets=projets
+    )
+
 # ============================================================
 # DONNÉES CLIMATIQUES NASA POWER
 # ============================================================
