@@ -88,9 +88,8 @@ def index():
 @login_required
 def dashboard():
     projets = get_projets_utilisateur(session['user_id'])
-    return render_template('dashboard.html',
+    return render_template('choix_systeme.html',
                            user_nom=session['user_nom'],
-                           user_email=session.get('user_email', ''),
                            projets=projets)
 
 @app.route('/dimensionnement')
@@ -98,8 +97,9 @@ def dashboard():
 def dimensionnement():
     projets = get_projets_utilisateur(session['user_id'])
     return render_template(
-        'dimensionnement.html',
+        'dashboard.html',
         user_nom=session['user_nom'],
+        user_email=session.get('user_email', ''),
         projets=projets
     )
 
