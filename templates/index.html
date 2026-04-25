@@ -369,8 +369,8 @@
            APP LAYOUT
         ============================================================ */
         .app-layout {
-            display: grid;
-            grid-template-columns: 220px 1fr;
+            display: flex;
+            justify-content: center;
             min-height: calc(100vh - 108px);
         }
 
@@ -443,7 +443,7 @@
         /* ============================================================
            MAIN CONTENT
         ============================================================ */
-        .main-content { padding: 28px 32px; max-width: 760px; }
+        .main-content { padding: 28px 32px; max-width: 760px; width: 100%; margin: 0 auto; }
 
         .page-title {
             font-size: 22px; font-weight: 700;
@@ -945,13 +945,6 @@
         </div>
     </div>
     <div class="app-layout">
-        <div class="sidebar">
-            <div class="sidebar-section-title">Étapes</div>
-            <div class="sidebar-item active">Localisation <span class="sidebar-badge active">En cours</span></div>
-            <div class="sidebar-item">Besoins</div>
-            <div class="sidebar-item">Énergie</div>
-            <div class="sidebar-item">Résultats</div>
-        </div>
         <div class="main-content">
             <h2 class="page-title">Nouveau projet</h2>
             <p class="page-sub">Donnez un nom à votre projet puis localisez votre site</p>
@@ -971,7 +964,7 @@
                     <input type="text" id="recherche_ville" placeholder="Ex: Cotonou, Parakou, Porto-Novo..."/>
                     <button class="btn-search" onclick="rechercherVille()">🔍 Rechercher</button>
                 </div>
-                <div id="carte" style="height:380px;"></div>
+                <div id="carte" style="height:380px; width:100%; margin:0 auto;"></div>
                 <div class="coords-row">
                     <div class="coord-chip">📍 Latitude : <strong id="lat">—</strong></div>
                     <div class="coord-chip">📍 Longitude : <strong id="lon">—</strong></div>
@@ -984,7 +977,7 @@
 
             <div id="climate-section" class="hidden">
                 <div class="card">
-                    <div class="card-title">Données climatiques NASA POWER</div>
+                    <div class="card-title" id="nasa-card-title">Données climatiques</div>
                     <div class="climate-grid">
                         <div class="climate-card"><div class="climate-icon">🌡️</div><div class="climate-value"><span id="temperature_max">—</span>°</div><div class="climate-label">T. max (°C)</div></div>
                         <div class="climate-card"><div class="climate-icon">🌡️</div><div class="climate-value"><span id="temperature_min">—</span>°</div><div class="climate-label">T. min (°C)</div></div>
@@ -1020,18 +1013,6 @@
         </div>
     </div>
     <div class="app-layout">
-        <div class="sidebar">
-            <div class="sidebar-section-title">Étapes</div>
-            <div class="sidebar-item">Localisation <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item active">Besoins <span class="sidebar-badge active">En cours</span></div>
-            <div class="sidebar-item">Énergie</div>
-            <div class="sidebar-item">Résultats</div>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-info-title">Données site</div>
-            <div class="sidebar-info-row">ET0 max <span id="sb_ET0">—</span></div>
-            <div class="sidebar-info-row">Irradiation <span id="sb_irr">—</span></div>
-            <div class="sidebar-info-row">Mois critique <span id="sb_mois">—</span></div>
-        </div>
         <div class="main-content">
             <h2 class="page-title">Définissez vos besoins</h2>
             <p class="page-sub">Choisissez le type de système et renseignez les paramètres</p>
@@ -1334,17 +1315,6 @@
         </div>
     </div>
     <div class="app-layout">
-        <div class="sidebar">
-            <div class="sidebar-section-title">Étapes</div>
-            <div class="sidebar-item">Localisation <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item">Besoins <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item active">Énergie <span class="sidebar-badge active">En cours</span></div>
-            <div class="sidebar-item">Résultats</div>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-info-title">Données site</div>
-            <div class="sidebar-info-row">ET0 max <span id="sb_ET0_e">—</span></div>
-            <div class="sidebar-info-row">Irradiation <span id="sb_irr_e">—</span></div>
-        </div>
         <div class="main-content">
             <h2 class="page-title">Source d'énergie</h2>
             <p class="page-sub">Choisissez votre source d'énergie et vos équipements</p>
@@ -1521,17 +1491,6 @@
         </div>
     </div>
     <div class="app-layout">
-        <div class="sidebar">
-            <div class="sidebar-section-title">Étapes</div>
-            <div class="sidebar-item">Localisation <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item">Besoins <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item">Énergie <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item active">Résultats <span class="sidebar-badge active">En cours</span></div>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-info-title">Données site</div>
-            <div class="sidebar-info-row">ET0 max <span id="sb_ET0_r">—</span></div>
-            <div class="sidebar-info-row">Irradiation <span id="sb_irr_r">—</span></div>
-        </div>
         <div class="main-content">
             <h2 class="page-title">Résultats du dimensionnement</h2>
             <p class="page-sub">Voici tous les paramètres calculés pour votre système</p>
@@ -1605,16 +1564,13 @@ function allerVers(page) {
     document.getElementById('page-' + page).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (page === 'localisation') { setTimeout(function() { carte.invalidateSize(); }, 300); }
-    if (page === 'besoins')   { mettreAJourSidebar(); }
-    if (page === 'energie')   { mettreAJourSidebarEnergie(); }
-    if (page === 'resultats') { mettreAJourSidebarResultats(); }
 }
 
 var carte = L.map('carte', { zoomControl: true, preferCanvas: true }).setView([9.3077, 2.3158], 6);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(carte);
 setTimeout(function() { carte.invalidateSize(); }, 500);
 
-var marqueur = null, lat_choisie = null, lon_choisie = null, timer_click = null, climate_request_id = 0;
+var marqueur = null, lat_choisie = null, lon_choisie = null, timer_click = null, climate_request_id = 0, nom_lieu = '';
 
 carte.on('click', function(e) {
     lat_choisie = e.latlng.lat.toFixed(6);
@@ -1625,6 +1581,12 @@ carte.on('click', function(e) {
     marqueur = L.marker([lat_choisie, lon_choisie]).addTo(carte);
     if (timer_click) { clearTimeout(timer_click); }
     timer_click = setTimeout(function() { recupererDonnees(); }, 500);
+    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat_choisie + '&lon=' + lon_choisie + '&format=json')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        nom_lieu = (d.address && (d.address.city || d.address.town || d.address.village || d.address.county)) || (d.display_name ? d.display_name.split(',')[0] : '') || '';
+        document.getElementById('nasa-card-title').innerText = nom_lieu || 'Données climatiques';
+    }).catch(function() {});
 });
 
 function rechercherVille() {
@@ -1641,6 +1603,8 @@ function rechercherVille() {
             marqueur = L.marker([lat_choisie, lon_choisie]).addTo(carte);
             document.getElementById('lat').innerText = lat_choisie;
             document.getElementById('lon').innerText = lon_choisie;
+            nom_lieu = data[0].display_name ? data[0].display_name.split(',')[0] : ville;
+            document.getElementById('nasa-card-title').innerText = nom_lieu || 'Données climatiques';
             recupererDonnees();
         } else { alert('Ville non trouvée.'); }
     });
@@ -1668,19 +1632,6 @@ function recupererDonnees() {
     });
 }
 
-function mettreAJourSidebar() {
-    document.getElementById('sb_ET0').innerText  = document.getElementById('ET0_max').innerText + ' mm/j';
-    document.getElementById('sb_irr').innerText  = document.getElementById('irradiation').innerText + ' kWh/m²';
-    document.getElementById('sb_mois').innerText = document.getElementById('mois_critique').innerText;
-}
-function mettreAJourSidebarEnergie() {
-    document.getElementById('sb_ET0_e').innerText = document.getElementById('ET0_max').innerText + ' mm/j';
-    document.getElementById('sb_irr_e').innerText = document.getElementById('irradiation').innerText + ' kWh/m²';
-}
-function mettreAJourSidebarResultats() {
-    document.getElementById('sb_ET0_r').innerText = document.getElementById('ET0_max').innerText + ' mm/j';
-    document.getElementById('sb_irr_r').innerText = document.getElementById('irradiation').innerText + ' kWh/m²';
-}
 
 var modeActuel = 'irrigation';
 function selectionnerMode(mode) {
