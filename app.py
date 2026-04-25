@@ -52,7 +52,7 @@ selectionner_pompes        = pompes_bd_mod.selectionner_pompes
 # ============================================================
 
 app = Flask(__name__)
-app.secret_key = 'solarpump_secret_key_2026_esmer'
+app.secret_key = os.environ.get('SECRET_KEY', 'solarpump_secret_key_2026_esmer')
 from datetime import timedelta
 app.config['SESSION_PERMANENT'] = False
 bcrypt = Bcrypt(app)
@@ -88,7 +88,7 @@ def index():
 @login_required
 def dashboard():
     projets = get_projets_utilisateur(session['user_id'])
-    return render_template('choix_systeme.html',
+    return render_template('dashboard.html',
                            user_nom=session['user_nom'],
                            projets=projets)
 
@@ -97,7 +97,7 @@ def dashboard():
 def dimensionnement():
     projets = get_projets_utilisateur(session['user_id'])
     return render_template(
-        'dashboard.html',
+        'dimensionnement.html',
         user_nom=session['user_nom'],
         user_email=session.get('user_email', ''),
         projets=projets
