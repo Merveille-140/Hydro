@@ -45,6 +45,7 @@ def inscription():
 
         if succes:
             user = get_utilisateur_par_email(email)
+            session.permanent     = False
             session['user_id']    = user['id']
             session['user_nom']   = nom_complet
             session['user_email'] = email
@@ -76,6 +77,7 @@ def connexion():
         user = get_utilisateur_par_email(email)
 
         if user and bcrypt.check_password_hash(user['mot_de_passe'], mdp):
+            session.permanent     = False
             session['user_id']    = user['id']
             session['user_nom']   = user['nom']
             session['user_email'] = user['email']
