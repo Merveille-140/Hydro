@@ -55,6 +55,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'solarpump_secret_key_2026_esmer')
 from datetime import timedelta
 app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 bcrypt = Bcrypt(app)
 
 from auth import auth as auth_blueprint
