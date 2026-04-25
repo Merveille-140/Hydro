@@ -238,7 +238,12 @@
         /* ============================================================
            MAIN CONTENT
         ============================================================ */
-        .main-content { padding: 28px 32px; max-width: 760px; }
+        .main-content {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 28px 32px;
+            width: 100%;
+        }
 
         .page-title {
             font-size: 24px; font-weight: 800;
@@ -343,8 +348,10 @@
         .btn-search:hover { background: var(--forest-dark); }
 
         #carte {
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--gray-200);
+            width: 100%;
+            height: 380px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
             overflow: hidden;
         }
 
@@ -755,6 +762,8 @@
         /* ---- responsive thin-bar ---- */
         @media (max-width: 1024px) {
             .page { margin-left: 52px; }
+            .main-content { max-width: 100%; padding: 20px 20px; }
+            .app-layout { grid-template-columns: 180px 1fr; }
         }
         @media (max-width: 768px) {
             .thin-bar { width: 44px; }
@@ -765,10 +774,20 @@
             .stepper::-webkit-scrollbar { height: 3px; }
             .stepper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius:2px; }
             .step-lbl, .step-sub-lbl { white-space: nowrap; }
+            .main-content { padding: 16px 12px; }
+            .app-layout { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            #carte { height: 300px; }
+            .climate-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
         }
         @media (max-width: 480px) {
             .thin-bar { width: 44px; }
             .page { margin-left: 44px; }
+            .main-content { padding: 12px 8px; }
+            #carte { height: 240px; }
+            .climate-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .nav-buttons { flex-direction: column; gap: 8px; }
+            .btn-back, .btn-next { width: 100%; }
         }
     </style>
 </head>
@@ -838,51 +857,81 @@
             <div class="step-item"><div class="step-circle">4</div><div class="step-info"><div class="step-lbl">Résultats</div><div class="step-sub-lbl">Dimensionnement</div></div></div>
         </div>
     </div>
-    <div class="app-layout">
-        <div class="sidebar">
-            <div class="sidebar-section-title">Étapes</div>
-            <div class="sidebar-item active">Localisation <span class="sidebar-badge active">En cours</span></div>
-            <div class="sidebar-item">Besoins</div>
-            <div class="sidebar-item">Énergie</div>
-            <div class="sidebar-item">Résultats</div>
+    <div class="main-content">
+        <p class="page-sub" style="margin-bottom:16px;">Localisez votre site et renseignez les paramètres du projet</p>
+
+        <div class="card">
+            <div class="card-title">Recherche du site</div>
+            <div class="search-wrapper">
+                <input type="text" id="recherche_ville" placeholder="Ex: Cotonou, Parakou, Porto-Novo..."/>
+                <button class="btn-search" onclick="rechercherVille()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Rechercher
+                </button>
+            </div>
+            <div id="carte"></div>
+            <div class="coords-row">
+                <div class="coord-chip">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Latitude : <strong id="lat">—</strong>
+                </div>
+                <div class="coord-chip">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Longitude : <strong id="lon">—</strong>
+                </div>
+            </div>
         </div>
-        <div class="main-content">
-            <p class="page-sub" style="margin-bottom:16px;">Localisez votre site et renseignez les paramètres du projet</p>
 
+        <div id="loading-climate" class="hidden">
+            <div class="loading-bar"><div class="spinner"></div>Récupération des données climatiques NASA POWER...</div>
+        </div>
+
+        <div id="climate-section" class="hidden">
             <div class="card">
-                <div class="card-title">Recherche du site</div>
-                <div class="search-wrapper">
-                    <input type="text" id="recherche_ville" placeholder="Ex: Cotonou, Parakou, Porto-Novo..."/>
-                    <button class="btn-search" onclick="rechercherVille()">🔍 Rechercher</button>
-                </div>
-                <div id="carte" style="height:380px;"></div>
-                <div class="coords-row">
-                    <div class="coord-chip">📍 Latitude : <strong id="lat">—</strong></div>
-                    <div class="coord-chip">📍 Longitude : <strong id="lon">—</strong></div>
-                </div>
-            </div>
-
-            <div id="loading-climate" class="hidden">
-                <div class="loading-bar"><div class="spinner"></div>Récupération des données climatiques NASA POWER...</div>
-            </div>
-
-            <div id="climate-section" class="hidden">
-                <div class="card">
-                    <div class="card-title">Données climatiques NASA POWER</div>
-                    <div class="climate-grid">
-                        <div class="climate-card"><div class="climate-icon">🌡️</div><div class="climate-value"><span id="temperature_max">—</span>°</div><div class="climate-label">T. max (°C)</div></div>
-                        <div class="climate-card"><div class="climate-icon">🌡️</div><div class="climate-value"><span id="temperature_min">—</span>°</div><div class="climate-label">T. min (°C)</div></div>
-                        <div class="climate-card"><div class="climate-icon">☀️</div><div class="climate-value"><span id="irradiation">—</span></div><div class="climate-label">kWh/m²/jour</div></div>
-                        <div class="climate-card"><div class="climate-icon">🌿</div><div class="climate-value"><span id="ET0_max">—</span></div><div class="climate-label">ET0 max (mm/j)</div></div>
-                        <div class="climate-card"><div class="climate-icon">📅</div><div class="climate-value" style="font-size:15px;"><span id="mois_critique">—</span></div><div class="climate-label">Mois critique</div></div>
+                <div class="card-title" id="nasa-card-title" style="color:#52b788; font-size:13px; font-weight:700; text-transform:none; letter-spacing:0;"></div>
+                <div class="climate-grid">
+                    <div class="climate-card">
+                        <div class="climate-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f4a261" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                        </div>
+                        <div class="climate-value"><span id="temperature_max">—</span>°</div>
+                        <div class="climate-label">T. max (°C)</div>
+                    </div>
+                    <div class="climate-card">
+                        <div class="climate-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#52b788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                        </div>
+                        <div class="climate-value"><span id="temperature_min">—</span>°</div>
+                        <div class="climate-label">T. min (°C)</div>
+                    </div>
+                    <div class="climate-card">
+                        <div class="climate-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f4a261" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                        </div>
+                        <div class="climate-value"><span id="irradiation">—</span></div>
+                        <div class="climate-label">kWh/m²/jour</div>
+                    </div>
+                    <div class="climate-card">
+                        <div class="climate-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#52b788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8C8 10 5.9 16.17 3.82 20.41"/><path d="M19.5 11.5C17 14 14 14.5 11.5 14"/><path d="M21.5 14.5C21 17.5 18.5 20 15 21"/></svg>
+                        </div>
+                        <div class="climate-value"><span id="ET0_max">—</span></div>
+                        <div class="climate-label">ET0 max (mm/j)</div>
+                    </div>
+                    <div class="climate-card">
+                        <div class="climate-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f4a261" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <div class="climate-value" style="font-size:15px;"><span id="mois_critique">—</span></div>
+                        <div class="climate-label">Mois critique</div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="nav-buttons">
-                <button class="btn-back" onclick="history.back()">← Retour </button>
-                <button class="btn-next" onclick="allerVers('besoins')">Suivant →</button>
-            </div>
+        <div class="nav-buttons">
+            <button class="btn-back" onclick="history.back()">← Retour </button>
+            <button class="btn-next" onclick="allerVers('besoins')">Suivant →</button>
         </div>
     </div>
     </div><!-- fin page-bg -->
@@ -1511,7 +1560,7 @@ var carte = L.map('carte', { zoomControl: true, preferCanvas: true }).setView([9
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(carte);
 setTimeout(function() { carte.invalidateSize(); }, 500);
 
-var marqueur = null, lat_choisie = null, lon_choisie = null, timer_click = null, climate_request_id = 0;
+var marqueur = null, lat_choisie = null, lon_choisie = null, timer_click = null, climate_request_id = 0, nom_lieu = '';
 
 carte.on('click', function(e) {
     lat_choisie = e.latlng.lat.toFixed(6);
@@ -1520,6 +1569,13 @@ carte.on('click', function(e) {
     document.getElementById('lon').innerText = lon_choisie;
     if (marqueur) { carte.removeLayer(marqueur); }
     marqueur = L.marker([lat_choisie, lon_choisie]).addTo(carte);
+    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat_choisie + '&lon=' + lon_choisie + '&format=json')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        nom_lieu = d.address ? (d.address.city || d.address.town || d.address.village || d.address.county || d.display_name || '') : (d.display_name || '');
+        var titleEl = document.getElementById('nasa-card-title');
+        if (titleEl && nom_lieu) { titleEl.innerText = 'Données climatiques — ' + nom_lieu; }
+    }).catch(function() {});
     if (timer_click) { clearTimeout(timer_click); }
     timer_click = setTimeout(function() { recupererDonnees(); }, 500);
 });
@@ -1533,6 +1589,9 @@ function rechercherVille() {
         if (data.length > 0) {
             lat_choisie = parseFloat(data[0].lat).toFixed(6);
             lon_choisie = parseFloat(data[0].lon).toFixed(6);
+            nom_lieu = data[0].display_name ? data[0].display_name.split(',')[0] : ville;
+            var titleEl = document.getElementById('nasa-card-title');
+            if (titleEl) { titleEl.innerText = 'Données climatiques — ' + nom_lieu; }
             carte.setView([lat_choisie, lon_choisie], 11);
             if (marqueur) { carte.removeLayer(marqueur); }
             marqueur = L.marker([lat_choisie, lon_choisie]).addTo(carte);
