@@ -16,9 +16,7 @@ bcrypt = Bcrypt()
 
 @auth.route('/inscription', methods=['GET', 'POST'])
 def inscription():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
-
+    session.clear()
     if request.method == 'POST':
         nom          = request.form.get('nom', '').strip()
         prenom       = request.form.get('prenom', '').strip()
@@ -65,9 +63,7 @@ def inscription():
 
 @auth.route('/connexion', methods=['GET', 'POST'])
 def connexion():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
-
+    session.clear()
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         mdp   = request.form.get('mot_de_passe', '')
