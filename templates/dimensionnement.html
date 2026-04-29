@@ -790,6 +790,24 @@
             .btn-back, .btn-next { width: 100%; }
         }
     </style>
+    <script>
+        window.addEventListener('load', function() {
+            if (!sessionStorage.getItem('hydropump_actif')) {
+                fetch('/verifier_session_active', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.actif) {
+                        window.location.href = '/connexion';
+                    } else {
+                        sessionStorage.setItem('hydropump_actif', 'true');
+                    }
+                });
+            }
+        });
+    </script>
 </head>
 <body>
 

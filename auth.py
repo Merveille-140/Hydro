@@ -48,10 +48,9 @@ def inscription():
             session.permanent     = False
             session['user_id']    = user['id']
             session['user_nom']   = nom_complet
-            session['user_email']   = email
-            session['connecte']     = True
-            session['session_start'] = True
-            session.permanent        = False
+            session['user_email'] = email
+            session['connecte']   = True
+            session['actif']      = True
             return redirect(url_for('dashboard'))
         else:
             flash('Cet email est déjà utilisé.', 'error')
@@ -83,10 +82,9 @@ def connexion():
             session.permanent     = False
             session['user_id']    = user['id']
             session['user_nom']   = user['nom']
-            session['user_email']   = user['email']
-            session['connecte']     = True
-            session['session_start'] = True
-            session.permanent        = False
+            session['user_email'] = user['email']
+            session['connecte']   = True
+            session['actif']      = True
             return redirect(url_for('dashboard'))
         else:
             flash('Email ou mot de passe incorrect.', 'error')

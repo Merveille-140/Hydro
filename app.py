@@ -59,6 +59,7 @@ app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_NAME'] = 'hydropump_session'
 bcrypt = Bcrypt(app)
 
 from auth import auth as auth_blueprint
@@ -70,14 +71,23 @@ init_db()
 @app.before_request
 def verifier_session():
     routes_publiques = ['auth.connexion', 'auth.inscription',
-                        'auth.deconnexion', 'index', 'static']
+                        'auth.deconnexion', 'index', 'static',
+                        'verifier_session_active']
     if request.endpoint in routes_publiques:
         return
     if 'user_id' not in session:
-        return redirect(url_for('auth.connexion'))
-    if 'session_start' not in session:
         session.clear()
         return redirect(url_for('auth.connexion'))
+    if not session.get('actif'):
+        session.clear()
+        return redirect(url_for('auth.connexion'))
+
+
+@app.route('/verifier_session_active', methods=['POST'])
+def verifier_session_active():
+    if 'user_id' in session and session.get('actif'):
+        return jsonify({'actif': True})
+    return jsonify({'actif': False})
 
 # ============================================================
 # DÉCORATEUR LOGIN
