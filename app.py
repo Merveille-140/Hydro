@@ -9,6 +9,7 @@ import importlib.util
 import os
 import json
 from functools import wraps
+import time
 
 # ============================================================
 # CHARGEMENT MODULES
@@ -52,11 +53,12 @@ selectionner_pompes        = pompes_bd_mod.selectionner_pompes
 # ============================================================
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'solarpump_secret_key_2026_esmer')
+app.secret_key = os.environ.get('SECRET_KEY', 'hydropump_2026_' + os.urandom(8).hex())
 from datetime import timedelta
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = False
 bcrypt = Bcrypt(app)
 
 from auth import auth as auth_blueprint
@@ -67,10 +69,15 @@ init_db()
 
 @app.before_request
 def verifier_session():
-    if 'user_id' in session:
-        if not session.get('connecte'):
-            session.clear()
-            return redirect(url_for('auth.connexion'))
+    routes_publiques = ['auth.connexion', 'auth.inscription',
+                        'auth.deconnexion', 'index', 'static']
+    if request.endpoint in routes_publiques:
+        return
+    if 'user_id' not in session:
+        return redirect(url_for('auth.connexion'))
+    if 'session_start' not in session:
+        session.clear()
+        return redirect(url_for('auth.connexion'))
 
 # ============================================================
 # DÉCORATEUR LOGIN
