@@ -4,15 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HydroPump — Inscription</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:ital,wght@0,400;0,500&display=swap" rel="stylesheet"/>
     <style>
+        :root {
+            --f:          'Inter', sans-serif;
+            --mono:       'DM Mono', monospace;
+            --green:      #166534;
+            --green-mid:  #15803d;
+            --green-lite: #22c55e;
+            --gold:       #ca8a04;
+            --gold-lite:  #fbbf24;
+            --bg:         #080e0a;
+            --bg2:        #0f1912;
+            --bg3:        #141f16;
+            --border:     rgba(255,255,255,0.07);
+            --border2:    rgba(255,255,255,0.12);
+            --text:       #f0fdf4;
+            --text2:      rgba(240,253,244,0.55);
+            --text3:      rgba(240,253,244,0.3);
+        }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Poppins', sans-serif;
-            background-image: url('/static/images/irrigation.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            font-family: var(--f);
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -21,104 +36,121 @@
             height: 60px;
             display: flex;
             align-items: center;
-            padding: 0 40px;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            justify-content: center;
+            border-bottom: 1px solid var(--border);
         }
-        .logo { display:flex; align-items:center; gap:12px; text-decoration:none; }
-        .logo-icon { width:36px; height:36px; background:linear-gradient(135deg,#d4a017,#f0c040); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; font-family:sans-serif; }
-        .logo-text { font-size:20px; font-weight:800; color:white; letter-spacing:-0.5px; font-family:'Poppins',sans-serif; }
-        .main {
-            flex:1; display:flex; align-items:center; justify-content:center; padding:40px 20px;
-            position:relative;
+        .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .logo-icon {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-lite));
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 12px rgba(251,191,36,0.25);
         }
-        .main::before {
-            content:'';
-            position:fixed;
-            inset:0;
-            background: rgba(0,0,0,0.55);
-            z-index:0;
-        }
-        .form-box { position:relative; z-index:1; }
+        .logo-text { font-size:18px; font-weight:700; color:var(--text); letter-spacing:-0.3px; }
+        .main { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 20px; }
         .form-box {
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 20px;
-            padding: 48px 44px;
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            padding: 44px 40px;
             width: 100%;
             max-width: 480px;
         }
-        .form-icon { font-size:40px; text-align:center; margin-bottom:18px; font-family:sans-serif; }
-        .form-title { font-size:28px; font-weight:700; color:white; text-align:center; margin-bottom:8px; font-family:'Poppins',sans-serif; }
-        .form-sub { font-size:14px; color:rgba(255,255,255,0.55); text-align:center; margin-bottom:32px; line-height:1.6; font-family:'Poppins',sans-serif; }
+        .form-icon {
+            width: 52px; height: 52px;
+            background: rgba(21,128,61,0.15);
+            border: 1px solid rgba(34,197,94,0.15);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .form-title { font-size:24px; font-weight:700; color:var(--text); text-align:center; letter-spacing:-0.4px; margin-bottom:6px; }
+        .form-sub { font-size:13px; color:var(--text2); text-align:center; margin-bottom:28px; line-height:1.6; }
         .form-group { margin-bottom:16px; }
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-        .form-label { display:block; font-size:12px; font-weight:600; color:rgba(255,255,255,0.65); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.8px; font-family:'Poppins',sans-serif; }
+        .form-label {
+            display:block; font-size:11px; font-weight:600;
+            color:var(--text3); margin-bottom:7px;
+            text-transform:uppercase; letter-spacing:0.6px;
+        }
         .form-input {
             width:100%;
-            background: rgba(255,255,255,0.08);
-            border: 1.5px solid rgba(255,255,255,0.15);
-            border-radius:10px;
-            padding:12px 16px;
-            color:white;
-            font-family:'Poppins',sans-serif;
-            font-size:14px;
-            transition:all 0.2s;
-            outline:none;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            padding: 11px 14px;
+            color: var(--text);
+            font-family: var(--f);
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
         }
-        .form-input:focus { border-color:#d4a017; background:rgba(255,255,255,0.12); box-shadow:0 0 0 3px rgba(212,160,23,0.15); }
-        .form-input::placeholder { color:rgba(255,255,255,0.3); font-family:'Poppins',sans-serif; }
-        .form-hint { font-size:11px; color:rgba(255,255,255,0.3); margin-top:5px; font-family:'Poppins',sans-serif; }
+        .form-input:focus { border-color:var(--gold-lite); box-shadow:0 0 0 3px rgba(251,191,36,0.1); }
+        .form-input::placeholder { color:var(--text3); }
+        .form-hint { font-size:11px; color:var(--text3); margin-top:5px; line-height:1.4; }
+        input[type="password"] {
+            background: rgba(0,0,0,0.25) !important;
+            border: 1px solid var(--border2) !important;
+            color: var(--text) !important;
+        }
         .btn-submit {
             width:100%;
-            background: #d4a017;
+            background: var(--gold-lite);
             color: #000;
-            border:none;
-            padding:14px;
-            border-radius:10px;
-            font-size:16px; font-weight:700;
-            cursor:pointer;
-            font-family:'Poppins',sans-serif;
-            transition:all 0.2s;
-            margin-top:8px;
+            border: none;
+            padding: 13px;
+            border-radius: 9px;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer;
+            font-family: var(--f);
+            transition: all 0.2s;
+            margin-top: 6px;
         }
-        .btn-submit:hover { background:#f0c040; transform:translateY(-2px); }
-        .divider { text-align:center; margin:22px 0; font-size:13px; color:rgba(255,255,255,0.3); position:relative; font-family:'Poppins',sans-serif; }
-        .divider::before, .divider::after { content:''; position:absolute; top:50%; width:42%; height:1px; background:rgba(255,255,255,0.1); }
+        .btn-submit:hover { background:#fcd34d; transform:translateY(-1px); box-shadow:0 4px 16px rgba(251,191,36,0.3); }
+        .divider { text-align:center; margin:20px 0; font-size:12px; color:var(--text3); position:relative; }
+        .divider::before, .divider::after {
+            content:''; position:absolute; top:50%;
+            width:42%; height:1px; background:var(--border);
+        }
         .divider::before { left:0; } .divider::after { right:0; }
-        .link-secondary { display:block; text-align:center; font-size:14px; color:rgba(255,255,255,0.5); text-decoration:none; padding:12px; border:1.5px solid rgba(255,255,255,0.12); border-radius:10px; transition:all 0.2s; font-family:'Poppins',sans-serif; }
-        .link-secondary:hover { border-color:#52b788; color:#52b788; }
-        .link-secondary span { font-weight:700; }
-        .back-link { text-align:center; margin-top:20px; font-size:13px; color:rgba(255,255,255,0.35); font-family:'Poppins',sans-serif; }
-        .back-link a { color:rgba(255,255,255,0.5); text-decoration:none; font-weight:700; }
-        .back-link a:hover { color:#d4a017; }
-        .flash { padding:12px 16px; border-radius:10px; margin-bottom:18px; font-size:13px; font-weight:500; font-family:'Poppins',sans-serif; }
-        .flash-success { background:rgba(82,183,136,0.2); border:1px solid rgba(82,183,136,0.3); color:#86efac; }
-        .flash-error   { background:rgba(220,38,38,0.2);  border:1px solid rgba(220,38,38,0.3);  color:#fca5a5; }
-        .input-wrapper { position: relative; }
-        .eye-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:4px; color:rgba(100,116,139,0.8); display:flex; align-items:center; transition:color 0.2s; }
-        .eye-toggle:hover { color:rgba(26,71,42,0.9); }
-        input[type="password"] { background:rgba(255,255,255,0.08) !important; border:1.5px solid rgba(255,255,255,0.15) !important; color:white !important; }
-        @media (max-width: 1024px) {
-            .form-box { padding: 40px 36px; }
+        .link-secondary {
+            display:block; text-align:center; font-size:13px;
+            color:var(--text2); text-decoration:none; padding:11px;
+            border:1px solid var(--border2); border-radius:9px; transition:all 0.2s;
         }
+        .link-secondary:hover { border-color:var(--green-lite); color:var(--green-lite); }
+        .link-secondary span { font-weight:700; }
+        .back-link { text-align:center; margin-top:18px; font-size:13px; color:var(--text3); }
+        .back-link a { color:var(--text2); text-decoration:none; font-weight:700; }
+        .back-link a:hover { color:var(--gold-lite); }
+        .flash { padding:11px 14px; border-radius:9px; margin-bottom:16px; font-size:13px; font-weight:500; }
+        .flash-success { background:rgba(34,197,94,0.1);  border:1px solid rgba(34,197,94,0.2);  color:#4ade80; }
+        .flash-error   { background:rgba(239,68,68,0.1);  border:1px solid rgba(239,68,68,0.2);  color:#fca5a5; }
+        .input-wrapper { position:relative; }
+        .eye-toggle {
+            position:absolute; right:11px; top:50%; transform:translateY(-50%);
+            background:none; border:none; cursor:pointer; padding:4px;
+            color:var(--text3); display:flex; align-items:center; transition:color 0.2s;
+        }
+        .eye-toggle:hover { color:var(--text2); }
         @media (max-width: 768px) {
-            .navbar { padding: 0 20px; height: 52px; }
-            .form-box { padding: 36px 28px; max-width: 440px; }
-            .form-title { font-size: 22px; }
+            .navbar { height:52px; }
+            .form-box { padding:36px 28px; max-width:440px; }
+            .form-title { font-size:20px; }
         }
         @media (max-width: 480px) {
-            .navbar { padding: 0 16px; }
-            .main { padding: 24px 12px; }
-            .form-box { padding: 28px 20px; border-radius: 16px; }
-            .form-title { font-size: 20px; }
-            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .main { padding:24px 12px; align-items:flex-start; padding-top:32px; }
+            .form-box { padding:28px 20px; }
+            .form-title { font-size:18px; }
+            .form-row { grid-template-columns:1fr; gap:0; }
         }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="logo">
-            <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>
+            <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#080e0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>
             <span class="logo-text">HydroPump</span>
         </a>
     </nav>
@@ -129,7 +161,7 @@
                     <div class="flash flash-{{ category }}">{{ message }}</div>
                 {% endfor %}{% endif %}
             {% endwith %}
-            <div class="form-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+            <div class="form-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
             <h1 class="form-title">Créer un compte</h1>
             <p class="form-sub">Rejoignez HydroPump et commencez à dimensionner vos installations.</p>
             <form method="POST" action="/inscription">
