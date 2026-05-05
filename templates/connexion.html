@@ -4,29 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HydroPump — Connexion</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:ital,wght@0,400;0,500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        :root {
-            --f:          'Inter', sans-serif;
-            --mono:       'DM Mono', monospace;
-            --green:      #1e3a5f;
-            --green-mid:  #15803d;
-            --green-lite: #22c55e;
-            --gold:       #ca8a04;
-            --gold-lite:  #fbbf24;
-            --bg:         #080e0a;
-            --bg2:        #0f1912;
-            --bg3:        #141f16;
-            --border:     rgba(255,255,255,0.07);
-            --border2:    rgba(255,255,255,0.12);
-            --text:       #f0fdf4;
-            --text2:      rgba(240,253,244,0.55);
-            --text3:      rgba(240,253,244,0.3);
-        }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: var(--f);
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background-image: url('/static/images/irrigation.jpg');
             background-size: cover;
             background-position: center;
@@ -40,115 +23,117 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: linear-gradient(135deg, rgba(13,115,119,0.88) 0%, rgba(8,95,99,0.92) 100%);
+            background: linear-gradient(160deg, rgba(10,43,16,0.92) 0%, rgba(26,71,42,0.88) 40%, rgba(45,106,79,0.85) 70%, rgba(26,58,32,0.92) 100%);
             z-index: 0;
             pointer-events: none;
         }
         .navbar {
-            height: 60px;
+            height: 64px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
-            border-bottom: 1px solid rgba(0,0,0,0.08);
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
             position: relative;
-            z-index: 1;
+            z-index: 10;
         }
         .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
         .logo-icon {
-            width: 34px; height: 34px;
-            background: linear-gradient(135deg, #d4a017, #f0c040);
-            border-radius: 9px;
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 12px rgba(212,160,23,0.3);
+            box-shadow: 0 2px 12px rgba(245,158,11,0.3);
         }
-        .logo-text { font-size:18px; font-weight:700; color:#0d7377; letter-spacing:-0.3px; }
-        .main { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 20px; position: relative; z-index: 1; }
+        .logo-text { font-size:19px; font-weight:800; color:white; letter-spacing:-0.3px; }
+        .main { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 20px; position:relative; z-index:1; }
         .form-box {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 18px;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
             padding: 44px 40px;
             width: 100%;
             max-width: 420px;
         }
         .form-icon {
-            width: 52px; height: 52px;
-            background: rgba(21,128,61,0.15);
-            border: 1px solid rgba(34,197,94,0.15);
-            border-radius: 12px;
+            width: 56px; height: 56px;
+            background: rgba(245,158,11,0.12);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 20px;
         }
         .form-title { font-size:24px; font-weight:700; color:white; text-align:center; letter-spacing:-0.4px; margin-bottom:6px; }
-        .form-sub { font-size:13px; color:rgba(255,255,255,0.6); text-align:center; margin-bottom:28px; line-height:1.6; }
+        .form-sub { font-size:13px; color:rgba(255,255,255,0.55); text-align:center; margin-bottom:28px; line-height:1.6; }
         .form-group { margin-bottom:16px; }
         .form-label {
-            display:block; font-size:11px; font-weight:600;
-            color:rgba(255,255,255,0.6); margin-bottom:7px;
-            text-transform:uppercase; letter-spacing:0.6px;
+            display:block; font-size:10px; font-weight:600;
+            color:rgba(255,255,255,0.45); margin-bottom:7px;
+            text-transform:uppercase; letter-spacing:0.8px;
         }
         .form-input {
             width:100%;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 10px;
             padding: 11px 14px;
             color: white;
-            font-family: var(--f);
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 14px;
             transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
         }
-        .form-input:focus { border-color:var(--green-lite); box-shadow:0 0 0 3px rgba(34,197,94,0.1); }
-        .form-input::placeholder { color:rgba(255,255,255,0.4); }
+        .form-input:focus { border-color:rgba(245,158,11,0.4); box-shadow:0 0 0 3px rgba(245,158,11,0.08); }
+        .form-input::placeholder { color:rgba(255,255,255,0.3); }
         input[type="password"] {
-            background: rgba(0,0,0,0.2) !important;
-            border: 1px solid rgba(255,255,255,0.15) !important;
+            background: rgba(0,0,0,0.25) !important;
+            border: 1px solid rgba(255,255,255,0.12) !important;
             color: white !important;
         }
         .btn-submit {
             width:100%;
-            background: #0d7377;
-            color: white;
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: #000;
             border: none;
             padding: 13px;
             border-radius: 10px;
             font-size: 14px; font-weight: 700;
             cursor: pointer;
-            font-family: var(--f);
+            font-family: 'Plus Jakarta Sans', sans-serif;
             transition: all 0.2s;
             margin-top: 6px;
         }
-        .btn-submit:hover { background:#0a5e62; transform:translateY(-1px); box-shadow:0 4px 16px rgba(13,115,119,0.35); }
-        .divider { text-align:center; margin:20px 0; font-size:12px; color:var(--text3); position:relative; }
+        .btn-submit:hover { opacity:0.9; transform:translateY(-1px); box-shadow:0 4px 20px rgba(245,158,11,0.35); }
+        .divider { text-align:center; margin:20px 0; font-size:12px; color:rgba(255,255,255,0.3); position:relative; }
         .divider::before, .divider::after {
             content:''; position:absolute; top:50%;
-            width:42%; height:1px; background:var(--border);
+            width:42%; height:1px; background:rgba(255,255,255,0.08);
         }
         .divider::before { left:0; } .divider::after { right:0; }
         .link-secondary {
             display:block; text-align:center; font-size:13px;
-            color:white; text-decoration:none; padding:11px;
-            background:transparent; border:1.5px solid rgba(255,255,255,0.3); border-radius:9px; transition:all 0.2s;
+            color:rgba(255,255,255,0.7); text-decoration:none; padding:11px;
+            background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:10px; transition:all 0.2s;
         }
-        .link-secondary:hover { border-color:var(--gold); color:var(--gold-lite); }
+        .link-secondary:hover { border-color:rgba(245,158,11,0.4); color:white; background:rgba(245,158,11,0.05); }
         .link-secondary span { font-weight:700; }
-        .back-link { text-align:center; margin-top:18px; font-size:13px; color:rgba(255,255,255,0.4); }
-        .back-link a { color:rgba(255,255,255,0.6); text-decoration:none; font-weight:600; }
-        .back-link a:hover { color:var(--green-lite); }
+        .back-link { text-align:center; margin-top:18px; font-size:13px; color:rgba(255,255,255,0.3); }
+        .back-link a { color:rgba(255,255,255,0.5); text-decoration:none; font-weight:700; }
+        .back-link a:hover { color:#fbbf24; }
         .flash { padding:11px 14px; border-radius:9px; margin-bottom:16px; font-size:13px; font-weight:500; }
-        .flash-success { background:rgba(34,197,94,0.1);  border:1px solid rgba(34,197,94,0.2);  color:#4ade80; }
-        .flash-error   { background:rgba(239,68,68,0.1);  border:1px solid rgba(239,68,68,0.2);  color:#fca5a5; }
+        .flash-success { background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); color:#4ade80; }
+        .flash-error   { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#fca5a5; }
         .input-wrapper { position:relative; }
         .eye-toggle {
             position:absolute; right:11px; top:50%; transform:translateY(-50%);
             background:none; border:none; cursor:pointer; padding:4px;
-            color:#0d7377; display:flex; align-items:center; transition:color 0.2s;
+            color:rgba(255,255,255,0.4); display:flex; align-items:center; transition:color 0.2s;
         }
-        .eye-toggle:hover { color:#d4a017; }
+        .eye-toggle:hover { color:rgba(255,255,255,0.8); }
         @media (max-width: 768px) {
-            .navbar { height:52px; }
+            .navbar { height:56px; }
             .form-box { padding:36px 28px; }
             .form-title { font-size:20px; }
         }
@@ -162,7 +147,7 @@
 <body>
     <nav class="navbar">
         <a href="/" class="logo">
-            <div class="logo-icon"><ph-drop-half weight="duotone" style="font-size:20px;color:#0d7377;"></ph-drop-half></div>
+            <div class="logo-icon"><ph-drop-half weight="duotone" style="font-size:20px;color:#1a472a;"></ph-drop-half></div>
             <span class="logo-text">HydroPump</span>
         </a>
     </nav>
@@ -173,7 +158,7 @@
                     <div class="flash flash-{{ category }}">{{ message }}</div>
                 {% endfor %}{% endif %}
             {% endwith %}
-            <div class="form-icon"><ph-user-circle weight="duotone" style="font-size:32px;color:#d4a017;"></ph-user-circle></div>
+            <div class="form-icon"><ph-user-circle weight="duotone" style="font-size:32px;color:#f59e0b;"></ph-user-circle></div>
             <h1 class="form-title">Bon retour</h1>
             <p class="form-sub">Connectez-vous pour accéder à vos projets<br>de dimensionnement.</p>
             <form method="POST" action="/connexion">
