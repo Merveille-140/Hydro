@@ -134,7 +134,6 @@ def get_projets_utilisateur(user_id):
     conn.close()
     return projets
 
-
 def get_projet_par_id(projet_id, user_id):
     conn = get_db()
     projet = conn.execute(
