@@ -40,7 +40,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: rgba(30,58,95,0.85);
+            background: linear-gradient(135deg, rgba(13,115,119,0.88) 0%, rgba(8,95,99,0.92) 100%);
             z-index: 0;
             pointer-events: none;
         }
@@ -61,12 +61,12 @@
         .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
         .logo-icon {
             width: 34px; height: 34px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-lite));
+            background: linear-gradient(135deg, #d4a017, #f0c040);
             border-radius: 9px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 12px rgba(251,191,36,0.25);
+            box-shadow: 0 2px 12px rgba(212,160,23,0.3);
         }
-        .logo-text { font-size:18px; font-weight:700; color:#1e3a5f; letter-spacing:-0.3px; }
+        .logo-text { font-size:18px; font-weight:700; color:#0d7377; letter-spacing:-0.3px; }
 
         /* PAGE BODY */
         .page-body {
@@ -308,7 +308,7 @@
         }
         .page-subtitle {
             font-size: 14px;
-            color: rgba(255,255,255,0.75);
+            color: rgba(255,255,255,0.6);
             line-height: 1.6;
         }
 
@@ -321,8 +321,8 @@
         }
 
         .sys-card {
-            background: rgba(0,0,0,0.2);
-            border: 1.5px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
             border-radius: 18px;
             padding: 22px 20px;
             cursor: pointer;
@@ -400,17 +400,17 @@
             border: 1px solid var(--border);
         }
         .btn-start.active {
-            background: #d4a017;
-            color: #000;
+            background: #0d7377;
+            color: white;
             cursor: pointer;
             pointer-events: all;
             border-color: transparent;
-            box-shadow: 0 4px 20px rgba(212,160,23,0.25);
+            box-shadow: 0 4px 20px rgba(13,115,119,0.25);
         }
         .btn-start.active:hover {
-            background: #b8891a;
+            background: #0a5e62;
             transform: translateY(-1px);
-            box-shadow: 0 8px 28px rgba(212,160,23,0.35);
+            box-shadow: 0 8px 28px rgba(13,115,119,0.35);
         }
 
         /* RESPONSIVE */

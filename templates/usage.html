@@ -4,59 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HydroPump — Type d'usage</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:ital,wght@0,400;0,500&display=swap" rel="stylesheet"/>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        :root {
+            --f:          'Inter', sans-serif;
+            --mono:       'DM Mono', monospace;
+            --gold:       #ca8a04;
+            --gold-lite:  #fbbf24;
+            --border:     rgba(255,255,255,0.07);
+            --border2:    rgba(255,255,255,0.12);
+            --text3:      rgba(240,253,244,0.3);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Inter', sans-serif;
-            background: #1e3a5f;
+            font-family: var(--f);
+            background-image: url('/static/images/irrigation.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: white;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(13,115,119,0.88) 0%, rgba(8,95,99,0.92) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
         .navbar {
             height: 60px;
-            background: white;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: white;
             border-bottom: 1px solid rgba(0,0,0,0.08);
-            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
         }
-
-        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-
+        .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
         .logo-icon {
             width: 34px; height: 34px;
-            background: linear-gradient(135deg, #ca8a04, #fbbf24);
+            background: linear-gradient(135deg, #d4a017, #f0c040);
             border-radius: 9px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 12px rgba(251,191,36,0.25);
+            box-shadow: 0 2px 12px rgba(212,160,23,0.3);
         }
-
-        .logo-text { font-size: 18px; font-weight: 700; color: #1e3a5f; letter-spacing: -0.3px; }
-
+        .logo-text { font-size:18px; font-weight:700; color:#0d7377; letter-spacing:-0.3px; }
         .main {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 48px 24px;
+            position: relative;
+            z-index: 1;
         }
-
-        .container {
-            width: 100%;
-            max-width: 740px;
-        }
-
-        .page-header {
-            text-align: center;
-            margin-bottom: 36px;
-        }
-
+        .container { width:100%; max-width: 740px; }
+        .page-header { text-align:center; margin-bottom:36px; }
         .page-title {
             font-size: 28px;
             font-weight: 700;
@@ -64,7 +72,6 @@
             letter-spacing: -0.5px;
             margin-bottom: 10px;
         }
-
         .page-sub {
             font-size: 15px;
             color: rgba(255,255,255,0.7);
@@ -72,17 +79,15 @@
             max-width: 520px;
             margin: 0 auto;
         }
-
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 14px;
             margin-bottom: 32px;
         }
-
         .usage-card {
-            background: rgba(255,255,255,0.07);
-            border: 1.5px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
             border-radius: 14px;
             padding: 24px 18px 20px;
             cursor: pointer;
@@ -90,36 +95,26 @@
             text-align: center;
             user-select: none;
         }
-
         .usage-card:hover {
-            background: rgba(255,255,255,0.11);
-            border-color: rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.28);
             transform: translateY(-2px);
         }
-
         .usage-card.selected {
-            background: rgba(240,165,0,0.1);
-            border-color: #f0a500;
-            box-shadow: 0 0 0 1px #f0a500;
+            background: rgba(212,160,23,0.12);
+            border-color: #d4a017;
+            box-shadow: 0 0 0 1px #d4a017;
             transform: translateY(-2px);
         }
-
-        .card-icon { display: flex; justify-content: center; margin-bottom: 12px; }
-
+        .card-icon { display:flex; justify-content:center; margin-bottom:12px; }
         .card-label {
             font-size: 14px;
             font-weight: 600;
             color: white;
             line-height: 1.35;
         }
-
-        .autre-input {
-            display: none;
-            margin-top: 14px;
-        }
-
-        .usage-card.selected .autre-input { display: block; }
-
+        .autre-input { display:none; margin-top:14px; }
+        .usage-card.selected .autre-input { display:block; }
         .autre-input input {
             width: 100%;
             background: rgba(0,0,0,0.2);
@@ -127,23 +122,17 @@
             border-radius: 8px;
             padding: 8px 12px;
             color: white;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--f);
             font-size: 13px;
             outline: none;
             text-align: left;
             transition: border-color 0.2s;
         }
-
-        .autre-input input:focus { border-color: #f0a500; }
+        .autre-input input:focus { border-color: #d4a017; }
         .autre-input input::placeholder { color: rgba(255,255,255,0.4); }
-
-        .btn-wrap {
-            display: flex;
-            justify-content: center;
-        }
-
+        .btn-wrap { display:flex; justify-content:center; }
         .btn-continuer {
-            background: #f0a500;
+            background: #d4a017;
             color: #000;
             border: none;
             padding: 13px 40px;
@@ -151,36 +140,30 @@
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--f);
             transition: all 0.2s;
             opacity: 0.35;
             pointer-events: none;
         }
-
-        .btn-continuer.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
+        .btn-continuer.active { opacity:1; pointer-events:all; }
         .btn-continuer.active:hover {
-            background: #d4920a;
+            background: #b8891a;
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(240,165,0,0.35);
+            box-shadow: 0 6px 20px rgba(212,160,23,0.35);
         }
-
         @media (max-width: 768px) {
+            .navbar { height:52px; }
             .cards-grid { grid-template-columns: repeat(2, 1fr); }
-            .page-title { font-size: 22px; }
+            .page-title { font-size:22px; }
         }
-
         @media (max-width: 480px) {
-            .cards-grid { grid-template-columns: 1fr; gap: 10px; }
-            .page-title { font-size: 20px; }
-            .page-sub { font-size: 13px; }
-            .main { padding: 24px 14px; }
-            .page-header { margin-bottom: 24px; }
-            .btn-continuer { width: 100%; }
-            .btn-wrap { display: block; }
+            .main { padding:24px 14px; align-items:flex-start; padding-top:32px; }
+            .cards-grid { grid-template-columns: 1fr; gap:10px; }
+            .page-title { font-size:20px; }
+            .page-sub { font-size:13px; }
+            .page-header { margin-bottom:24px; }
+            .btn-continuer { width:100%; }
+            .btn-wrap { display:block; }
         }
     </style>
 </head>
@@ -188,7 +171,7 @@
     <nav class="navbar">
         <a href="/" class="logo">
             <div class="logo-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#080e0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/>
                     <line x1="12" y1="14" x2="12" y2="22"/>
                     <line x1="8" y1="22" x2="16" y2="22"/>

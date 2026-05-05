@@ -117,7 +117,7 @@ def usage():
         type_usage = request.form.get('type_usage', '')
         if type_usage == 'autre':
             type_usage = request.form.get('autre_usage', 'Autre')
-        session['type_usage'] = type_usage
+        session['usage_type'] = type_usage
         return redirect(url_for('dashboard'))
     return render_template('usage.html', user_nom=session.get('user_nom', ''))
 
