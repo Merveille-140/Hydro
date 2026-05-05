@@ -49,7 +49,7 @@ def inscription():
             session['user_email'] = email
             session['connecte']   = True
             session['actif']      = True
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('usage'))
         else:
             flash('Cet email est déjà utilisé.', 'error')
             return render_template('inscription.html')
