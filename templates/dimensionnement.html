@@ -60,12 +60,23 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #1e3a5f;
+            background-image: url('/static/images/irrigation.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: white;
             min-height: 100vh;
             overflow-x: hidden;
             font-size: 14px;
             line-height: 1.5;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(30,58,95,0.85);
+            z-index: 0;
+            pointer-events: none;
         }
 
         .page { display: none; animation: fadeUp 0.3s ease; margin-left: 52px; }
@@ -116,6 +127,8 @@
 
         /* STEPPER BAR */
         .stepper-bar {
+            position: relative;
+            z-index: 1;
             background: var(--bg3);
             border-bottom: 1px solid var(--border);
             padding: 0 20px;
@@ -173,6 +186,8 @@
             display: grid;
             grid-template-columns: 220px 1fr;
             min-height: calc(100vh - 112px);
+            position: relative;
+            z-index: 1;
         }
 
         /* SIDEBAR (step nav) */

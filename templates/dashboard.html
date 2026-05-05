@@ -27,11 +27,22 @@
 
         body {
             font-family: var(--f);
-            background: #1e3a5f;
+            background-image: url('/static/images/irrigation.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: white;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(30,58,95,0.85);
+            z-index: 0;
+            pointer-events: none;
         }
 
         /* NAVBAR */
@@ -63,6 +74,8 @@
             flex: 1;
             min-height: calc(100vh - 60px);
             overflow: hidden;
+            position: relative;
+            z-index: 1;
         }
 
         /* BARRE FINE GAUCHE */
