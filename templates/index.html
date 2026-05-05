@@ -75,7 +75,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: linear-gradient(160deg, rgba(10,43,16,0.92) 0%, rgba(26,71,42,0.88) 40%, rgba(45,106,79,0.85) 70%, rgba(26,58,32,0.92) 100%);
+            background: rgba(0,0,0,0.45);
             z-index: 0;
             pointer-events: none;
         }
@@ -94,8 +94,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .accueil-navbar {
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(20px);
+            background: #1a472a;
             height: 64px;
             display: flex;
             align-items: center;
@@ -103,7 +102,6 @@
             position: sticky;
             top: 0;
             z-index: 200;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
 
         .accueil-navbar .logo {
@@ -330,8 +328,7 @@
         }
 
         .app-navbar {
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(20px);
+            background: #1a472a;
             height: 64px;
             padding: 0 32px;
             display: flex;
@@ -339,7 +336,6 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
 
         .app-navbar .logo {
@@ -913,9 +909,8 @@
     <div class="hero">
         <div class="hero-overlay"></div>
         <div class="hero-content">
-            <div class="hero-badge"><span class="badge-dot"></span>Outil gratuit · NASA POWER · Rapport PDF</div>
             <h1 class="hero-title">
-                Dimensionnez votre système de <span class="shimmer">pompage</span>
+                Dimensionnez votre système de pompage
             </h1>
             <p class="hero-desc">
                 Un outil simple et fiable pour dimensionner votre installation.
@@ -934,16 +929,6 @@
                     <div class="auth-card-desc">Créez un compte gratuit et commencez à dimensionner.</div>
                     <span class="auth-btn-gold">Créer un compte →</span>
                 </a>
-            </div>
-
-            <div class="hero-stats">
-                <div class="stat-item"><span class="stat-num">4</span><span class="stat-label">Sources énergie</span></div>
-                <div class="stat-sep"></div>
-                <div class="stat-item"><span class="stat-num">6</span><span class="stat-label">Types d'usage</span></div>
-                <div class="stat-sep"></div>
-                <div class="stat-item"><span class="stat-num">PDF</span><span class="stat-label">Rapport</span></div>
-                <div class="stat-sep"></div>
-                <div class="stat-item"><span class="stat-num">100%</span><span class="stat-label">Gratuit</span></div>
             </div>
         </div>
 
