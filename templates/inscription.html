@@ -26,8 +26,8 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: var(--f);
-            background: var(--bg);
-            color: var(--text);
+            background: #1a472a;
+            color: white;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -37,7 +37,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 1px solid var(--border);
+            background: white;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
         }
         .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
         .logo-icon {
@@ -47,12 +48,12 @@
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 2px 12px rgba(251,191,36,0.25);
         }
-        .logo-text { font-size:18px; font-weight:700; color:var(--text); letter-spacing:-0.3px; }
+        .logo-text { font-size:18px; font-weight:700; color:#1a472a; letter-spacing:-0.3px; }
         .main { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 20px; }
         .form-box {
-            background: var(--bg2);
-            border: 1px solid var(--border2);
-            border-radius: 16px;
+            background: rgba(0,0,0,0.2);
+            border: 1.5px solid rgba(255,255,255,0.15);
+            border-radius: 18px;
             padding: 44px 40px;
             width: 100%;
             max-width: 480px;
@@ -65,42 +66,42 @@
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 20px;
         }
-        .form-title { font-size:24px; font-weight:700; color:var(--text); text-align:center; letter-spacing:-0.4px; margin-bottom:6px; }
-        .form-sub { font-size:13px; color:var(--text2); text-align:center; margin-bottom:28px; line-height:1.6; }
+        .form-title { font-size:24px; font-weight:700; color:white; text-align:center; letter-spacing:-0.4px; margin-bottom:6px; }
+        .form-sub { font-size:13px; color:rgba(255,255,255,0.75); text-align:center; margin-bottom:28px; line-height:1.6; }
         .form-group { margin-bottom:16px; }
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
         .form-label {
             display:block; font-size:11px; font-weight:600;
-            color:var(--text3); margin-bottom:7px;
+            color:rgba(255,255,255,0.75); margin-bottom:7px;
             text-transform:uppercase; letter-spacing:0.6px;
         }
         .form-input {
             width:100%;
-            background: rgba(0,0,0,0.25);
-            border: 1px solid var(--border2);
-            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
             padding: 11px 14px;
-            color: var(--text);
+            color: white;
             font-family: var(--f);
             font-size: 14px;
             transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
         }
         .form-input:focus { border-color:var(--gold-lite); box-shadow:0 0 0 3px rgba(251,191,36,0.1); }
-        .form-input::placeholder { color:var(--text3); }
-        .form-hint { font-size:11px; color:var(--text3); margin-top:5px; line-height:1.4; }
+        .form-input::placeholder { color:rgba(255,255,255,0.4); }
+        .form-hint { font-size:11px; color:rgba(255,255,255,0.4); margin-top:5px; line-height:1.4; }
         input[type="password"] {
-            background: rgba(0,0,0,0.25) !important;
-            border: 1px solid var(--border2) !important;
-            color: var(--text) !important;
+            background: rgba(0,0,0,0.2) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            color: white !important;
         }
         .btn-submit {
             width:100%;
-            background: var(--gold-lite);
+            background: #d4a017;
             color: #000;
             border: none;
             padding: 13px;
-            border-radius: 9px;
+            border-radius: 10px;
             font-size: 14px; font-weight: 700;
             cursor: pointer;
             font-family: var(--f);
@@ -116,13 +117,13 @@
         .divider::before { left:0; } .divider::after { right:0; }
         .link-secondary {
             display:block; text-align:center; font-size:13px;
-            color:var(--text2); text-decoration:none; padding:11px;
-            border:1px solid var(--border2); border-radius:9px; transition:all 0.2s;
+            color:white; text-decoration:none; padding:11px;
+            background:transparent; border:1.5px solid rgba(255,255,255,0.3); border-radius:9px; transition:all 0.2s;
         }
         .link-secondary:hover { border-color:var(--green-lite); color:var(--green-lite); }
         .link-secondary span { font-weight:700; }
-        .back-link { text-align:center; margin-top:18px; font-size:13px; color:var(--text3); }
-        .back-link a { color:var(--text2); text-decoration:none; font-weight:700; }
+        .back-link { text-align:center; margin-top:18px; font-size:13px; color:rgba(255,255,255,0.4); }
+        .back-link a { color:rgba(255,255,255,0.75); text-decoration:none; font-weight:700; }
         .back-link a:hover { color:var(--gold-lite); }
         .flash { padding:11px 14px; border-radius:9px; margin-bottom:16px; font-size:13px; font-weight:500; }
         .flash-success { background:rgba(34,197,94,0.1);  border:1px solid rgba(34,197,94,0.2);  color:#4ade80; }

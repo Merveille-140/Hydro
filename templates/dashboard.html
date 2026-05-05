@@ -27,8 +27,8 @@
 
         body {
             font-family: var(--f);
-            background: var(--bg);
-            color: var(--text);
+            background: #1a472a;
+            color: white;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -37,11 +37,11 @@
         /* NAVBAR */
         .navbar {
             height: 60px;
-            background: var(--bg);
+            background: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(0,0,0,0.08);
             flex-shrink: 0;
             position: relative;
             z-index: 30;
@@ -55,7 +55,7 @@
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 2px 12px rgba(251,191,36,0.25);
         }
-        .logo-text { font-size:18px; font-weight:700; color:var(--text); letter-spacing:-0.3px; }
+        .logo-text { font-size:18px; font-weight:700; color:#1a472a; letter-spacing:-0.3px; }
 
         /* PAGE BODY */
         .page-body {
@@ -288,14 +288,14 @@
         .page-title {
             font-size: 26px;
             font-weight: 700;
-            color: var(--text);
+            color: white;
             letter-spacing: -0.5px;
             line-height: 1.25;
             margin-bottom: 10px;
         }
         .page-subtitle {
             font-size: 14px;
-            color: var(--text2);
+            color: rgba(255,255,255,0.75);
             line-height: 1.6;
         }
 
@@ -308,9 +308,9 @@
         }
 
         .sys-card {
-            background: var(--bg2);
-            border: 1px solid var(--border2);
-            border-radius: 14px;
+            background: rgba(0,0,0,0.2);
+            border: 1.5px solid rgba(255,255,255,0.15);
+            border-radius: 18px;
             padding: 22px 20px;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -359,13 +359,13 @@
         .card-title {
             font-size: 14px;
             font-weight: 700;
-            color: var(--text);
+            color: white;
             margin-bottom: 6px;
             line-height: 1.35;
         }
         .card-desc {
             font-size: 12px;
-            color: var(--text3);
+            color: rgba(255,255,255,0.4);
             line-height: 1.6;
         }
 
@@ -387,17 +387,17 @@
             border: 1px solid var(--border);
         }
         .btn-start.active {
-            background: var(--gold-lite);
+            background: #d4a017;
             color: #000;
             cursor: pointer;
             pointer-events: all;
             border-color: transparent;
-            box-shadow: 0 4px 20px rgba(251,191,36,0.25);
+            box-shadow: 0 4px 20px rgba(212,160,23,0.25);
         }
         .btn-start.active:hover {
-            background: #fcd34d;
+            background: #b8891a;
             transform: translateY(-1px);
-            box-shadow: 0 8px 28px rgba(251,191,36,0.35);
+            box-shadow: 0 8px 28px rgba(212,160,23,0.35);
         }
 
         /* RESPONSIVE */
