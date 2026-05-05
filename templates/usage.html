@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydroPump — Type d'usage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1e3a5f;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            height: 60px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            flex-shrink: 0;
+        }
+
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+
+        .logo-icon {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, #ca8a04, #fbbf24);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 12px rgba(251,191,36,0.25);
+        }
+
+        .logo-text { font-size: 18px; font-weight: 700; color: #1e3a5f; letter-spacing: -0.3px; }
+
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 740px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+        .page-sub {
+            font-size: 15px;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.6;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .usage-card {
+            background: rgba(255,255,255,0.07);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
+            padding: 24px 18px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            user-select: none;
+        }
+
+        .usage-card:hover {
+            background: rgba(255,255,255,0.11);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .usage-card.selected {
+            background: rgba(240,165,0,0.1);
+            border-color: #f0a500;
+            box-shadow: 0 0 0 1px #f0a500;
+            transform: translateY(-2px);
+        }
+
+        .card-icon { display: flex; justify-content: center; margin-bottom: 12px; }
+
+        .card-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            line-height: 1.35;
+        }
+
+        .autre-input {
+            display: none;
+            margin-top: 14px;
+        }
+
+        .usage-card.selected .autre-input { display: block; }
+
+        .autre-input input {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            outline: none;
+            text-align: left;
+            transition: border-color 0.2s;
+        }
+
+        .autre-input input:focus { border-color: #f0a500; }
+        .autre-input input::placeholder { color: rgba(255,255,255,0.4); }
+
+        .btn-wrap {
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-continuer {
+            background: #f0a500;
+            color: #000;
+            border: none;
+            padding: 13px 40px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .btn-continuer.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .btn-continuer.active:hover {
+            background: #d4920a;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(240,165,0,0.35);
+        }
+
+        @media (max-width: 768px) {
+            .cards-grid { grid-template-columns: repeat(2, 1fr); }
+            .page-title { font-size: 22px; }
+        }
+
+        @media (max-width: 480px) {
+            .cards-grid { grid-template-columns: 1fr; gap: 10px; }
+            .page-title { font-size: 20px; }
+            .page-sub { font-size: 13px; }
+            .main { padding: 24px 14px; }
+            .page-header { margin-bottom: 24px; }
+            .btn-continuer { width: 100%; }
+            .btn-wrap { display: block; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0C18 9 12 2 12 2z"/>
+                    <line x1="12" y1="14" x2="12" y2="22"/>
+                    <line x1="8" y1="22" x2="16" y2="22"/>
+                </svg>
+            </div>
+            <span class="logo-text">HydroPump</span>
+        </a>
+    </nav>
+
+    <div class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">Quel est votre type d'usage ?</h1>
+                <p class="page-sub">Sélectionnez le type d'usage pour lequel vous souhaitez dimensionner votre système de pompage.</p>
+            </div>
+
+            <form method="POST" action="/usage" id="usageForm">
+                <input type="hidden" name="type_usage" id="typeUsageInput">
+                <input type="hidden" name="autre_usage" id="autreUsageInput">
+
+                <div class="cards-grid">
+                    <div class="usage-card" data-value="Irrigation agricole" onclick="selectCard(this)">
+                        <div class="card-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2a9 9 0 0 1 9 9c0 4-2.5 7.5-6 9.5"/>
+                                <path d="M12 2C8 6 5 10 5 13a7 7 0 0 0 7 7"/>
+                                <line x1="12" y1="12" x2="12" y2="22"/>
+                            </svg>
+                        </div>
+                        <div class="card-label">Irrigation agricole</div>
+                    </div>
+                    <div class="usage-card" data-value="Résidentiel" onclick="selectCard(this)">
+                        <div class="card-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+                                <polyline points="9 21 9 12 15 12 15 21"/>
+                            </svg>
+                        </div>
+                        <div class="card-label">Résidentiel</div>
+                    </div>
+                    <div class="usage-card" data-value="Village / Eau potable" onclick="selectCard(this)">
+                        <div class="card-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="7" r="3"/>
+                                <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                                <circle cx="18" cy="7" r="2"/>
+                                <path d="M15 21v-1.5a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3V21"/>
+                            </svg>
+                        </div>
+                        <div class="card-label">Village / Eau potable</div>
+                    </div>
+                    <div class="usage-card" data-value="Élevage" onclick="selectCard(this)">
+                        <div class="card-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9c0-1.5 1-3 3-3s3 1.5 3 3v2H3V9z"/>
+                                <path d="M15 9c0-1.5 1-3 3-3s3 1.5 3 3v2h-6V9z"/>
+                                <path d="M3 11h18v3a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-3z"/>
+                                <line x1="9" y1="15" x2="9" y2="20"/>
+                                <line x1="15" y1="15" x2="15" y2="20"/>
+                            </svg>
+                        </div>
+                        <div class="card-label">Élevage</div>
+                    </div>
+                    <div class="usage-card" data-value="Industrie" onclick="selectCard(this)">
+                        <div class="card-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="1"/>
+                                <path d="M16 7V4a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/>
+                                <line x1="12" y1="12" x2="12" y2="16"/>
+                                <line x1="8" y1="14" x2="16" y2="14"/>
+                            </svg>
+                        </div>
+                        <div class="card-label">Industrie</div>
+                    </div>
+                    <div class="usage-card" data-value="autre" onclick="selectCard(this)">
+                        <div class="card-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                        </div>
+                        <div class="card-label">Autre usage</div>
+                        <div class="autre-input">
+                            <input type="text" id="autreText" placeholder="Précisez votre usage…" onclick="event.stopPropagation()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-wrap">
+                    <button type="submit" class="btn-continuer" id="btnContinuer">Continuer →</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function selectCard(card) {
+            document.querySelectorAll('.usage-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            document.getElementById('typeUsageInput').value = card.dataset.value;
+            document.getElementById('btnContinuer').classList.add('active');
+        }
+
+        document.getElementById('usageForm').addEventListener('submit', function() {
+            if (document.getElementById('typeUsageInput').value === 'autre') {
+                const txt = document.getElementById('autreText').value.trim();
+                document.getElementById('autreUsageInput').value = txt || 'Autre';
+            }
+        });
+    </script>
+</body>
+</html>

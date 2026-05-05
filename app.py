@@ -110,6 +110,17 @@ def login_required(f):
 @app.route('/')
 def index():
     return render_template('index.html')
+@app.route('/usage', methods=['GET', 'POST'])
+@login_required
+def usage():
+    if request.method == 'POST':
+        type_usage = request.form.get('type_usage', '')
+        if type_usage == 'autre':
+            type_usage = request.form.get('autre_usage', 'Autre')
+        session['type_usage'] = type_usage
+        return redirect(url_for('dashboard'))
+    return render_template('usage.html', user_nom=session.get('user_nom', ''))
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
