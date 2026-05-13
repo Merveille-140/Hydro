@@ -3,6 +3,14 @@
 # Base de données complète + algorithme de sélection
 # ============================================================
 
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+try:
+    import database as _db
+    _USE_DB = True
+except Exception:
+    _USE_DB = False
+
 
 # ============================================================
 # BASE DE DONNÉES DES POMPES
@@ -552,9 +560,11 @@ def calculer_score(pompe, debit_requis, HMT_requis):
 # ============================================================
 
 def get_marques():
-    """
-    Retourne la liste des marques disponibles.
-    """
+    if _USE_DB:
+        try:
+            return _db.db_get_marques_pompes()
+        except Exception:
+            pass
     marques = []
     for pompe in POMPES:
         if pompe['marque'] not in marques:
@@ -567,9 +577,11 @@ def get_marques():
 # ============================================================
 
 def get_modeles_par_marque(marque):
-    """
-    Retourne tous les modèles disponibles pour une marque donnée.
-    """
+    if _USE_DB:
+        try:
+            return _db.db_get_modeles_pompes(marque)
+        except Exception:
+            pass
     modeles = []
     for pompe in POMPES:
         if pompe['marque'] == marque:
@@ -590,9 +602,11 @@ def get_modeles_par_marque(marque):
 # ============================================================
 
 def get_caracteristiques_pompe(marque, modele):
-    """
-    Retourne toutes les caractéristiques d'une pompe.
-    """
+    if _USE_DB:
+        try:
+            return _db.db_get_caracteristiques_pompe(marque, modele)
+        except Exception:
+            pass
     for pompe in POMPES:
         if pompe['marque'] == marque and pompe['modele'] == modele:
             return {

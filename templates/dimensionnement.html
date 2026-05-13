@@ -860,6 +860,10 @@
             .sidebar { display: none; }
             #carte { height: 300px; }
             .climate-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr; }
+            .nav-buttons { flex-direction: column; gap: 8px; }
+            .btn-back, .btn-next, .btn-calculate { width: 100%; }
         }
 
         @media (max-width: 480px) {
@@ -869,7 +873,7 @@
             #carte { height: 240px; }
             .climate-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
             .nav-buttons { flex-direction: column; gap: 8px; }
-            .btn-back, .btn-next { width: 100%; }
+            .btn-back, .btn-next, .btn-calculate { width: 100%; }
         }
     </style>
     <script>
@@ -1062,30 +1066,11 @@
             <div class="sidebar-item active">Besoins <span class="sidebar-badge active">En cours</span></div>
             <div class="sidebar-item">Énergie</div>
             <div class="sidebar-item">Résultats</div>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-info-title">Données site</div>
-            <div class="sidebar-info-row">ET0 max <span id="sb_ET0">—</span></div>
-            <div class="sidebar-info-row">Irradiation <span id="sb_irr">—</span></div>
-            <div class="sidebar-info-row">Mois critique <span id="sb_mois">—</span></div>
         </div>
         <div class="main-content">
             <h2 class="page-title">Définissez vos besoins</h2>
             <p class="page-sub">Choisissez le type de système et renseignez les paramètres</p>
 
-            <div class="mode-selector">
-                <div class="mode-card selected" id="mode-irrigation" onclick="selectionnerMode('irrigation')">
-                    <div class="mode-check">✓</div>
-                    <div class="mode-icon">🌱</div>
-                    <div class="mode-title">Irrigation agricole</div>
-                    <div class="mode-desc">Calcul automatique des besoins selon la culture, superficie et données NASA POWER.</div>
-                </div>
-                <div class="mode-card" id="mode-classique" onclick="selectionnerMode('classique')">
-                    <div class="mode-check"></div>
-                    <div class="mode-icon">🏠</div>
-                    <div class="mode-title">Système classique</div>
-                    <div class="mode-desc">Eau potable, élevage, bâtiment, industrie — saisie directe du volume journalier.</div>
-                </div>
-            </div>
 
             <div id="form-irrigation">
                 <div class="card">
@@ -1094,30 +1079,17 @@
                         <div class="form-group">
                             <label class="form-label">Culture</label>
                             <select id="culture" onchange="afficherKcManuel()">
-                                <option value="tomate">Tomate — Kc = 1.15</option>
-                                <option value="maïs">Maïs — Kc = 1.20</option>
-                                <option value="riz">Riz — Kc = 1.20</option>
-                                <option value="oignon">Oignon — Kc = 1.05</option>
-                                <option value="piment">Piment — Kc = 1.05</option>
-                                <option value="haricot">Haricot — Kc = 0.95</option>
-                                <option value="manioc">Manioc — Kc = 0.90</option>
-                                <option value="chou">Chou — Kc = 1.05</option>
-                                <option value="laitue">Laitue — Kc = 1.00</option>
-                                <option value="arachide">Arachide — Kc = 1.15</option>
-                                <option value="igname">Igname — Kc = 1.10</option>
-                                <option value="gombo">Gombo — Kc = 1.10</option>
-                                <option value="sorgho">Sorgho — Kc = 1.00</option>
-                                <option value="coton">Coton — Kc = 1.15</option>
-                                <option value="patate_douce">Patate douce — Kc = 1.15</option>
-                                <option value="autre">Autre culture (Kc manuel)</option>
+                                <option value="tomate">Tomate</option>
+                                <option value="piment">Piment</option>
+                                <option value="riz">Riz</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Système d'irrigation</label>
                             <select id="systeme_irrigation" onchange="verifierSysteme()">
-                                <option value="goutte_a_goutte">Goutte-à-goutte (η = 90%)</option>
-                                <option value="aspersion">Aspersion (η = 75%)</option>
-                                <option value="gravitaire">Gravitaire (η = 55%)</option>
+                                <option value="goutte_a_goutte">Goutte-à-goutte</option>
+                                <option value="aspersion">Aspersion</option>
+                                <option value="gravitaire">Gravitaire</option>
                             </select>
                             <div id="message_irrigation"></div>
                         </div>
@@ -1379,10 +1351,6 @@
             <div class="sidebar-item">Besoins <span class="sidebar-badge done">✓</span></div>
             <div class="sidebar-item active">Énergie <span class="sidebar-badge active">En cours</span></div>
             <div class="sidebar-item">Résultats</div>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-info-title">Données site</div>
-            <div class="sidebar-info-row">ET0 max <span id="sb_ET0_e">—</span></div>
-            <div class="sidebar-info-row">Irradiation <span id="sb_irr_e">—</span></div>
         </div>
         <div class="main-content">
             <h2 class="page-title">Source d'énergie</h2>
@@ -1569,10 +1537,6 @@
             <div class="sidebar-item">Besoins <span class="sidebar-badge done">✓</span></div>
             <div class="sidebar-item">Énergie <span class="sidebar-badge done">✓</span></div>
             <div class="sidebar-item active">Résultats <span class="sidebar-badge active">En cours</span></div>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-info-title">Données site</div>
-            <div class="sidebar-info-row">ET0 max <span id="sb_ET0_r">—</span></div>
-            <div class="sidebar-info-row">Irradiation <span id="sb_irr_r">—</span></div>
         </div>
         <div class="main-content">
             <h2 class="page-title">Résultats du dimensionnement</h2>
@@ -1741,24 +1705,18 @@ function mettreAJourSidebarResultats() {
 }
 
 var modeActuel = 'irrigation';
-function selectionnerMode(mode) {
-    modeActuel = mode;
-    var cardIrr = document.getElementById('mode-irrigation');
-    var cardCl  = document.getElementById('mode-classique');
-    if (mode === 'irrigation') {
-        cardIrr.classList.add('selected'); cardCl.classList.remove('selected');
-        cardIrr.querySelector('.mode-check').innerText = '✓';
-        cardCl.querySelector('.mode-check').innerText  = '';
-        document.getElementById('form-irrigation').classList.remove('hidden');
-        document.getElementById('form-classique').classList.add('hidden');
-    } else {
-        cardCl.classList.add('selected'); cardIrr.classList.remove('selected');
-        cardCl.querySelector('.mode-check').innerText  = '✓';
-        cardIrr.querySelector('.mode-check').innerText = '';
-        document.getElementById('form-classique').classList.remove('hidden');
-        document.getElementById('form-irrigation').classList.add('hidden');
-    }
-}
+var usageType = "{{ session.get('usage_type', 'irrigation_agricole') }}";
+window.addEventListener('DOMContentLoaded', function() {
+  if (usageType === 'irrigation_agricole') {
+    document.getElementById('form-irrigation').classList.remove('hidden');
+    document.getElementById('form-classique').classList.add('hidden');
+    modeActuel = 'irrigation';
+  } else {
+    document.getElementById('form-irrigation').classList.add('hidden');
+    document.getElementById('form-classique').classList.remove('hidden');
+    modeActuel = 'classique';
+  }
+});
 
 var SYSTEME_RECOMMANDE = {
     'tomate':'goutte_a_goutte','oignon':'goutte_a_goutte','piment':'goutte_a_goutte',

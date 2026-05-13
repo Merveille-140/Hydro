@@ -11,11 +11,10 @@ import math
 # ============================================================
 
 KC_CULTURES = {
-    "tomate":       1.15,
+    "tomate":       1.03,
     "maïs":         1.20,
-    "riz":          1.20,
     "oignon":       1.05,
-    "piment":       1.05,
+    "piment":       1.04,
     "haricot":      0.95,
     "manioc":       0.90,
     "chou":         1.05,
@@ -166,31 +165,38 @@ def calculer_besoins_eau(
         )
 
     # ─────────────────────────────────────────────────────
-    # COEFFICIENT CULTURAL Kc
+    # RIZ : besoin direct FAO (100 m³/jour/ha)
     # ─────────────────────────────────────────────────────
 
-    if culture == 'autre' and kc_manuel:
-        kc = float(kc_manuel)
-
-    elif culture in KC_CULTURES:
-        kc = KC_CULTURES[culture]
+    if culture == 'riz':
+        besoin_net_m3_jour = 100.0 * superficie_ha
+        ETc_mm_jour = 10.0   # 100 m³/ha/j = 10 mm/j
+        kc = 1.0             # non utilisé pour le riz
 
     else:
-        # Valeur par défaut si culture inconnue
-        kc = 1.0
+        # ─────────────────────────────────────────────────────
+        # COEFFICIENT CULTURAL Kc
+        # ─────────────────────────────────────────────────────
 
-    # ─────────────────────────────────────────────────────
-    # EVAPOTRANSPIRATION DE LA CULTURE ETc
-    # ─────────────────────────────────────────────────────
+        if culture == 'autre' and kc_manuel:
+            kc = float(kc_manuel)
+        elif culture in KC_CULTURES:
+            kc = KC_CULTURES[culture]
+        else:
+            kc = 1.0
 
-    ETc_mm_jour = ET0 * kc
+        # ─────────────────────────────────────────────────────
+        # EVAPOTRANSPIRATION DE LA CULTURE ETc
+        # ─────────────────────────────────────────────────────
 
-    # ─────────────────────────────────────────────────────
-    # BESOIN NET EN EAU (m³/jour)
-    # 1 mm/jour sur 1 ha = 10 m³/jour
-    # ─────────────────────────────────────────────────────
+        ETc_mm_jour = ET0 * kc
 
-    besoin_net_m3_jour = ETc_mm_jour * superficie_ha * 10
+        # ─────────────────────────────────────────────────────
+        # BESOIN NET EN EAU (m³/jour)
+        # 1 mm/jour sur 1 ha = 10 m³/jour
+        # ─────────────────────────────────────────────────────
+
+        besoin_net_m3_jour = ETc_mm_jour * superficie_ha * 10
 
     # ─────────────────────────────────────────────────────
     # EFFICACITÉ D'IRRIGATION
