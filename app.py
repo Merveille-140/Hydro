@@ -121,13 +121,16 @@ def usage():
         return redirect(url_for('dashboard'))
     return render_template('usage.html', user_nom=session.get('user_nom', ''))
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
+    if request.method == 'POST':
+        source_energie = request.form.get('source_energie', '')
+        if source_energie:
+            session['source_energie'] = source_energie
+        return redirect(url_for('dimensionnement'))
     projets = get_projets_utilisateur(session['user_id'])
-    return render_template('dashboard.html',
-                           user_nom=session['user_nom'],
-                           projets=projets)
+    return render_template('dashboard.html', user_nom=session['user_nom'], projets=projets)
 
 @app.route('/dimensionnement')
 @login_required

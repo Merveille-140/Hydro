@@ -185,9 +185,9 @@
 
         /* APP LAYOUT */
         .app-layout {
-            display: grid;
-            grid-template-columns: 220px 1fr;
-            min-height: calc(100vh - 112px);
+            display: flex;
+            justify-content: center;
+            min-height: calc(100vh - 116px);
             position: relative;
             z-index: 1;
         }
@@ -1072,12 +1072,6 @@
         </div>
     </div>
     <div class="app-layout">
-        <div class="sidebar">
-<div class="sidebar-item">Localisation <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item active">Besoins <span class="sidebar-badge active">En cours</span></div>
-            <div class="sidebar-item">Énergie</div>
-            <div class="sidebar-item">Résultats</div>
-        </div>
         <div class="main-content">
             <h2 class="page-title">Définissez vos besoins</h2>
             <p class="page-sub">Choisissez le type de système et renseignez les paramètres</p>
@@ -1090,9 +1084,10 @@
                         <div class="form-group">
                             <label class="form-label">Culture</label>
                             <select id="culture" onchange="afficherKcManuel()">
-                                <option value="tomate">Tomate</option>
-                                <option value="piment">Piment</option>
-                                <option value="riz">Riz</option>
+                                <option value="tomate">Tomate (Kc = 1.03)</option>
+                                <option value="piment">Piment (Kc = 1.04)</option>
+                                <option value="riz">Riz (100 m³/ha/j)</option>
+                                <option value="autre">Autre culture (Kc manuel)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1342,19 +1337,13 @@
         </div>
     </div>
     <div class="app-layout">
-        <div class="sidebar">
-<div class="sidebar-item">Localisation <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item">Besoins <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item active">Énergie <span class="sidebar-badge active">En cours</span></div>
-            <div class="sidebar-item">Résultats</div>
-        </div>
         <div class="main-content">
             <h2 class="page-title">Source d'énergie</h2>
             <p class="page-sub">Choisissez votre source d'énergie et vos équipements</p>
             <div class="card">
                 <div class="card-title">Source d'énergie</div>
-                <input type="hidden" id="source_energie" name="source_energie"/>
-                <div class="usage-badge">Source sélectionnée : {{ session.get('source_energie', 'solaire') }}</div>
+                <input type="hidden" id="source_energie" value="{{ session.get('source_energie', 'solaire') }}"/>
+                <p>Source : <strong style="color:#fbbf24;">{{ session.get('source_energie','solaire')|replace('_',' ')|title }}</strong></p>
                 <div id="tension_pv_div" class="form-group">
                     <label class="form-label">Tension du système PV</label>
                     <select id="tension_pv">
@@ -1521,12 +1510,6 @@
         </div>
     </div>
     <div class="app-layout">
-        <div class="sidebar">
-<div class="sidebar-item">Localisation <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item">Besoins <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item">Énergie <span class="sidebar-badge done">✓</span></div>
-            <div class="sidebar-item active">Résultats <span class="sidebar-badge active">En cours</span></div>
-        </div>
         <div class="main-content">
             <h2 class="page-title">Résultats du dimensionnement</h2>
             <p class="page-sub">Voici tous les paramètres calculés pour votre système</p>
@@ -1694,8 +1677,8 @@ function mettreAJourSidebarResultats() {
 }
 
 var modeActuel = 'irrigation';
-var usageType = "{{ session.get('usage_type', 'irrigation_agricole') }}";
 window.addEventListener('DOMContentLoaded', function() {
+  var usageType = "{{ session.get('usage_type', 'irrigation_agricole') }}";
   if (usageType === 'irrigation_agricole') {
     modeActuel = 'irrigation';
     document.getElementById('form-irrigation').classList.remove('hidden');
@@ -1704,11 +1687,9 @@ window.addEventListener('DOMContentLoaded', function() {
     modeActuel = 'classique';
     document.getElementById('form-classique').classList.remove('hidden');
     document.getElementById('form-irrigation').classList.add('hidden');
+    document.getElementById('type_usage').value = usageType;
   }
-});
-
-var sourceEnergie = "{{ session.get('source_energie', 'solaire') }}";
-window.addEventListener('DOMContentLoaded', function() {
+  var sourceEnergie = "{{ session.get('source_energie', 'solaire') }}";
   document.getElementById('source_energie').value = sourceEnergie;
   afficherHeuresPompage();
   mettreAJourEquipements();

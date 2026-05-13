@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HydroPump — Choix du système</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -343,7 +342,7 @@
     <!-- NAVBAR -->
     <nav class="navbar">
         <a href="/" class="logo">
-            <div class="logo-icon"><ph-drop-half weight="duotone" style="font-size:20px;color:#1a472a;"></ph-drop-half></div>
+            <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="1.5" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
             <span class="logo-text">HydroPump</span>
         </a>
     </nav>
@@ -419,6 +418,8 @@
                     <p class="page-subtitle">Sélectionnez votre source d'énergie pour commencer le dimensionnement</p>
                 </div>
 
+                <form method="POST" action="/dashboard" id="dashForm">
+                <input type="hidden" name="source_energie" id="sourceEnergie" value="">
                 <div class="cards-grid">
 
                     <!-- Solaire fil du soleil -->
@@ -471,9 +472,10 @@
 
                 </div>
 
-                <button class="btn-start" id="btn-start" onclick="goToDashboard()">
+                <button type="submit" class="btn-start" id="btn-start">
                     Commencer le dimensionnement →
                 </button>
+                </form>
 
             </div>
         </div>
@@ -481,7 +483,6 @@
     </div><!-- .page-body -->
 
     <script>
-        let selectedValue = null;
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
         const isMobile = () => window.innerWidth <= 768;
@@ -507,15 +508,8 @@
         function selectCard(el) {
             document.querySelectorAll('.sys-card').forEach(c => c.classList.remove('selected'));
             el.classList.add('selected');
-            selectedValue = el.dataset.value;
+            document.getElementById('sourceEnergie').value = el.dataset.value;
             document.getElementById('btn-start').classList.add('active');
-        }
-
-        function goToDashboard() {
-            if (selectedValue) {
-                sessionStorage.setItem('source_energie', selectedValue);
-                window.location.href = '/dimensionnement';
-            }
         }
 
         window.addEventListener('resize', () => {
