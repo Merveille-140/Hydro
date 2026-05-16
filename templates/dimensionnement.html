@@ -1468,34 +1468,6 @@
                     </div>
                 </div>
 
-                <div style="height:1px;background:var(--gray-200);margin:20px 0;"></div>
-
-                <div id="div_choix_regulateur">
-                    <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Régulateur de charge</p>
-                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
-                        <label class="option-radio"><input type="radio" name="choix_regulateur" value="base" onchange="afficherChoixEquipement('regulateur','base')"/> Choisir dans la base de données</label>
-                        <label class="option-radio"><input type="radio" name="choix_regulateur" value="manuel" onchange="afficherChoixEquipement('regulateur','manuel')"/> Saisir manuellement mes caractéristiques</label>
-                    </div>
-                    <div id="regulateur_bd" class="hidden">
-                        <div class="form-row">
-                            <div class="form-group"><label class="form-label">Marque</label><select id="marque_regulateur" onchange="chargerRegulateurs()"><option value="">— Choisissez une marque —</option></select></div>
-                            <div class="form-group"><label class="form-label">Type</label><select id="type_regulateur" onchange="chargerRegulateurs()"><option value="">Tous</option><option value="MPPT">MPPT</option><option value="PWM">PWM</option></select></div>
-                        </div>
-                        <div class="form-group"><label class="form-label">Modèle</label><select id="modele_regulateur" disabled><option value="">— Choisissez d'abord une marque —</option></select></div>
-                    </div>
-                    <div id="regulateur_manuel" class="hidden">
-                        <div class="pompe-carac-box">
-                            <div class="pompe-carac-title">Saisie manuelle — Régulateur</div>
-                            <div class="form-row">
-                                <div class="form-group"><label class="form-label">Marque</label><input type="text" id="man_reg_marque" placeholder="Ex: EPsolar"/></div>
-                                <div class="form-group"><label class="form-label">Modèle</label><input type="text" id="man_reg_modele" placeholder="Ex: Tracer 4210A"/></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="height:1px;background:var(--gray-200);margin:20px 0;"></div>
-
                 <div id="div_choix_batteries" class="hidden">
                     <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Batterie</p>
                     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
@@ -2062,39 +2034,11 @@ function afficherCaracBatterie() {
     }
 }
 
-function chargerMarquesRegulateurs() {
-    fetch('/get_marques_regulateurs').then(function(r) { return r.json(); }).then(function(data) {
-        if (data.succes) {
-            var select = document.getElementById('marque_regulateur');
-            select.innerHTML = '<option value="">— Choisissez une marque —</option>';
-            data.marques.forEach(function(m) { select.innerHTML += '<option value="' + m + '">' + m + '</option>'; });
-        }
-    });
-}
-
-function chargerRegulateurs() {
-    var marque   = document.getElementById('marque_regulateur').value;
-    var type_reg = document.getElementById('type_regulateur').value;
-    var select   = document.getElementById('modele_regulateur');
-    select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
-    select.disabled  = true;
-    if (!marque) { return; }
-    fetch('/get_regulateurs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque,type_reg:type_reg||null}) })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.succes && data.regulateurs.length > 0) {
-            data.regulateurs.forEach(function(r) { select.innerHTML += '<option value="' + r.designation + '">' + r.designation + ' — ' + r.tension_bat_V + 'V — ' + r.courant_nom_A + 'A</option>'; });
-            select.disabled = false;
-        }
-    });
-}
-
 function mettreAJourEquipements() {
     var source = document.getElementById('source_energie').value;
     var hasPV  = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
     var hasBat = (source === 'hybride_batteries');
     document.getElementById('div_choix_panneaux').classList.toggle('hidden', !hasPV);
-    document.getElementById('div_choix_regulateur').classList.toggle('hidden', !hasPV);
     document.getElementById('div_choix_batteries').classList.toggle('hidden', !hasBat);
 }
 
@@ -2152,17 +2096,6 @@ function getModelePanneau() {
     }
     return select && select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
 }
-function getMarqueRegulateur() {
-    var radio = document.querySelector('input[name="choix_regulateur"]:checked');
-    if (radio && radio.value === 'manuel') { return document.getElementById('man_reg_marque').value || ''; }
-    return document.getElementById('marque_regulateur').value || '';
-}
-function getModeleRegulateur() {
-    var radio  = document.querySelector('input[name="choix_regulateur"]:checked');
-    var select = document.getElementById('modele_regulateur');
-    if (radio && radio.value === 'manuel') { return document.getElementById('man_reg_modele').value || ''; }
-    return select && select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
-}
 function getMarqueBatterie() {
     var radio = document.querySelector('input[name="choix_batterie"]:checked');
     if (radio && radio.value === 'manuel') { return document.getElementById('man_bat_marque').value || ''; }
@@ -2196,7 +2129,6 @@ function calculer() {
     var hasPV = (source_energie === 'solaire' || source_energie === 'hybride_groupe' || source_energie === 'hybride_batteries');
     if (hasPV) {
         if (!getMarquePanneau()) { alert('Veuillez choisir un panneau solaire !'); allerVers('energie'); return; }
-        if (!getMarqueRegulateur()) { alert('Veuillez choisir un régulateur !'); allerVers('energie'); return; }
     }
     if (source_energie === 'hybride_batteries') {
         if (!getMarqueBatterie()) { alert('Veuillez choisir une batterie !'); allerVers('energie'); return; }
@@ -2351,8 +2283,6 @@ function afficherEquipementsChoisis(data) {
     var html = '';
     var marque_pan = getMarquePanneau(), modele_pan = getModelePanneau();
     if (marque_pan) { html += '<div class="pompe-card"><div class="pompe-rank rank-2">☀️</div><div class="pompe-info"><div class="pompe-name">Panneau — ' + marque_pan + '</div><div class="pompe-specs"><span>' + modele_pan + '</span><span>Nombre calculé : <strong>' + document.getElementById('res_nb_panneaux').innerText + ' panneaux</strong></span></div></div></div>'; }
-    var marque_reg = getMarqueRegulateur(), modele_reg = getModeleRegulateur();
-    if (marque_reg) { html += '<div class="pompe-card"><div class="pompe-rank rank-3">⚡</div><div class="pompe-info"><div class="pompe-name">Régulateur — ' + marque_reg + '</div><div class="pompe-specs"><span>' + modele_reg + '</span></div></div></div>'; }
     if (src === 'hybride_batteries') {
         var marque_bat = getMarqueBatterie(), modele_bat = getModeleBatterie();
         if (marque_bat) { html += '<div class="pompe-card"><div class="pompe-rank rank-3">🔋</div><div class="pompe-info"><div class="pompe-name">Batterie — ' + marque_bat + '</div><div class="pompe-specs"><span>' + modele_bat + '</span><span>Nombre : <strong>' + document.getElementById('res_nb_batteries').innerText + '</strong></span></div></div></div>'; }
@@ -2387,7 +2317,6 @@ function genererPDF() {
             tension_batterie:tension_batterie, capacite_batterie:capacite_batterie, jours_autonomie:jours_autonomie,
             marque_pompe:getMarquePompe(), modele_pompe:getModelePompe(),
             marque_panneau:getMarquePanneau(), modele_panneau:getModelePanneau(),
-            marque_regulateur:getMarqueRegulateur(), modele_regulateur:getModeleRegulateur(),
             marque_batterie:getMarqueBatterie(), modele_batterie:getModeleBatterie(),
             nb_panneaux_calcul:document.getElementById('res_nb_panneaux').innerText,
             besoins:{ETc:document.getElementById('res_ETc').innerText,besoin_net_m3_jour:document.getElementById('res_besoin_net').innerText,besoin_brut_m3_jour:document.getElementById('res_besoin_brut').innerText,besoin_session_m3:document.getElementById('res_besoin_session').innerText},
@@ -2435,7 +2364,6 @@ setTimeout(function() {
     chargerMarques();
     chargerMarquesPanneaux();
     chargerMarquesBatteries();
-    chargerMarquesRegulateurs();
     mettreAJourEquipements();
 }, 1000);
 </script>

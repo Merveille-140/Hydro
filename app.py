@@ -392,18 +392,6 @@ def get_modeles_batteries():
     data = request.get_json()
     return jsonify({"succes": True, "modeles": equipements_mod.get_modeles_batteries(data.get('marque', ''))})
 
-@app.route('/get_regulateurs', methods=['POST'])
-@login_required
-def get_regulateurs():
-    data = request.get_json()
-    return jsonify({"succes": True, "regulateurs": equipements_mod.get_regulateurs(
-        data.get('marque', ''), data.get('type_reg', None)
-    )})
-
-@app.route('/get_marques_regulateurs', methods=['GET'])
-@login_required
-def get_marques_regulateurs():
-    return jsonify({"succes": True, "marques": equipements_mod.get_marques_regulateurs()})
 
 # ============================================================
 # LANCEMENT
