@@ -1611,9 +1611,6 @@ function allerVers(page) {
     document.getElementById('page-' + page).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (page === 'localisation') { setTimeout(function() { carte.invalidateSize(); }, 300); }
-    if (page === 'besoins')   { mettreAJourSidebar(); }
-    if (page === 'energie')   { mettreAJourSidebarEnergie(); }
-    if (page === 'resultats') { mettreAJourSidebarResultats(); }
 }
 
 var carte = L.map('carte', { zoomControl: true, preferCanvas: true }).setView([9.3077, 2.3158], 6);
@@ -1689,19 +1686,6 @@ function recupererDonnees() {
     });
 }
 
-function mettreAJourSidebar() {
-    document.getElementById('sb_ET0').innerText  = document.getElementById('ET0_max').innerText + ' mm/j';
-    document.getElementById('sb_irr').innerText  = document.getElementById('irradiation').innerText + ' kWh/m²';
-    document.getElementById('sb_mois').innerText = document.getElementById('mois_critique').innerText;
-}
-function mettreAJourSidebarEnergie() {
-    document.getElementById('sb_ET0_e').innerText = document.getElementById('ET0_max').innerText + ' mm/j';
-    document.getElementById('sb_irr_e').innerText = document.getElementById('irradiation').innerText + ' kWh/m²';
-}
-function mettreAJourSidebarResultats() {
-    document.getElementById('sb_ET0_r').innerText = document.getElementById('ET0_max').innerText + ' mm/j';
-    document.getElementById('sb_irr_r').innerText = document.getElementById('irradiation').innerText + ' kWh/m²';
-}
 
 var modeActuel = 'irrigation';
 window.addEventListener('DOMContentLoaded', function() {
