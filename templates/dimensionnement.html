@@ -2083,7 +2083,7 @@ function chargerRegulateurs() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.succes && data.regulateurs.length > 0) {
-            data.regulateurs.forEach(function(r) { select.innerHTML += '<option value="' + r.designation + '">' + r.designation + ' — ' + r.tension_bat_V + 'V — ' + r.courant_nom_A + 'A (' + r.type + ')</option>'; });
+            data.regulateurs.forEach(function(r) { select.innerHTML += '<option value="' + r.designation + '">' + r.designation + ' — ' + r.tension_bat_V + 'V — ' + r.courant_nom_A + 'A</option>'; });
             select.disabled = false;
         }
     });
