@@ -1,26 +1,29 @@
 # ============================================================
 # MODULE ÉQUIPEMENTS
-# Source : D:\Documents\Excel\DATA_BASE Merv.xlsx
+# Source : D:\Pompage\DATA_BASE_Merv.xlsx
 # ============================================================
 
-EXCEL_PATH = r'D:\Documents\Excel\DATA_BASE Merv.xlsx'
+import openpyxl
+
+EXCEL_PATH = r'D:\Pompage\DATA_BASE_Merv.xlsx'
 
 
 def get_marques_panneaux():
-    import openpyxl
-    wb = openpyxl.load_workbook(EXCEL_PATH, read_only=True, data_only=True)
-    ws = wb['Panneaux solaires']
-    marques = []
-    for row in ws.iter_rows(min_row=3, values_only=True):
-        marque = row[2]
-        if marque and marque not in marques:
-            marques.append(marque)
-    wb.close()
-    return sorted(marques)
+    try:
+        wb = openpyxl.load_workbook(EXCEL_PATH, read_only=True, data_only=True)
+        ws = wb['Panneaux solaires']
+        marques = []
+        for row in ws.iter_rows(min_row=3, values_only=True):
+            marque = row[2]
+            if marque and marque not in marques:
+                marques.append(marque)
+        wb.close()
+        return sorted(marques)
+    except Exception:
+        return []
 
 
 def get_modeles_panneaux(marque):
-    import openpyxl
     wb = openpyxl.load_workbook(EXCEL_PATH, read_only=True, data_only=True)
     ws = wb['Panneaux solaires']
     result = []
@@ -41,20 +44,21 @@ def get_modeles_panneaux(marque):
 
 
 def get_marques_batteries():
-    import openpyxl
-    wb = openpyxl.load_workbook(EXCEL_PATH, read_only=True, data_only=True)
-    ws = wb['Battéries']
-    marques = []
-    for row in ws.iter_rows(min_row=4, values_only=True):
-        marque = row[2]
-        if marque and marque not in marques:
-            marques.append(marque)
-    wb.close()
-    return sorted(marques)
+    try:
+        wb = openpyxl.load_workbook(EXCEL_PATH, read_only=True, data_only=True)
+        ws = wb['Battéries']
+        marques = []
+        for row in ws.iter_rows(min_row=4, values_only=True):
+            marque = row[2]
+            if marque and marque not in marques:
+                marques.append(marque)
+        wb.close()
+        return sorted(marques)
+    except Exception:
+        return []
 
 
 def get_modeles_batteries(marque):
-    import openpyxl
     wb = openpyxl.load_workbook(EXCEL_PATH, read_only=True, data_only=True)
     ws = wb['Battéries']
     result = []

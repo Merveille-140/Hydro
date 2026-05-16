@@ -6,7 +6,7 @@ import sqlite3
 import os
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'solarpump.db')
-EXCEL_PATH = r"D:\Documents\Excel\DATA_BASE Merv.xlsx"
+EXCEL_PATH = r"D:\Pompage\DATA_BASE_Merv.xlsx"
 
 
 def get_db():
