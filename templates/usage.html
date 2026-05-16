@@ -22,27 +22,28 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.62);
+            background: rgba(0,0,0,0.55);
             z-index: 0;
             pointer-events: none;
         }
         .navbar {
-            height: 64px;
+            height: 56px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #1a472a;
             position: relative;
             z-index: 10;
+            flex-shrink: 0;
         }
         .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
         .logo-icon {
-            width: 36px; height: 36px;
+            width: 32px; height: 32px;
             background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
         }
-        .logo-text { font-size:19px; font-weight:800; color:white; letter-spacing:-0.3px; }
+        .logo-text { font-size:17px; font-weight:800; color:white; letter-spacing:-0.3px; }
         .main {
             flex: 1;
             display: flex;
@@ -52,35 +53,43 @@
             position: relative;
             z-index: 1;
         }
-        .container { width:100%; max-width: 560px; }
-        .page-header { margin-bottom:28px; }
-        .step-label { font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-bottom:8px; }
-        .page-title { font-size:24px; font-weight:700; color:white; letter-spacing:-0.3px; margin-bottom:6px; }
-        .page-sub { font-size:13px; color:rgba(255,255,255,0.45); }
-        .usage-list { display:flex; flex-direction:column; gap:8px; margin-bottom:28px; }
-        .usage-row {
+        .container { width:100%; max-width: 660px; }
+        .page-header { text-align:center; margin-bottom:28px; }
+        .page-title { font-size:26px; font-weight:700; color:white; letter-spacing:-0.4px; margin-bottom:8px; }
+        .page-sub { font-size:14px; color:rgba(255,255,255,0.45); }
+        .usage-list { display:flex; flex-direction:column; gap:10px; margin-bottom:28px; }
+        .urow {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 14px 18px;
-            background: rgba(255,255,255,0.06);
-            border: 0.5px solid rgba(255,255,255,0.12);
-            border-radius: 10px;
+            padding: 16px 22px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.15s ease;
         }
-        .usage-row:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-        .usage-row.selected { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.5); }
-        .usage-row.selected .row-icon { color: #f59e0b; }
-        .usage-row.selected .row-check { background: #f59e0b; border-color: #f59e0b; }
-        .row-left { display:flex; align-items:center; gap:14px; }
-        .row-icon { color: rgba(255,255,255,0.4); flex-shrink:0; }
-        .row-title { font-size:14px; font-weight:600; color:white; margin-bottom:2px; }
-        .row-desc { font-size:12px; color:rgba(255,255,255,0.4); }
-        .row-check {
-            width: 18px; height: 18px;
+        .urow:hover { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.18); }
+        .urow.sel { background: rgba(245,158,11,0.13); border-color: rgba(245,158,11,0.45); }
+        .urow.sel .uicon { background: rgba(245,158,11,0.2); }
+        .urow.sel .uicon svg { stroke: #f59e0b; }
+        .urow.sel .ucheck { background: #f59e0b; border-color: #f59e0b; }
+        .urow.sel .utitle { color: #fbbf24; }
+        .row-left { display:flex; align-items:center; gap:16px; }
+        .uicon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.08);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .utitle { margin:0 0 3px; font-size:15px; font-weight:600; color:#fff; }
+        .udesc  { margin:0; font-size:12px; color:rgba(255,255,255,0.4); }
+        .ucheck {
+            width: 20px; height: 20px;
             border-radius: 50%;
-            border: 1.5px solid rgba(255,255,255,0.25);
+            border: 1.5px solid rgba(255,255,255,0.2);
             flex-shrink: 0;
             transition: all 0.15s;
         }
@@ -98,17 +107,17 @@
         input[type="text"]:focus { border-color: rgba(245,158,11,0.5); }
         input[type="text"]::placeholder { color: rgba(255,255,255,0.3); }
         .footer-nav { display:flex; align-items:center; justify-content:space-between; }
-        .btn-back { font-size:13px; color:rgba(255,255,255,0.4); text-decoration:none; }
-        .btn-back:hover { color:rgba(255,255,255,0.7); }
+        .btn-back { font-size:13px; color:rgba(255,255,255,0.35); text-decoration:none; }
+        .btn-back:hover { color:rgba(255,255,255,0.6); }
         .btn-continuer {
             background: #f59e0b;
             color: #000;
             border: none;
-            padding: 11px 32px;
-            border-radius: 8px;
-            font-size:14px; font-weight:700;
+            padding: 12px 36px;
+            border-radius: 9px;
+            font-size: 14px; font-weight: 700;
+            opacity: 0.3;
             cursor: not-allowed;
-            opacity: 0.35;
             font-family: 'Plus Jakarta Sans', sans-serif;
             transition: all 0.2s;
         }
@@ -116,9 +125,9 @@
         .btn-continuer:not(:disabled):hover { opacity:0.9; }
         @media (max-width:480px) {
             .main { padding:24px 14px; align-items:flex-start; padding-top:32px; }
-            .page-title { font-size:20px; }
+            .page-title { font-size:22px; }
             .footer-nav { flex-direction:column; gap:12px; }
-            .btn-continuer { width:100%; }
+            .btn-continuer { width:100%; text-align:center; }
         }
     </style>
 </head>
@@ -127,7 +136,7 @@
     <nav class="navbar">
         <a href="/" class="logo">
             <div class="logo-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="1.5" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="2" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
             </div>
             <span class="logo-text">HydroPump</span>
         </a>
@@ -137,8 +146,7 @@
         <div class="container">
 
             <div class="page-header">
-                <p class="step-label">Étape 1 sur 3</p>
-                <h1 class="page-title">Type d'usage</h1>
+                <h1 class="page-title">Quel est votre type d'usage ?</h1>
                 <p class="page-sub">Sélectionnez le système que vous souhaitez dimensionner</p>
             </div>
 
@@ -148,73 +156,85 @@
 
                 <div class="usage-list">
 
-                    <div class="usage-row" data-value="irrigation_agricole" onclick="selectRow(this)">
+                    <div class="urow" data-value="irrigation_agricole" onclick="selectRow(this)">
                         <div class="row-left">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="row-icon" aria-hidden="true"><path d="M12 22V11"/><path d="M5.45 5.11L2 12h6.5l-1 9 8.55-9.89L12 11h6l-6.55-5.89z"/></svg>
+                            <div class="uicon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V11"/><path d="M5.45 5.11L2 12h6.5l-1 9 8.55-9.89L12 11h6l-6.55-5.89z"/></svg>
+                            </div>
                             <div>
-                                <p class="row-title">Irrigation agricole</p>
-                                <p class="row-desc">Cultures maraîchères, céréales, arboriculture</p>
+                                <p class="utitle">Irrigation agricole</p>
+                                <p class="udesc">Cultures maraîchères, céréales, arboriculture</p>
                             </div>
                         </div>
-                        <div class="row-check"></div>
+                        <div class="ucheck"></div>
                     </div>
 
-                    <div class="usage-row" data-value="eau_potable_village" onclick="selectRow(this)">
+                    <div class="urow" data-value="eau_potable_village" onclick="selectRow(this)">
                         <div class="row-left">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="row-icon" aria-hidden="true"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                            <div class="uicon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                            </div>
                             <div>
-                                <p class="row-title">Eau potable / village</p>
-                                <p class="row-desc">Adduction d'eau, château d'eau, réseau rural</p>
+                                <p class="utitle">Eau potable / village</p>
+                                <p class="udesc">Adduction d'eau, château d'eau, réseau rural</p>
                             </div>
                         </div>
-                        <div class="row-check"></div>
+                        <div class="ucheck"></div>
                     </div>
 
-                    <div class="usage-row" data-value="eau_potable_rural" onclick="selectRow(this)">
+                    <div class="urow" data-value="eau_potable_rural" onclick="selectRow(this)">
                         <div class="row-left">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="row-icon" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            <div class="uicon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            </div>
                             <div>
-                                <p class="row-title">Résidentiel</p>
-                                <p class="row-desc">Maison, villa, usage domestique</p>
+                                <p class="utitle">Résidentiel</p>
+                                <p class="udesc">Maison, villa, usage domestique</p>
                             </div>
                         </div>
-                        <div class="row-check"></div>
+                        <div class="ucheck"></div>
                     </div>
 
-                    <div class="usage-row" data-value="elevage_bovin" onclick="selectRow(this)">
+                    <div class="urow" data-value="elevage_bovin" onclick="selectRow(this)">
                         <div class="row-left">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="row-icon" aria-hidden="true"><ellipse cx="12" cy="8" rx="8" ry="4"/><path d="M4 8v8c0 2.2 3.6 4 8 4s8-1.8 8-4V8"/></svg>
+                            <div class="uicon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"><ellipse cx="12" cy="8" rx="8" ry="4"/><path d="M4 8v8c0 2.2 3.6 4 8 4s8-1.8 8-4V8"/></svg>
+                            </div>
                             <div>
-                                <p class="row-title">Élevage</p>
-                                <p class="row-desc">Bovins, ovins, volaille, pisciculture</p>
+                                <p class="utitle">Élevage</p>
+                                <p class="udesc">Bovins, ovins, volaille, pisciculture</p>
                             </div>
                         </div>
-                        <div class="row-check"></div>
+                        <div class="ucheck"></div>
                     </div>
 
-                    <div class="usage-row" data-value="industrie" onclick="selectRow(this)">
+                    <div class="urow" data-value="industrie" onclick="selectRow(this)">
                         <div class="row-left">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="row-icon" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                            <div class="uicon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                            </div>
                             <div>
-                                <p class="row-title">Usage industriel</p>
-                                <p class="row-desc">Process industriel, refroidissement, lavage</p>
+                                <p class="utitle">Usage industriel</p>
+                                <p class="udesc">Process industriel, refroidissement, lavage</p>
                             </div>
                         </div>
-                        <div class="row-check"></div>
+                        <div class="ucheck"></div>
                     </div>
 
-                    <div class="usage-row" data-value="autre" onclick="selectRow(this)">
+                    <div class="urow" data-value="autre" onclick="selectRow(this)">
                         <div class="row-left">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="row-icon" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <div class="uicon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            </div>
                             <div>
-                                <p class="row-title">Autre usage</p>
-                                <p class="row-desc">Précisez votre besoin spécifique</p>
-                                <div class="autre-input" id="autre-input-div" style="display:none; margin-top:10px;">
+                                <p class="utitle">Autre usage</p>
+                                <p class="udesc">Précisez votre besoin spécifique</p>
+                                <div id="autre-input-div" style="display:none; margin-top:10px;">
                                     <input type="text" id="autreText" placeholder="Décrivez votre usage…" onclick="event.stopPropagation()">
                                 </div>
                             </div>
                         </div>
-                        <div class="row-check"></div>
+                        <div class="ucheck"></div>
                     </div>
 
                 </div>
@@ -230,12 +250,12 @@
 
     <script>
         function selectRow(el) {
-            document.querySelectorAll('.usage-row').forEach(r => r.classList.remove('selected'));
-            el.classList.add('selected');
+            document.querySelectorAll('.urow').forEach(r => r.classList.remove('sel'));
+            el.classList.add('sel');
             document.getElementById('typeUsageInput').value = el.dataset.value;
             document.getElementById('btnContinuer').disabled = false;
-            var autreDiv = document.getElementById('autre-input-div');
-            autreDiv.style.display = el.dataset.value === 'autre' ? 'block' : 'none';
+            document.getElementById('autre-input-div').style.display =
+                el.dataset.value === 'autre' ? 'block' : 'none';
         }
         document.getElementById('usageForm').addEventListener('submit', function() {
             if (document.getElementById('typeUsageInput').value === 'autre') {
