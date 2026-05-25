@@ -2195,7 +2195,7 @@ function calculer() {
         var type_sys = document.getElementById('type_systeme_hydraulique').value;
         payload.culture = 'classique';
         payload.besoin_journalier = parseFloat(document.getElementById('besoin_journalier').value);
-        payload.consommation_unitaire = parseFloat(document.getElementById('consommation_unitaire') ? document.getElementById('consommation_unitaire').value : 10) || 10;
+        payload.consommation_unitaire = (function(){ var el = document.getElementById('consommation_unitaire'); return el ? parseFloat(el.value) || 10 : 10; })();
         payload.type_usage = document.getElementById('type_usage').value;
         payload.heures_disponibilite = parseFloat(document.getElementById('heures_disponibilite').value);
         payload.coeff_fuite = parseFloat(document.getElementById('coeff_fuite').value);
