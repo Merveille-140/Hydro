@@ -1030,6 +1030,24 @@
     <div class="main-content">
         <p class="page-sub" style="margin-bottom:16px;">Localisez votre site et renseignez les paramètres du projet</p>
 
+        <div style="position:relative; border-radius:14px; overflow:hidden; margin-bottom:20px; border:1px solid rgba(34,197,94,0.35);">
+            <div style="position:absolute; inset:0; background:linear-gradient(135deg, rgba(26,71,42,0.9) 0%, rgba(15,40,24,0.85) 100%);"></div>
+            <div style="position:absolute; top:0; right:0; width:180px; height:100%; background:radial-gradient(ellipse at right, rgba(34,197,94,0.12) 0%, transparent 70%);"></div>
+            <div style="position:relative; display:flex; align-items:center; gap:16px; padding:18px 22px;">
+                <div style="width:52px; height:52px; border-radius:13px; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg id="badge-usage-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </div>
+                <div style="flex:1;">
+                    <p style="margin:0 0 2px; font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1.4px;">Usage sélectionné</p>
+                    <p style="margin:0; font-size:22px; font-weight:700; color:#fff; letter-spacing:-0.4px;" id="badge-usage-label">—</p>
+                </div>
+                <a href="/usage" style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:#22c55e; text-decoration:none; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.25); border-radius:8px; padding:8px 14px; white-space:nowrap;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Modifier
+                </a>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-title">Recherche du site</div>
             <div class="search-wrapper">
@@ -1704,6 +1722,24 @@ window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('source_energie').value = sourceEnergie;
   afficherHeuresPompage();
   mettreAJourEquipements();
+  var LABELS_USAGE = {
+      'irrigation_agricole':  'Irrigation agricole',
+      'eau_potable_rural':    'Résidentiel',
+      'eau_potable_village':  'Eau potable / village',
+      'elevage_bovin':        'Élevage',
+      'autre':                'Autre usage',
+  };
+  var ICONS_USAGE = {
+      'irrigation_agricole':  '<path d="M12 22V11"/><path d="M5.45 5.11L2 12h6.5l-1 9 8.55-9.89L12 11h6l-6.55-5.89z"/>',
+      'eau_potable_rural':    '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+      'eau_potable_village':  '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      'elevage_bovin':        '<ellipse cx="12" cy="8" rx="8" ry="4"/><path d="M4 8v8c0 2.2 3.6 4 8 4s8-1.8 8-4V8"/>',
+      'autre':                '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  };
+  var labelEl = document.getElementById('badge-usage-label');
+  var iconEl  = document.getElementById('badge-usage-icon');
+  if (labelEl) labelEl.innerText = LABELS_USAGE[usageType] || usageType;
+  if (iconEl && ICONS_USAGE[usageType]) iconEl.innerHTML = ICONS_USAGE[usageType];
 });
 
 var SYSTEME_RECOMMANDE = {
