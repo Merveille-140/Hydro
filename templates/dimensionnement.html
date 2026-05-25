@@ -2174,9 +2174,9 @@ function calculer() {
         irradiation:       parseFloat(document.getElementById('irradiation').innerText),
         tension_pv:        document.getElementById('tension_pv').value,
         tension_batterie: tension_batterie, capacite_batterie: capacite_batterie, jours_autonomie: jours_autonomie,
-        nom_projet:        document.getElementById('nom_projet').value,
-        realise_par:       document.getElementById('realise_par').value,
-        date_projet:       document.getElementById('date_projet').value,
+        nom_projet:        '',
+        realise_par:       '',
+        date_projet:       '',
         marque_pompe:      getMarquePompe(), modele_pompe: getModelePompe(),
         lat: lat_choisie, lon: lon_choisie
     };
@@ -2329,9 +2329,9 @@ function genererPDF() {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
             lat:lat_choisie, lon:lon_choisie,
-            nom_projet:document.getElementById('nom_projet').value,
-            realise_par:document.getElementById('realise_par').value,
-            date_projet:document.getElementById('date_projet').value,
+            nom_projet:'',
+            realise_par:'',
+            date_projet:'',
             temperature_max:document.getElementById('temperature_max').innerText,
             temperature_min:document.getElementById('temperature_min').innerText,
             irradiation:document.getElementById('irradiation').innerText,
