@@ -1807,7 +1807,7 @@ function calculerBesoinAuto() {
     if (!nb || nb <= 0) return;
 
     if (usage === 'eau_potable_rural' || usage === 'eau_potable_village') {
-        var consommation = parseFloat(document.getElementById('consommation_unitaire').value) || 10;
+        var consommation = (function(){ var el = document.getElementById('consommation_unitaire'); return el ? parseFloat(el.value) || 10 : 10; })();
         var besoin = (consommation * nb) / 1000;
         document.getElementById('besoin_journalier').value = besoin.toFixed(2);
         msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour (' + consommation + ' L/j × ' + nb + ' personnes)</div>';
