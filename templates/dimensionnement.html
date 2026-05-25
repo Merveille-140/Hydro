@@ -1248,6 +1248,15 @@
                 <div class="card">
                     <div class="card-title">Type d'usage</div>
                     <input type="hidden" id="type_usage" value="eau_potable_rural"/>
+                    <div class="form-group">
+                        <label class="form-label">Niveau de consommation</label>
+                        <select id="consommation_unitaire" onchange="calculerBesoinAuto()">
+                            <option value="5">5 L/jour/personne — Survie</option>
+                            <option value="10" selected>10 L/jour/personne — Minimum admissible</option>
+                            <option value="30">30 L/jour/personne — Conditions normales en Afrique</option>
+                        </select>
+                        <div class="form-hint">Source : YAYA NADJO et al.</div>
+                    </div>
                     <div class="form-row">
                         <div class="form-group"><label class="form-label" id="label_beneficiaires">Nombre de bénéficiaires</label><input type="number" id="nb_beneficiaires" placeholder="Ex: 500" min="1" onchange="calculerBesoinAuto()"/><div class="form-hint" id="hint_beneficiaires">Nombre de personnes desservies</div></div>
                         <div class="form-group"><label class="form-label">Besoin journalier total (m³/jour)</label><input type="number" id="besoin_journalier" placeholder="Calculé automatiquement" step="0.1" min="0.1"/><div class="form-hint">Calculé automatiquement ou saisissez manuellement</div></div>
@@ -1796,6 +1805,16 @@ function calculerBesoinAuto() {
     var usage  = document.getElementById('type_usage').value;
     var nb     = parseFloat(document.getElementById('nb_beneficiaires').value);
     var msgDiv = document.getElementById('msg_besoin_auto');
+    if (!nb || nb <= 0) return;
+
+    if (usage === 'eau_potable_rural' || usage === 'eau_potable_village') {
+        var consommation = parseFloat(document.getElementById('consommation_unitaire').value) || 10;
+        var besoin = (consommation * nb) / 1000;
+        document.getElementById('besoin_journalier').value = besoin.toFixed(2);
+        msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour (' + consommation + ' L/j × ' + nb + ' personnes)</div>';
+        return;
+    }
+
     var config = LABELS_BENEFICIAIRES[usage];
     if (!config || config.norme === 0) { msgDiv.innerHTML = '<div class="msg msg-info">ℹ️ Veuillez saisir le volume journalier manuellement.</div>'; return; }
     if (nb && nb > 0) {
@@ -2177,6 +2196,7 @@ function calculer() {
         var type_sys = document.getElementById('type_systeme_hydraulique').value;
         payload.culture = 'classique';
         payload.besoin_journalier = parseFloat(document.getElementById('besoin_journalier').value);
+        payload.consommation_unitaire = parseFloat(document.getElementById('consommation_unitaire') ? document.getElementById('consommation_unitaire').value : 10) || 10;
         payload.type_usage = document.getElementById('type_usage').value;
         payload.heures_disponibilite = parseFloat(document.getElementById('heures_disponibilite').value);
         payload.coeff_fuite = parseFloat(document.getElementById('coeff_fuite').value);
