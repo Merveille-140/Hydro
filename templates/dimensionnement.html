@@ -2059,17 +2059,18 @@ var PLAGES_HEURES = {
     'solaire':           {min:4,  max:8,  defaut:6,  msg:'Solaire : entre 4h et 8h recommandées'},
     'groupe':            {min:6,  max:12, defaut:8,  msg:'Groupe : entre 6h et 12h recommandées'},
     'hybride_groupe':    {min:6,  max:12, defaut:8,  msg:'Hybride groupe : entre 6h et 12h recommandées'},
-    'hybride_batteries': {min:8,  max:16, defaut:10, msg:'Hybride batteries : entre 8h et 16h recommandées'}
+    'hybride_batteries': {min:8,  max:16, defaut:10, msg:'Hybride batteries : entre 8h et 16h recommandées'},
+    'reseau':            {min:4,  max:16, defaut:8,  msg:'Réseau électrique : durée selon disponibilité'},
 };
 
 function afficherHeuresPompage() {
     var source = document.getElementById('source_energie').value;
-    var plage  = PLAGES_HEURES[source];
+    var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
+    var plage = PLAGES_HEURES[source] || PLAGES_HEURES['reseau'];
     document.getElementById('heures_pompage').value = plage.defaut;
     document.getElementById('heures_pompage').min   = plage.min;
     document.getElementById('heures_pompage').max   = plage.max;
     document.getElementById('heures_recommandees').innerText = plage.msg;
-    var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
     document.getElementById('tension_pv_div').classList.toggle('hidden', !hasPV);
     document.getElementById('batteries_div').classList.toggle('hidden', source !== 'hybride_batteries');
 }
