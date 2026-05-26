@@ -1586,7 +1586,6 @@
                             <div class="result-row"><span class="result-label">Énergie / jour</span><span class="result-value"><span id="res_energie_jour">—</span><span class="result-unit">kWh</span></span></div>
                             <div class="result-row"><span class="result-label">Puissance crête</span><span class="result-value"><span id="res_puissance_crete">—</span><span class="result-unit">kWc</span></span></div>
                             <div class="result-row"><span class="result-label">Panneaux 300Wc</span><span class="result-value highlight"><span id="res_nb_panneaux">—</span><span class="result-unit">panneaux</span></span></div>
-                            <div class="result-row"><span class="result-label">Courant</span><span class="result-value"><span id="res_courant_pv">—</span><span class="result-unit">A</span></span></div>
                         </div>
                         <div id="res_energie_groupe" class="hidden">
                             <div class="result-row"><span class="result-label">Puissance groupe</span><span class="result-value"><span id="res_puissance_groupe">—</span><span class="result-unit">kW</span></span></div>
@@ -2052,6 +2051,8 @@ function mettreAJourEquipements() {
     var hasBat = (source === 'hybride_batteries');
     document.getElementById('div_choix_panneaux').classList.toggle('hidden', !hasPV);
     document.getElementById('div_choix_batteries').classList.toggle('hidden', !hasBat);
+    var cardEquipements = document.querySelector('#page-energie .card:last-of-type');
+    if (cardEquipements) cardEquipements.classList.toggle('hidden', !hasPV);
 }
 
 var PLAGES_HEURES = {
