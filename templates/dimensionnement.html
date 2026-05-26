@@ -1132,6 +1132,10 @@
             <h2 class="page-title">Définissez vos besoins</h2>
             <p class="page-sub">Choisissez le type de système et renseignez les paramètres</p>
 
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; margin-bottom:20px;">
+                <span style="font-size:13px; color:rgba(255,255,255,0.6);">Usage choisi :</span>
+                <span style="font-size:13px; font-weight:700; color:#fff;" id="badge-usage-label">—</span>
+            </div>
 
             <div id="form-irrigation">
                 <div class="card">
@@ -1713,6 +1717,15 @@ window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('source_energie').value = sourceEnergie;
   afficherHeuresPompage();
   mettreAJourEquipements();
+  var LABELS_USAGE = {
+      'irrigation_agricole':  'Irrigation agricole',
+      'eau_potable_rural':    'Résidentiel',
+      'eau_potable_village':  'Eau potable / village',
+      'elevage_bovin':        'Élevage',
+      'autre':                'Autre usage',
+  };
+  var labelEl = document.getElementById('badge-usage-label');
+  if (labelEl) labelEl.innerText = LABELS_USAGE[usageType] || usageType;
 });
 
 var SYSTEME_RECOMMANDE = {
