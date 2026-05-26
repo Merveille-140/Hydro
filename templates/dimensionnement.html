@@ -1436,7 +1436,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card" id="card-equipements">
                 <div class="card-title">Choix des équipements</div>
                 <div id="div_choix_panneaux">
                     <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Panneau solaire</p>
@@ -2051,8 +2051,8 @@ function mettreAJourEquipements() {
     var hasBat = (source === 'hybride_batteries');
     document.getElementById('div_choix_panneaux').classList.toggle('hidden', !hasPV);
     document.getElementById('div_choix_batteries').classList.toggle('hidden', !hasBat);
-    var cardEquipements = document.querySelector('#page-energie .card:last-of-type');
-    if (cardEquipements) cardEquipements.classList.toggle('hidden', !hasPV);
+    var cardEq = document.getElementById('card-equipements');
+    if (cardEq) cardEq.classList.toggle('hidden', !hasPV);
 }
 
 var PLAGES_HEURES = {
