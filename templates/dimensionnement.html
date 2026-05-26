@@ -1603,11 +1603,6 @@
                     <div class="result-card-title">Équipements sélectionnés</div>
                     <div id="res_equipements_content"></div>
                 </div>
-                <div id="res_verification_pompe" class="result-card result-card-full hidden" style="margin-bottom:14px;">
-                    <div class="result-card-title">Pompe sélectionnée</div>
-                    <div id="res_pompe_choisie_info" style="margin-bottom:12px;"></div>
-                    <div id="res_verification_pompe_content"></div>
-                </div>
                 <div class="nav-buttons">
                     <button class="btn-back" onclick="allerVers('energie')">← Modifier</button>
                     <button class="btn-pdf" onclick="genererPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Télécharger le rapport PDF</button>
@@ -2258,52 +2253,47 @@ function afficherResultats(data) {
         document.getElementById('res_capacite_totale').innerText  = data.energie.capacite_totale_Ah;
         document.getElementById('res_nb_batteries').innerText     = data.energie.nb_batteries;
     }
-    afficherVerificationPompe(data);
-    afficherEquipementsChoisis(data);
+    afficherEquipements(data);
 }
 
-function afficherVerificationPompe(data) {
-    var divVerif = document.getElementById('res_verification_pompe');
-    var divContent = document.getElementById('res_verification_pompe_content');
-    var divInfo = document.getElementById('res_pompe_choisie_info');
-    var marque = data.marque_pompe || '';
-    var modele = data.modele_pompe || '';
-    if (!marque || !modele) { divVerif.classList.add('hidden'); return; }
-    divVerif.classList.remove('hidden');
-    var Q = data.hydraulique.debit_m3_h, HMT = data.hydraulique.HMT_m;
-    fetch('/get_pompe', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque,modele:modele}) })
-    .then(function(r) { return r.json(); })
-    .then(function(resp) {
-        if (resp.succes) {
-            var p = resp.pompe;
-            divInfo.innerHTML = '<div class="pompe-card best"><div class="pompe-rank rank-1">✓</div><div class="pompe-info"><div class="pompe-name">' + p.marque + ' — ' + p.modele + '</div><div class="pompe-specs"><span>Débit max : <strong>' + p.debit_max_m3h + ' m³/h</strong></span><span>HMT max : <strong>' + p.HMT_max_m + ' m</strong></span><span>Puissance : <strong>' + p.puissance_kW + ' kW</strong></span></div></div></div>';
-            var ok_debit = p.debit_max_m3h >= Q, ok_HMT = p.HMT_max_m >= HMT, ok_src = p.source_energie.includes(data.source_energie);
-            if (ok_debit && ok_HMT && ok_src) { divContent.innerHTML = '<div class="msg msg-success">✅ La pompe ' + marque + ' ' + modele + ' est compatible.</div>'; }
-            else {
-                var msg = '⚠️ Incompatibilités : ';
-                if (!ok_debit) msg += 'Débit insuffisant. ';
-                if (!ok_HMT) msg += 'HMT insuffisante. ';
-                if (!ok_src) msg += 'Source d\'énergie incompatible.';
-                divContent.innerHTML = '<div class="msg msg-warning">' + msg + '</div>';
-            }
-        }
-    });
-}
-
-function afficherEquipementsChoisis(data) {
+function afficherEquipements(data) {
     var div = document.getElementById('res_equipements');
     var content = document.getElementById('res_equipements_content');
     var src = data.source_energie;
     var hasPV = (src === 'solaire' || src === 'hybride_groupe' || src === 'hybride_batteries');
-    if (!hasPV) { div.classList.add('hidden'); return; }
+    var marque = data.marque_pompe || '';
+    var modele = data.modele_pompe || '';
+
     div.classList.remove('hidden');
     var html = '';
-    var marque_pan = getMarquePanneau(), modele_pan = getModelePanneau();
-    if (marque_pan) { html += '<div class="pompe-card"><div class="pompe-rank rank-2">☀️</div><div class="pompe-info"><div class="pompe-name">Panneau — ' + marque_pan + '</div><div class="pompe-specs"><span>' + modele_pan + '</span><span>Nombre calculé : <strong>' + document.getElementById('res_nb_panneaux').innerText + ' panneaux</strong></span></div></div></div>'; }
-    if (src === 'hybride_batteries') {
-        var marque_bat = getMarqueBatterie(), modele_bat = getModeleBatterie();
-        if (marque_bat) { html += '<div class="pompe-card"><div class="pompe-rank rank-3">🔋</div><div class="pompe-info"><div class="pompe-name">Batterie — ' + marque_bat + '</div><div class="pompe-specs"><span>' + modele_bat + '</span><span>Nombre : <strong>' + document.getElementById('res_nb_batteries').innerText + '</strong></span></div></div></div>'; }
+
+    if (marque && modele) {
+        var Q = data.hydraulique.debit_m3_h, HMT = data.hydraulique.HMT_m;
+        fetch('/get_pompe', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, modele:modele}) })
+        .then(function(r) { return r.json(); })
+        .then(function(resp) {
+            if (resp.succes) {
+                var p = resp.pompe;
+                var ok_d = p.debit_max_m3h >= Q, ok_h = p.HMT_max_m >= HMT, ok_s = p.source_energie.includes(src);
+                var compatHTML = ok_d && ok_h && ok_s
+                    ? '<div class="msg msg-success" style="margin-top:8px;">✅ Pompe compatible avec le système.</div>'
+                    : '<div class="msg msg-warning" style="margin-top:8px;">⚠️ ' + (!ok_d ? 'Débit insuffisant. ' : '') + (!ok_h ? 'HMT insuffisante. ' : '') + (!ok_s ? 'Source d\'énergie incompatible.' : '') + '</div>';
+                var pompeHTML = '<div class="pompe-card best" style="margin-bottom:10px;"><div class="pompe-rank rank-1">✓</div><div class="pompe-info"><div class="pompe-name">' + p.marque + ' — ' + p.modele + '</div><div class="pompe-specs"><span>Débit max : <strong>' + p.debit_max_m3h + ' m³/h</strong></span><span>HMT max : <strong>' + p.HMT_max_m + ' m</strong></span><span>Puissance : <strong>' + p.puissance_kW + ' kW</strong></span></div></div></div>' + compatHTML;
+                content.innerHTML = pompeHTML + content.innerHTML;
+            }
+        });
     }
+
+    if (hasPV) {
+        var mp = getMarquePanneau(), modp = getModelePanneau();
+        if (mp) html += '<div class="pompe-card" style="margin-bottom:10px;"><div class="pompe-rank rank-2">☀️</div><div class="pompe-info"><div class="pompe-name">Panneau — ' + mp + '</div><div class="pompe-specs"><span>' + modp + '</span><span>Nombre calculé : <strong>' + document.getElementById('res_nb_panneaux').innerText + ' panneaux</strong></span></div></div></div>';
+    }
+
+    if (src === 'hybride_batteries') {
+        var mb = getMarqueBatterie(), modb = getModeleBatterie();
+        if (mb) html += '<div class="pompe-card" style="margin-bottom:10px;"><div class="pompe-rank rank-3">🔋</div><div class="pompe-info"><div class="pompe-name">Batterie — ' + mb + '</div><div class="pompe-specs"><span>' + modb + '</span><span>Nombre : <strong>' + document.getElementById('res_nb_batteries').innerText + '</strong></span></div></div></div>';
+    }
+
     content.innerHTML = html;
 }
 
