@@ -1247,9 +1247,10 @@
 
             <div id="form-classique" class="hidden">
                 <div class="card">
-                    <div class="card-title">Type d'usage</div>
+                    <div class="card-title">Besoin en eau</div>
                     <input type="hidden" id="type_usage" value="eau_potable_rural"/>
-                    <div class="form-group">
+
+                    <div id="div_consommation_eau" class="form-group">
                         <label class="form-label">Niveau de consommation</label>
                         <select id="consommation_unitaire" onchange="calculerBesoinAuto()">
                             <option value="5">5 L/jour/personne</option>
@@ -1257,9 +1258,34 @@
                             <option value="30">30 L/jour/personne</option>
                         </select>
                     </div>
+
+                    <div id="div_type_animal" class="form-group hidden">
+                        <label class="form-label">Type d'animal</label>
+                        <select id="type_animal" onchange="calculerBesoinAuto()">
+                            <option value="40">Bœuf (40 L/jour/tête)</option>
+                            <option value="20">Chameau (20 L/jour/tête)</option>
+                            <option value="5">Mouton (5 L/jour/tête)</option>
+                            <option value="autre">Autre animal</option>
+                        </select>
+                    </div>
+
+                    <div id="div_besoin_animal_manuel" class="form-group hidden">
+                        <label class="form-label">Besoin journalier par tête (L/jour)</label>
+                        <input type="number" id="besoin_animal_manuel" placeholder="Ex: 15" step="0.5" min="1" onchange="calculerBesoinAuto()"/>
+                        <div class="form-hint">Renseignez la consommation journalière de votre animal</div>
+                    </div>
+
                     <div class="form-row">
-                        <div class="form-group"><label class="form-label" id="label_beneficiaires">Nombre de bénéficiaires</label><input type="number" id="nb_beneficiaires" placeholder="Ex: 500" min="1" onchange="calculerBesoinAuto()"/><div class="form-hint" id="hint_beneficiaires">Nombre de personnes desservies</div></div>
-                        <div class="form-group"><label class="form-label">Besoin journalier total (m³/jour)</label><input type="number" id="besoin_journalier" placeholder="Calculé automatiquement" step="0.1" min="0.1"/><div class="form-hint">Calculé automatiquement ou saisissez manuellement</div></div>
+                        <div class="form-group">
+                            <label class="form-label" id="label_beneficiaires">Nombre de bénéficiaires</label>
+                            <input type="number" id="nb_beneficiaires" placeholder="Ex: 500" min="1" onchange="calculerBesoinAuto()"/>
+                            <div class="form-hint" id="hint_beneficiaires">Nombre de personnes desservies</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Besoin journalier total (m³/jour)</label>
+                            <input type="number" id="besoin_journalier" placeholder="Calculé automatiquement" step="0.1" min="0.1"/>
+                            <div class="form-hint">Calculé automatiquement ou saisissez manuellement</div>
+                        </div>
                     </div>
                     <div id="msg_besoin_auto"></div>
                 </div>
@@ -1707,6 +1733,12 @@ window.addEventListener('DOMContentLoaded', function() {
     document.getElementById('form-classique').classList.remove('hidden');
     document.getElementById('form-irrigation').classList.add('hidden');
     document.getElementById('type_usage').value = usageType;
+    if (usageType === 'elevage_bovin') {
+        document.getElementById('div_consommation_eau').classList.add('hidden');
+        document.getElementById('div_type_animal').classList.remove('hidden');
+        document.getElementById('label_beneficiaires').innerText = "Nombre d'animaux";
+        document.getElementById('hint_beneficiaires').innerText = "Nombre de têtes";
+    }
   }
   var sourceEnergie = "{{ session.get('source_energie', 'solaire') }}";
   document.getElementById('source_energie').value = sourceEnergie;
@@ -1791,22 +1823,35 @@ function calculerBesoinAuto() {
     var nb     = parseFloat(document.getElementById('nb_beneficiaires').value);
     var msgDiv = document.getElementById('msg_besoin_auto');
     if (!nb || nb <= 0) return;
-
+    var besoin = 0;
     if (usage === 'eau_potable_rural' || usage === 'eau_potable_village') {
         var consommation = (function(){ var el = document.getElementById('consommation_unitaire'); return el ? parseFloat(el.value) || 10 : 10; })();
-        var besoin = (consommation * nb) / 1000;
+        besoin = (consommation * nb) / 1000;
         document.getElementById('besoin_journalier').value = besoin.toFixed(2);
         msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour (' + consommation + ' L/j × ' + nb + ' personnes)</div>';
         return;
     }
-
-    var config = LABELS_BENEFICIAIRES[usage];
-    if (!config || config.norme === 0) { msgDiv.innerHTML = '<div class="msg msg-info">ℹ️ Veuillez saisir le volume journalier manuellement.</div>'; return; }
-    if (nb && nb > 0) {
-        var besoin = (config.norme * nb) / 1000;
+    if (usage === 'elevage_bovin') {
+        var typeAnimal = document.getElementById('type_animal').value;
+        var consommationAnimal = 0;
+        if (typeAnimal === 'autre') {
+            var manuelEl = document.getElementById('besoin_animal_manuel');
+            document.getElementById('div_besoin_animal_manuel').classList.remove('hidden');
+            consommationAnimal = parseFloat(manuelEl.value) || 0;
+            if (consommationAnimal <= 0) {
+                msgDiv.innerHTML = '<div class="msg msg-info">ℹ️ Renseignez le besoin journalier par tête.</div>';
+                return;
+            }
+        } else {
+            document.getElementById('div_besoin_animal_manuel').classList.add('hidden');
+            consommationAnimal = parseFloat(typeAnimal);
+        }
+        besoin = (consommationAnimal * nb) / 1000;
         document.getElementById('besoin_journalier').value = besoin.toFixed(2);
-        msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour</div>';
+        msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour (' + consommationAnimal + ' L/j × ' + nb + ' têtes)</div>';
+        return;
     }
+    msgDiv.innerHTML = '<div class="msg msg-info">ℹ️ Veuillez saisir le volume journalier manuellement.</div>';
 }
 
 function afficherParamsSysteme() {
