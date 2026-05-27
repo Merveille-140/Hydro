@@ -1262,9 +1262,9 @@
                     <div id="div_type_animal" class="form-group hidden">
                         <label class="form-label">Type d'animal</label>
                         <select id="type_animal" onchange="calculerBesoinAuto()">
-                            <option value="40">Bœuf (40 L/jour/tête)</option>
-                            <option value="20">Chameau (20 L/jour/tête)</option>
-                            <option value="5">Mouton (5 L/jour/tête)</option>
+                            <option value="40">Bœuf</option>
+                            <option value="20">Chameau</option>
+                            <option value="5">Mouton</option>
                             <option value="autre">Autre animal</option>
                         </select>
                     </div>
@@ -1628,6 +1628,20 @@
                 <div id="res_equipements" class="result-card result-card-full hidden" style="margin-bottom:14px;">
                     <div class="result-card-title">Équipements sélectionnés</div>
                     <div id="res_equipements_content"></div>
+                </div>
+                <div class="result-card result-card-full" id="res_cout" style="margin-bottom:14px;">
+                    <div class="result-card-title">Coût estimatif de l'installation</div>
+                    <div class="result-row"><span class="result-label">Coût de la pompe</span><span class="result-value"><span id="res_cout_pompe">—</span> <span class="result-unit">FCFA</span></span></div>
+                    <div class="result-row"><span class="result-label">Coût des équipements énergétiques</span><span class="result-value"><span id="res_cout_energie">—</span> <span class="result-unit">FCFA</span></span></div>
+                    <div class="result-row"><span class="result-label">Main d'œuvre & installation (15%)</span><span class="result-value"><span id="res_cout_installation">—</span> <span class="result-unit">FCFA</span></span></div>
+                    <div class="result-row"><span class="result-label">Divers & imprévus (10%)</span><span class="result-value"><span id="res_cout_divers">—</span> <span class="result-unit">FCFA</span></span></div>
+                    <div class="result-row" style="border-top:1px solid rgba(255,255,255,0.15); margin-top:8px; padding-top:12px;">
+                        <span class="result-label" style="font-size:14px; font-weight:600; color:white;">COÛT TOTAL ESTIMATIF (k=1,15)</span>
+                        <span class="result-value highlight" style="font-size:20px;"><span id="res_cout_total">—</span> <span class="result-unit">FCFA</span></span>
+                    </div>
+                    <div style="margin-top:10px; font-size:11px; color:rgba(255,255,255,0.35); font-style:italic;">
+                        Estimation indicative — Prix issus du marché ouest-africain (Senegrid 2025, SOS Énergie 2024, Senemarket 2025). Marge k=1,15 selon AACE International Class 5.
+                    </div>
                 </div>
                 <div class="nav-buttons">
                     <button class="btn-back" onclick="allerVers('energie')">← Modifier</button>
@@ -2300,6 +2314,13 @@ function afficherResultats(data) {
         document.getElementById('res_energie_stockage').innerText = data.energie.energie_stockage_kWh;
         document.getElementById('res_capacite_totale').innerText  = data.energie.capacite_totale_Ah;
         document.getElementById('res_nb_batteries').innerText     = data.energie.nb_batteries;
+    }
+    if (data.cout) {
+        document.getElementById('res_cout_pompe').innerText        = data.cout.C_pompe.toLocaleString('fr-FR');
+        document.getElementById('res_cout_energie').innerText      = data.cout.C_energie.toLocaleString('fr-FR');
+        document.getElementById('res_cout_installation').innerText = data.cout.C_installation.toLocaleString('fr-FR');
+        document.getElementById('res_cout_divers').innerText       = data.cout.C_divers.toLocaleString('fr-FR');
+        document.getElementById('res_cout_total').innerText        = data.cout.C_total.toLocaleString('fr-FR');
     }
     afficherEquipements(data);
 }

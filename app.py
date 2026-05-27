@@ -10,6 +10,7 @@ import os
 import json
 from functools import wraps
 import time
+from cout import calculer_cout
 
 # ============================================================
 # CHARGEMENT MODULES
@@ -303,6 +304,20 @@ def calculer():
             )
 
         resultats['projet_id'] = projet_id
+        try:
+            cout_data = {
+                'source_energie':       source_energie,
+                'Pm_commercial_kW':     resultats['pompe']['Pm_commercial_kW'],
+                'nb_panneaux':          resultats.get('energie', {}).get('nb_panneaux_300Wc', 0),
+                'puissance_panneau_Wc': data.get('puissance_panneau_Wc', 300),
+                'nb_batteries':         resultats.get('energie', {}).get('nb_batteries', 0),
+                'capacite_batterie_Ah': data.get('capacite_batterie_Ah', 200),
+                'type_batterie':        data.get('type_batterie', 'GEL'),
+                'puissance_groupe_kW':  resultats.get('energie', {}).get('puissance_groupe_kW', 0),
+            }
+            resultats['cout'] = calculer_cout(cout_data)
+        except Exception as e:
+            resultats['cout'] = None
         return jsonify(resultats)
 
     except Exception as e:
