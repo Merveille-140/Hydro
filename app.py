@@ -322,6 +322,8 @@ def calculer():
             resultats['cout'] = calculer_cout(cout_data)
         except Exception as e:
             resultats['cout'] = None
+        print("DEBUG COUT:", cout_data if 'cout_data' in locals() else "cout_data non défini")
+        print("DEBUG RESULTAT COUT:", resultats.get('cout'))
         return jsonify(resultats)
 
     except Exception as e:
