@@ -242,4 +242,10 @@ def get_marques_batteries():
 
 
 def get_modeles_batteries(marque):
-    return [b for b in BATTERIES if b["marque"] == marque]
+    result = []
+    for b in BATTERIES:
+        if b["marque"] == marque:
+            bat = dict(b)
+            bat['dod'] = float(bat.get('dod', 0.8) or 0.8)
+            result.append(bat)
+    return result

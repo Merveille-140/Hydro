@@ -247,8 +247,7 @@ def calculer_hybride_batteries(
         2
     )
 
-    # CORRECTION : TENSIONS_BATTERIES au lieu de TENSIONS_PV
-    tension_bat_num = TENSIONS_BATTERIES.get(tension_batterie, 24)
+    tension_bat_num = tension_batterie if isinstance(tension_batterie, (int, float)) else TENSIONS_BATTERIES.get(tension_batterie, 24)
 
     capacite_totale_Ah = round(
         (energie_stockage_kWh * 1000)
@@ -256,7 +255,7 @@ def calculer_hybride_batteries(
         1
     )
 
-    capacite_unitaire_Ah = CAPACITES_BATTERIES.get(capacite_batterie, 200)
+    capacite_unitaire_Ah = capacite_batterie if isinstance(capacite_batterie, (int, float)) else CAPACITES_BATTERIES.get(capacite_batterie, 200)
 
     nb_batteries = math.ceil(capacite_totale_Ah / capacite_unitaire_Ah)
 

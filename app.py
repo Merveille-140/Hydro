@@ -263,9 +263,13 @@ def calculer():
         elif source_energie == "hybride_groupe":
             energie = calculer_hybride_groupe(pompe['Pm_kW'], heures_pompage, irradiation, tension_pv)
         elif source_energie == "hybride_batteries":
+            marque_bat = data.get('marque_batterie', '')
+            bats = equipements_mod.get_modeles_batteries(marque_bat) if marque_bat else []
+            capacite_bat_Ah = int(bats[0]['capacite_Ah']) if bats else 200
+            tension_bat_V   = bats[0]['tension_V'] if bats else 24
             energie = calculer_hybride_batteries(
                 pompe['Pm_kW'], heures_pompage, irradiation, tension_pv,
-                data['tension_batterie'], data['capacite_batterie'], int(data['jours_autonomie'])
+                tension_bat_V, capacite_bat_Ah, int(data.get('jours_autonomie', 2))
             )
         else:
             energie = {}

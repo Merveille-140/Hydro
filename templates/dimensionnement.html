@@ -1448,11 +1448,7 @@
                         <option value="96V">96V — Grande installation</option>
                     </select>
                 </div>
-                <div id="batteries_div" class="hidden">
-                    <div class="form-row">
-                        <div class="form-group"><label class="form-label">Tension des batteries</label><select id="tension_batterie"><option value="12V">12V</option><option value="24V">24V</option><option value="48V">48V</option></select></div>
-                        <div class="form-group"><label class="form-label">Capacité unitaire</label><select id="capacite_batterie"><option value="100Ah">100 Ah</option><option value="150Ah">150 Ah</option><option value="200Ah">200 Ah</option><option value="250Ah">250 Ah</option></select></div>
-                    </div>
+                <div id="jours_autonomie_div" class="hidden">
                     <div class="form-group"><label class="form-label">Jours d'autonomie</label><input type="number" id="jours_autonomie" value="2" min="1" max="5"/></div>
                 </div>
                 <div class="form-group">
@@ -2131,7 +2127,7 @@ function afficherHeuresPompage() {
     document.getElementById('heures_pompage').max   = plage.max;
     document.getElementById('heures_recommandees').innerText = plage.msg;
     document.getElementById('tension_pv_div').classList.toggle('hidden', !hasPV);
-    document.getElementById('batteries_div').classList.toggle('hidden', source !== 'hybride_batteries');
+    document.getElementById('jours_autonomie_div').classList.toggle('hidden', source !== 'hybride_batteries');
 }
 
 function getMarquePompe() {
