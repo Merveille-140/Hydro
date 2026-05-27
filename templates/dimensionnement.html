@@ -2449,6 +2449,22 @@ setTimeout(function() {
     chargerMarquesBatteries();
     mettreAJourEquipements();
 }, 1000);
+
+document.addEventListener('keydown', function(e) {
+    var pages = ['localisation', 'besoins', 'energie', 'resultats'];
+    var pageActive = document.querySelector('.page.active');
+    if (!pageActive) return;
+    var currentId = pageActive.id.replace('page-', '');
+    var currentIndex = pages.indexOf(currentId);
+    if (currentIndex === -1) return;
+
+    if (e.key === 'ArrowRight' && currentIndex < pages.length - 1) {
+        allerVers(pages[currentIndex + 1]);
+    }
+    if (e.key === 'ArrowLeft' && currentIndex > 0) {
+        allerVers(pages[currentIndex - 1]);
+    }
+});
 </script>
 </body>
 </html>
