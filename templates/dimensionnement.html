@@ -2104,7 +2104,8 @@ function afficherCaracBatterie() {
         document.getElementById('bat_type').innerText     = bat.type;
         document.getElementById('bat_capacite').innerText = bat.capacite_Ah + ' Ah';
         document.getElementById('bat_tension').innerText  = bat.tension_V + ' V';
-        document.getElementById('bat_dod').innerText      = (bat.DoD * 100).toFixed(0) + '%';
+        var dod = bat.dod || bat.DoD || 0.8;
+        document.getElementById('bat_dod').innerText      = (dod * 100).toFixed(0) + '%';
         divC.classList.remove('hidden');
     }
 }
