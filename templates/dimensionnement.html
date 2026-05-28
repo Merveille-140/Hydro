@@ -2157,17 +2157,17 @@ function chargerMarquesBatteries() {
 
 function chargerModelesBatteries() {
     var marque = document.getElementById('marque_batterie').value;
-    var select = document.getElementById('modele_batterie');
-    var divC   = document.getElementById('carac_batterie');
-    select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
-    select.disabled  = true; divC.classList.add('hidden');
-    if (!marque) { return; }
+    if (!marque) return;
     fetch('/get_modeles_batteries', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque}) })
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.succes && data.modeles.length > 0) {
+            var select = document.getElementById('modele_batterie');
+            if (!select) return;
+            select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
             data.modeles.forEach(function(b, i) { select.innerHTML += '<option value="' + i + '">' + b.capacite_Ah + 'Ah — ' + b.tension_V + 'V — ' + b.type + '</option>'; });
-            select.disabled = false; select._modeles = data.modeles;
+            select.disabled = false;
+            select._modeles = data.modeles;
         }
     });
 }
