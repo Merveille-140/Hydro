@@ -1454,38 +1454,30 @@
                 <div class="card-title">Source d'énergie</div>
                 <input type="hidden" id="source_energie" value="{{ session.get('source_energie', 'solaire') }}"/>
                 <p>Source : <strong style="color:#fbbf24;">{{ session.get('source_energie','solaire')|replace('_',' ')|title }}</strong></p>
-                <div id="tension_pv_div" class="form-group">
-                    <label class="form-label">Tension du système PV</label>
-                    <select id="tension_pv">
-                        <option value="12V">12V — Très petite installation</option>
-                        <option value="24V">24V — Petite installation</option>
-                        <option value="48V">48V — Installation moyenne</option>
-                        <option value="96V">96V — Grande installation</option>
+                <div id="pv_params_div" class="form-group">
+                    <label class="form-label">Ratio de performance Pr</label>
+                    <select id="pr_ratio">
+                        <option value="0.70">0.70 — Conditions défavorables</option>
+                        <option value="0.75" selected>0.75 — Standard (recommandé)</option>
+                        <option value="0.80">0.80 — Bonnes conditions</option>
                     </select>
+                    <div id="badge_usyst" style="margin-top:8px; padding:6px 12px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); border-radius:6px; font-size:12px; color:#a5b4fc; display:none;"></div>
                 </div>
                 <div id="batteries_div" class="hidden">
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Tension des batteries</label>
-                            <select id="tension_batterie">
-                                <option value="12V">12V</option>
-                                <option value="24V">24V</option>
-                                <option value="48V">48V</option>
-                            </select>
+                            <label class="form-label">Jours d'autonomie</label>
+                            <input type="number" id="jours_autonomie" value="2" min="1" max="5"/>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Capacité unitaire</label>
-                            <select id="capacite_batterie">
-                                <option value="100Ah">100 Ah</option>
-                                <option value="150Ah">150 Ah</option>
-                                <option value="200Ah">200 Ah</option>
-                                <option value="250Ah">250 Ah</option>
+                            <label class="form-label">DoD (Profondeur de décharge)</label>
+                            <select id="dod">
+                                <option value="0.50">50%</option>
+                                <option value="0.60">60%</option>
+                                <option value="0.70" selected>70%</option>
+                                <option value="0.80">80%</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Jours d'autonomie</label>
-                        <input type="number" id="jours_autonomie" value="2" min="1" max="5"/>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1569,6 +1561,7 @@
                         </div>
                     </div>
                 </div>
+                <div id="msg_onduleur_avert"></div>
                 <div id="div_choix_onduleur" class="hidden">
                     <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Onduleur</p>
                     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
@@ -2056,10 +2049,23 @@ function chargerCaracteristiques() {
             divC.classList.remove('hidden');
             var source = document.getElementById('source_energie').value;
             var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
-            var tension = p.tension_V ? p.tension_V.toString() : '';
-            var isAC = tension.includes('230') || tension.includes('AC') || p.type_pompe === 'AC';
+            var tension = p.tension_V ? p.tension_V.toString().toUpperCase() : '';
+            var isAC = tension.includes('AC') || tension.includes('230') || tension.includes('380');
+            var isTriphase = tension.includes('380') || tension.includes('3X') || tension.includes('3x');
             var divOnd = document.getElementById('div_choix_onduleur');
-            if (divOnd) divOnd.classList.toggle('hidden', !(hasPV && isAC));
+            var msgOnd = document.getElementById('msg_onduleur_avert');
+            if (hasPV && isAC) {
+                if (isTriphase) {
+                    if (divOnd) divOnd.classList.add('hidden');
+                    if (msgOnd) msgOnd.innerHTML = '<div class="msg msg-warning">⚠️ Cette pompe est triphasée — elle nécessite un groupe électrogène triphasé ou un onduleur triphasé non disponible dans la base de données.</div>';
+                } else {
+                    if (divOnd) divOnd.classList.remove('hidden');
+                    if (msgOnd) msgOnd.innerHTML = '';
+                }
+            } else {
+                if (divOnd) divOnd.classList.add('hidden');
+                if (msgOnd) msgOnd.innerHTML = '';
+            }
         }
     });
 }
@@ -2103,10 +2109,23 @@ function chargerCaracteristiquesIrr() {
             divC.classList.remove('hidden');
             var source = document.getElementById('source_energie').value;
             var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
-            var tension = p.tension_V ? p.tension_V.toString() : '';
-            var isAC = tension.includes('230') || tension.includes('AC') || p.type_pompe === 'AC';
+            var tension = p.tension_V ? p.tension_V.toString().toUpperCase() : '';
+            var isAC = tension.includes('AC') || tension.includes('230') || tension.includes('380');
+            var isTriphase = tension.includes('380') || tension.includes('3X') || tension.includes('3x');
             var divOnd = document.getElementById('div_choix_onduleur');
-            if (divOnd) divOnd.classList.toggle('hidden', !(hasPV && isAC));
+            var msgOnd = document.getElementById('msg_onduleur_avert');
+            if (hasPV && isAC) {
+                if (isTriphase) {
+                    if (divOnd) divOnd.classList.add('hidden');
+                    if (msgOnd) msgOnd.innerHTML = '<div class="msg msg-warning">⚠️ Cette pompe est triphasée — elle nécessite un groupe électrogène triphasé ou un onduleur triphasé non disponible dans la base de données.</div>';
+                } else {
+                    if (divOnd) divOnd.classList.remove('hidden');
+                    if (msgOnd) msgOnd.innerHTML = '';
+                }
+            } else {
+                if (divOnd) divOnd.classList.add('hidden');
+                if (msgOnd) msgOnd.innerHTML = '';
+            }
         }
     });
 }
@@ -2277,7 +2296,7 @@ function afficherHeuresPompage() {
     document.getElementById('heures_pompage').min   = plage.min;
     document.getElementById('heures_pompage').max   = plage.max;
     document.getElementById('heures_recommandees').innerText = plage.msg;
-    document.getElementById('tension_pv_div').classList.toggle('hidden', !hasPV);
+    document.getElementById('pv_params_div').classList.toggle('hidden', !hasPV);
     document.getElementById('batteries_div').classList.toggle('hidden', source !== 'hybride_batteries');
 }
 
@@ -2356,19 +2375,18 @@ function calculer() {
     allerVers('resultats');
     document.getElementById('loading-calcul').classList.remove('hidden');
     document.getElementById('resultats-content').classList.add('hidden');
-    var tension_batterie = null, capacite_batterie = null, jours_autonomie = null;
+    var jours_autonomie = null, dod_val = null;
     if (source_energie === 'hybride_batteries') {
-        tension_batterie  = document.getElementById('tension_batterie').value;
-        capacite_batterie = document.getElementById('capacite_batterie').value;
-        jours_autonomie   = parseInt(document.getElementById('jours_autonomie').value);
+        jours_autonomie = parseInt(document.getElementById('jours_autonomie').value);
+        dod_val = parseFloat(document.getElementById('dod').value) || 0.70;
     }
     var payload = {
         mode: modeActuel, source_energie: source_energie,
-        heures_pompage:    parseFloat(document.getElementById('heures_pompage').value),
-        ET0:               parseFloat(document.getElementById('ET0_max').innerText),
-        irradiation:       parseFloat(document.getElementById('irradiation').innerText),
-        tension_pv:        document.getElementById('tension_pv').value,
-        tension_batterie: tension_batterie, capacite_batterie: capacite_batterie, jours_autonomie: jours_autonomie,
+        heures_pompage: parseFloat(document.getElementById('heures_pompage').value),
+        ET0:            parseFloat(document.getElementById('ET0_max').innerText),
+        irradiation:    parseFloat(document.getElementById('irradiation').innerText),
+        pr_ratio:       parseFloat(document.getElementById('pr_ratio').value) || 0.75,
+        jours_autonomie: jours_autonomie, dod: dod_val,
         nom_projet:        '',
         realise_par:       '',
         date_projet:       '',
@@ -2475,6 +2493,11 @@ function afficherResultats(data) {
             if (el_divers)  el_divers.innerText  = data.cout.C_divers.toLocaleString('fr-FR');
             if (el_total)   el_total.innerText   = data.cout.C_total.toLocaleString('fr-FR');
         }
+        var U = (data.energie && data.energie.U_syst) ? data.energie.U_syst
+               : (data.energie && data.energie.solaire && data.energie.solaire.U_syst) ? data.energie.solaire.U_syst
+               : null;
+        var badge = document.getElementById('badge_usyst');
+        if (badge) { if (U) { badge.innerText = 'Tension système calculée : ' + U + ' V'; badge.style.display = 'inline-block'; } else { badge.style.display = 'none'; } }
         afficherEquipements(data);
     } catch(e) {
         console.error('Erreur afficherResultats:', e.message, e.stack);
@@ -2527,11 +2550,10 @@ function afficherEquipements(data) {
 function genererPDF() {
     if (!lat_choisie) { alert('Données incomplètes !'); return; }
     var source_energie = document.getElementById('source_energie').value;
-    var tension_batterie = null, capacite_batterie = null, jours_autonomie = null;
+    var jours_autonomie = null, dod_pdf = null;
     if (source_energie === 'hybride_batteries') {
-        tension_batterie  = document.getElementById('tension_batterie').value;
-        capacite_batterie = document.getElementById('capacite_batterie').value;
-        jours_autonomie   = parseInt(document.getElementById('jours_autonomie').value);
+        jours_autonomie = parseInt(document.getElementById('jours_autonomie').value);
+        dod_pdf = parseFloat(document.getElementById('dod').value) || 0.70;
     }
     fetch('/generer_pdf', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -2547,8 +2569,8 @@ function genererPDF() {
             mois_critique:document.getElementById('mois_critique').innerText,
             source_energie:source_energie,
             heures_pompage:parseFloat(document.getElementById('heures_pompage').value),
-            tension_pv:document.getElementById('tension_pv').value,
-            tension_batterie:tension_batterie, capacite_batterie:capacite_batterie, jours_autonomie:jours_autonomie,
+            pr_ratio:parseFloat(document.getElementById('pr_ratio').value) || 0.75,
+            jours_autonomie:jours_autonomie, dod:dod_pdf,
             marque_pompe:getMarquePompe(), modele_pompe:getModelePompe(),
             marque_panneau:getMarquePanneau(), modele_panneau:getModelePanneau(),
             marque_batterie:getMarqueBatterie(), modele_batterie:getModeleBatterie(),

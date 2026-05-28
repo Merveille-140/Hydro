@@ -201,7 +201,9 @@ def calculer():
         source_energie           = data['source_energie']
         heures_pompage           = float(data['heures_pompage'])
         irradiation              = float(data['irradiation'])
-        tension_pv               = data.get('tension_pv', '48V')
+        pr_ratio                 = float(data.get('pr_ratio', 0.75))
+        dod                      = float(data.get('dod', 0.70))
+        puissance_panneau_W      = float(data.get('puissance_panneau_Wc', 300))
         longueur_canalisation    = float(data.get('longueur_canalisation', 0))
         diametre_tuyau           = float(data.get('diametre_tuyau', 63))
         profondeur_aspiration    = float(data.get('profondeur_aspiration', 0))
@@ -256,20 +258,27 @@ def calculer():
 
         pompe = calculer_pompe(hydraulique['debit_m3_h'], hydraulique['HMT_m'])
 
+        Rmp = pompe_mod.RENDEMENT_POMPE * pompe_mod.RENDEMENT_MOTEUR
+        Q_m3_jour = besoin_brut
+        HMT_m = hydraulique['HMT_m']
+
         if source_energie == "solaire":
-            energie = calculer_solaire(pompe['Pm_kW'], heures_pompage, irradiation, tension_pv)
+            energie = calculer_solaire(Q_m3_jour, HMT_m, Rmp, irradiation, pr_ratio, puissance_panneau_W)
         elif source_energie == "groupe":
             energie = calculer_groupe(pompe['Pm_kW'], heures_pompage)
         elif source_energie == "hybride_groupe":
-            energie = calculer_hybride_groupe(pompe['Pm_kW'], heures_pompage, irradiation, tension_pv)
+            energie = calculer_hybride_groupe(
+                pompe['Pm_kW'], heures_pompage, irradiation,
+                Q_m3_jour, HMT_m, Rmp, pr_ratio, puissance_panneau_W
+            )
         elif source_energie == "hybride_batteries":
             marque_bat = data.get('marque_batterie', '')
             bats = equipements_mod.get_modeles_batteries(marque_bat) if marque_bat else []
             capacite_bat_Ah = int(bats[0]['capacite_Ah']) if bats else 200
             tension_bat_V   = bats[0]['tension_V'] if bats else 24
             energie = calculer_hybride_batteries(
-                pompe['Pm_kW'], heures_pompage, irradiation, tension_pv,
-                tension_bat_V, capacite_bat_Ah, int(data.get('jours_autonomie', 2))
+                Q_m3_jour, HMT_m, Rmp, irradiation, pr_ratio, puissance_panneau_W,
+                tension_bat_V, capacite_bat_Ah, int(data.get('jours_autonomie', 2)), dod
             )
         else:
             energie = {}

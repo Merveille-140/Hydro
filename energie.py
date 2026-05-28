@@ -10,16 +10,13 @@ import math
 # CONSTANTES
 # ============================================================
 
-RENDEMENT_SYSTEME_PV  = 0.75   # pertes câblage, onduleur, poussière
-PUISSANCE_PANNEAU_WC  = 300    # puissance unitaire panneau (Wc)
-PROFONDEUR_DECHARGE   = 0.80   # DoD batterie AGM (80%)
-RENDEMENT_BATTERIE    = 0.85   # rendement charge/décharge batterie
+PUISSANCE_PANNEAU_WC  = 300    # puissance unitaire panneau par défaut (Wc)
 CONSO_CARBURANT       = 0.25   # litres de gasoil par kWh produit
 COEFF_GROUPE          = 1.25   # surdimensionnement groupe électrogène
 
 
 # ============================================================
-# TENSIONS SYSTÈME PV — VALEURS NUMÉRIQUES
+# TENSIONS SYSTÈME PV — VALEURS NUMÉRIQUES (legacy)
 # ============================================================
 
 TENSIONS_PV = {
@@ -32,8 +29,6 @@ TENSIONS_PV = {
 
 # ============================================================
 # TENSIONS BATTERIES — VALEURS NUMÉRIQUES
-# CORRECTION : dictionnaire séparé de TENSIONS_PV
-# Les batteries n'ont pas de tension 96V
 # ============================================================
 
 TENSIONS_BATTERIES = {
@@ -56,101 +51,60 @@ CAPACITES_BATTERIES = {
 
 
 # ============================================================
-# ÉNERGIE JOURNALIÈRE
+# TENSION SYSTÈME AUTO
+# Pc en W → tension système en V
+# ============================================================
+
+def _auto_tension(Pc_W):
+    if Pc_W <= 500:
+        return 12
+    elif Pc_W <= 1500:
+        return 24
+    elif Pc_W <= 5000:
+        return 48
+    else:
+        return 96
+
+
+# ============================================================
+# ÉNERGIE JOURNALIÈRE (legacy — conservé pour compatibilité)
 # ============================================================
 
 def calculer_energie_journaliere(puissance_moteur_kW, heures_pompage):
-    """
-    Calcule l'énergie consommée par jour.
-
-    Paramètres :
-        puissance_moteur_kW : puissance du moteur (kW)
-        heures_pompage      : heures de fonctionnement par jour
-
-    Retourne :
-        énergie en kWh/jour
-    """
-
     return round(puissance_moteur_kW * heures_pompage, 3)
 
 
 # ============================================================
 # DIMENSIONNEMENT SOLAIRE PUR
+# Eelec (kWh/j) = 2.725e-3 × Q (m³/j) × HMT (m) / Rmp
+# Pc (kWc)      = Eelec / (Ir × Pr)
+# U_syst        = calculé automatiquement selon Pc
 # ============================================================
 
-def calculer_solaire(
-    puissance_moteur_kW,
-    heures_pompage,
-    irradiation,
-    tension_pv
-):
-    """
-    Dimensionne l'installation solaire photovoltaïque.
-
-    Paramètres :
-        puissance_moteur_kW : puissance moteur (kW)
-        heures_pompage      : heures de pompage par jour
-        irradiation         : irradiation solaire (kWh/m²/jour)
-        tension_pv          : tension système PV ('12V', '24V', '48V', '96V')
-
-    Retourne :
-        dict avec tous les paramètres de l'installation PV
-    """
-
-    energie_jour_kWh = calculer_energie_journaliere(
-        puissance_moteur_kW,
-        heures_pompage
-    )
-
-    puissance_crete_kWp = energie_jour_kWh / (
-        irradiation * RENDEMENT_SYSTEME_PV
-    )
-
-    nb_panneaux = math.ceil(
-        (puissance_crete_kWp * 1000) / PUISSANCE_PANNEAU_WC
-    )
-
-    puissance_crete_reelle_kWp = round(
-        (nb_panneaux * PUISSANCE_PANNEAU_WC) / 1000,
-        2
-    )
-
-    tension_num = TENSIONS_PV.get(tension_pv, 48)
-
-    courant_A = round(
-        (puissance_crete_reelle_kWp * 1000) / tension_num,
-        2
-    )
+def calculer_solaire(Q_m3_jour, HMT_m, Rmp, irradiation, Pr=0.75, puissance_panneau_W=300):
+    Eelec      = (2.725e-3 * Q_m3_jour * HMT_m) / Rmp
+    Pc_kWp     = Eelec / (irradiation * Pr)
+    U_syst     = _auto_tension(Pc_kWp * 1000)
+    nb_panneaux = math.ceil((Pc_kWp * 1000) / puissance_panneau_W)
+    courant_A  = round((Pc_kWp * 1000) / U_syst, 2)
 
     return {
-        "energie_jour_kWh":       round(energie_jour_kWh, 2),
-        "puissance_crete_kWp":    round(puissance_crete_kWp, 2),
-        "puissance_crete_reelle": puissance_crete_reelle_kWp,
-        "nb_panneaux_300Wc":      nb_panneaux,
-        "tension_pv":             tension_pv,
-        "courant_A":              courant_A,
+        "energie_jour_kWh":    round(Eelec, 2),
+        "puissance_crete_kWp": round(Pc_kWp, 2),
+        "nb_panneaux_300Wc":   nb_panneaux,
+        "tension_pv":          f"{U_syst}V",
+        "U_syst":              U_syst,
+        "courant_A":           courant_A,
     }
 
 
 # ============================================================
-# DIMENSIONNEMENT GROUPE ÉLECTROGÈNE
+# DIMENSIONNEMENT GROUPE ÉLECTROGÈNE (inchangé)
 # ============================================================
 
 def calculer_groupe(puissance_moteur_kW, heures_pompage):
-    """
-    Dimensionne le groupe électrogène.
-    """
-
-    puissance_groupe_kW = round(
-        puissance_moteur_kW * COEFF_GROUPE,
-        2
-    )
-
-    energie_jour_kWh = calculer_energie_journaliere(
-        puissance_moteur_kW,
-        heures_pompage
-    )
-
+    puissance_groupe_kW       = round(puissance_moteur_kW * COEFF_GROUPE, 2)
+    energie_jour_kWh          = calculer_energie_journaliere(puissance_moteur_kW, heures_pompage)
     consommation_jour_litres  = round(energie_jour_kWh * CONSO_CARBURANT, 2)
     consommation_mois_litres  = round(consommation_jour_litres * 30, 1)
     consommation_annee_litres = round(consommation_jour_litres * 365, 1)
@@ -166,52 +120,42 @@ def calculer_groupe(puissance_moteur_kW, heures_pompage):
 
 # ============================================================
 # DIMENSIONNEMENT HYBRIDE SOLAIRE + GROUPE
+# Partie solaire : nouvelle formule Eelec
+# Partie groupe  : basée sur puissance moteur (inchangée)
 # ============================================================
 
-def calculer_hybride_groupe(
-    puissance_moteur_kW,
-    heures_pompage,
-    irradiation,
-    tension_pv
-):
-    """
-    Dimensionne un système hybride solaire + groupe électrogène.
-    Répartition : 70% solaire / 30% groupe.
-    """
-
+def calculer_hybride_groupe(puissance_moteur_kW, heures_pompage, irradiation,
+                             Q_m3_jour, HMT_m, Rmp, Pr=0.75, puissance_panneau_W=300):
     PART_SOLAIRE = 0.70
     PART_GROUPE  = 0.30
 
-    energie_totale_kWh  = calculer_energie_journaliere(puissance_moteur_kW, heures_pompage)
-    energie_solaire_kWh = energie_totale_kWh * PART_SOLAIRE
-    energie_groupe_kWh  = energie_totale_kWh * PART_GROUPE
-    puissance_grp_kW    = puissance_moteur_kW * PART_GROUPE
+    Eelec_total = (2.725e-3 * Q_m3_jour * HMT_m) / Rmp
+    Eelec_sol   = Eelec_total * PART_SOLAIRE
+    Eelec_grp   = Eelec_total * PART_GROUPE
 
-    puissance_crete_kWp = energie_solaire_kWh / (irradiation * RENDEMENT_SYSTEME_PV)
+    Pc_kWp      = Eelec_sol / (irradiation * Pr)
+    U_syst      = _auto_tension(Pc_kWp * 1000)
+    nb_panneaux = math.ceil((Pc_kWp * 1000) / puissance_panneau_W)
+    courant_A   = round((Pc_kWp * 1000) / U_syst, 2)
 
-    nb_panneaux = math.ceil((puissance_crete_kWp * 1000) / PUISSANCE_PANNEAU_WC)
-
-    tension_num = TENSIONS_PV.get(tension_pv, 48)
-
-    courant_A = round((nb_panneaux * PUISSANCE_PANNEAU_WC) / tension_num, 2)
-
-    puissance_groupe_kW      = round(puissance_grp_kW * COEFF_GROUPE, 2)
-    consommation_jour_litres = round(energie_groupe_kWh * CONSO_CARBURANT, 2)
+    puissance_groupe_kW      = round(puissance_moteur_kW * PART_GROUPE * COEFF_GROUPE, 2)
+    consommation_jour_litres = round(Eelec_grp * CONSO_CARBURANT, 2)
     consommation_mois_litres = round(consommation_jour_litres * 30, 1)
 
     return {
-        "energie_totale_kWh":  round(energie_totale_kWh, 2),
-        "part_solaire_pct":    int(PART_SOLAIRE * 100),
-        "part_groupe_pct":     int(PART_GROUPE * 100),
+        "energie_totale_kWh": round(Eelec_total, 2),
+        "part_solaire_pct":   int(PART_SOLAIRE * 100),
+        "part_groupe_pct":    int(PART_GROUPE * 100),
         "solaire": {
-            "energie_jour_kWh":    round(energie_solaire_kWh, 2),
-            "puissance_crete_kWp": round(puissance_crete_kWp, 2),
+            "energie_jour_kWh":    round(Eelec_sol, 2),
+            "puissance_crete_kWp": round(Pc_kWp, 2),
             "nb_panneaux_300Wc":   nb_panneaux,
             "courant_A":           courant_A,
+            "U_syst":              U_syst,
         },
         "groupe": {
             "puissance_groupe_kW":      puissance_groupe_kW,
-            "energie_jour_kWh":         round(energie_groupe_kWh, 2),
+            "energie_jour_kWh":         round(Eelec_grp, 2),
             "consommation_jour_litres": consommation_jour_litres,
             "consommation_mois_litres": consommation_mois_litres,
         },
@@ -220,54 +164,38 @@ def calculer_hybride_groupe(
 
 # ============================================================
 # DIMENSIONNEMENT HYBRIDE SOLAIRE + BATTERIES
+# Cap_Ah  = Eelec × 1000 × J / (U_syst × DoD)
+# N_serie = ceil(U_syst / U_bat)
+# N_para  = ceil(Cap_Ah / Cap_unitaire)
+# N_total = N_serie × N_para
 # ============================================================
 
-def calculer_hybride_batteries(
-    puissance_moteur_kW,
-    heures_pompage,
-    irradiation,
-    tension_pv,
-    tension_batterie,
-    capacite_batterie,
-    jours_autonomie
-):
-    """
-    Dimensionne un système hybride solaire + banc de batteries.
-    """
+def calculer_hybride_batteries(Q_m3_jour, HMT_m, Rmp, irradiation, Pr,
+                                puissance_panneau_W, tension_batterie,
+                                capacite_batterie, jours_autonomie, dod=0.70):
+    solaire = calculer_solaire(Q_m3_jour, HMT_m, Rmp, irradiation, Pr, puissance_panneau_W)
+    Eelec   = solaire["energie_jour_kWh"]
+    U_syst  = solaire["U_syst"]
 
-    solaire = calculer_solaire(
-        puissance_moteur_kW,
-        heures_pompage,
-        irradiation,
-        tension_pv
-    )
+    tension_bat_num = (tension_batterie if isinstance(tension_batterie, (int, float))
+                       else TENSIONS_BATTERIES.get(str(tension_batterie), 24))
+    cap_unitaire_Ah = (capacite_batterie if isinstance(capacite_batterie, (int, float))
+                       else CAPACITES_BATTERIES.get(str(capacite_batterie), 200))
 
-    energie_stockage_kWh = round(
-        solaire['energie_jour_kWh'] * jours_autonomie,
-        2
-    )
-
-    tension_bat_num = tension_batterie if isinstance(tension_batterie, (int, float)) else TENSIONS_BATTERIES.get(tension_batterie, 24)
-
-    capacite_totale_Ah = round(
-        (energie_stockage_kWh * 1000)
-        / (tension_bat_num * PROFONDEUR_DECHARGE * RENDEMENT_BATTERIE),
-        1
-    )
-
-    capacite_unitaire_Ah = capacite_batterie if isinstance(capacite_batterie, (int, float)) else CAPACITES_BATTERIES.get(capacite_batterie, 200)
-
-    nb_batteries = math.ceil(capacite_totale_Ah / capacite_unitaire_Ah)
-
-    if nb_batteries % 2 != 0:
-        nb_batteries += 1
+    capacite_totale_Ah = round((Eelec * 1000 * jours_autonomie) / (U_syst * dod), 1)
+    N_serie            = math.ceil(U_syst / tension_bat_num)
+    N_parallele        = math.ceil(capacite_totale_Ah / cap_unitaire_Ah)
+    N_total            = N_serie * N_parallele
 
     return {
         "solaire":              solaire,
-        "energie_stockage_kWh": energie_stockage_kWh,
+        "energie_stockage_kWh": round(Eelec * jours_autonomie, 2),
         "capacite_totale_Ah":   capacite_totale_Ah,
-        "nb_batteries":         nb_batteries,
+        "nb_batteries":         N_total,
+        "nb_serie":             N_serie,
+        "nb_parallele":         N_parallele,
         "tension_batterie":     tension_batterie,
-        "capacite_unitaire_Ah": capacite_unitaire_Ah,
+        "capacite_unitaire_Ah": cap_unitaire_Ah,
         "jours_autonomie":      jours_autonomie,
+        "dod":                  dod,
     }
