@@ -383,7 +383,11 @@ def get_marques():
 @login_required
 def get_modeles():
     data = request.get_json()
-    return jsonify({"succes": True, "modeles": pompes_bd_mod.get_modeles_par_marque(data.get('marque', ''))})
+    modeles = pompes_bd_mod.get_modeles_par_marque(data.get('marque', ''))
+    for p in modeles:
+        src = str(p.get('source_energie', '')).lower()
+        p['alimentation'] = 'DC' if 'solaire' in src or 'dc' in src else 'AC'
+    return jsonify({"succes": True, "modeles": modeles})
 
 @app.route('/get_pompe', methods=['POST'])
 @login_required
