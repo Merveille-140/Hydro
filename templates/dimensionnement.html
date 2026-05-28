@@ -2285,18 +2285,18 @@ function calculer() {
 
 function afficherResultats(data) {
     try {
-        document.getElementById('res_ETc').innerText            = data.besoins.ETc;
-        document.getElementById('res_besoin_net').innerText     = data.besoins.besoin_net_m3_jour;
-        document.getElementById('res_besoin_brut').innerText    = data.besoins.besoin_brut_m3_jour;
-        document.getElementById('res_besoin_session').innerText = data.besoins.besoin_session_m3;
-        document.getElementById('res_debit').innerText          = data.hydraulique.debit_m3_h;
-        document.getElementById('res_hgeo').innerText           = data.hydraulique.hauteur_geo_m;
-        document.getElementById('res_pertes').innerText         = data.hydraulique.pertes_charge_m;
-        document.getElementById('res_HMT').innerText            = data.hydraulique.HMT_m;
-        document.getElementById('res_Ph').innerText             = data.pompe.Ph_kW;
-        document.getElementById('res_Pp').innerText             = data.pompe.Pp_kW;
-        document.getElementById('res_Pm').innerText             = data.pompe.Pm_kW;
-        document.getElementById('res_Pm_commercial').innerText  = data.pompe.Pm_commercial_kW;
+        var _el = document.getElementById('res_ETc'); if (_el) _el.innerText = data.besoins.ETc;
+        var _el = document.getElementById('res_besoin_net'); if (_el) _el.innerText = data.besoins.besoin_net_m3_jour;
+        var _el = document.getElementById('res_besoin_brut'); if (_el) _el.innerText = data.besoins.besoin_brut_m3_jour;
+        var _el = document.getElementById('res_besoin_session'); if (_el) _el.innerText = data.besoins.besoin_session_m3;
+        var _el = document.getElementById('res_debit'); if (_el) _el.innerText = data.hydraulique.debit_m3_h;
+        var _el = document.getElementById('res_hgeo'); if (_el) _el.innerText = data.hydraulique.hauteur_geo_m;
+        var _el = document.getElementById('res_pertes'); if (_el) _el.innerText = data.hydraulique.pertes_charge_m;
+        var _el = document.getElementById('res_HMT'); if (_el) _el.innerText = data.hydraulique.HMT_m;
+        var _el = document.getElementById('res_Ph'); if (_el) _el.innerText = data.pompe.Ph_kW;
+        var _el = document.getElementById('res_Pp'); if (_el) _el.innerText = data.pompe.Pp_kW;
+        var _el = document.getElementById('res_Pm'); if (_el) _el.innerText = data.pompe.Pm_kW;
+        var _el = document.getElementById('res_Pm_commercial'); if (_el) _el.innerText = data.pompe.Pm_commercial_kW;
         document.getElementById('res_energie_solaire').classList.add('hidden');
         document.getElementById('res_energie_groupe').classList.add('hidden');
         document.getElementById('res_energie_batteries').classList.add('hidden');
@@ -2304,30 +2304,35 @@ function afficherResultats(data) {
         if (s === 'solaire' || s === 'hybride_groupe' || s === 'hybride_batteries') {
             document.getElementById('res_energie_solaire').classList.remove('hidden');
             var sol = (s === 'solaire') ? data.energie : data.energie.solaire;
-            document.getElementById('res_energie_jour').innerText    = sol.energie_jour_kWh;
-            document.getElementById('res_puissance_crete').innerText = sol.puissance_crete_kWp;
-            document.getElementById('res_nb_panneaux').innerText     = sol.nb_panneaux_300Wc;
-            document.getElementById('res_courant_pv').innerText      = sol.courant_A;
+            var _el = document.getElementById('res_energie_jour'); if (_el) _el.innerText = sol.energie_jour_kWh;
+            var _el = document.getElementById('res_puissance_crete'); if (_el) _el.innerText = sol.puissance_crete_kWp;
+            var _el = document.getElementById('res_nb_panneaux'); if (_el) _el.innerText = sol.nb_panneaux_300Wc;
+            var _el = document.getElementById('res_courant_pv'); if (_el) _el.innerText = sol.courant_A;
         }
         if (s === 'groupe' || s === 'hybride_groupe') {
             document.getElementById('res_energie_groupe').classList.remove('hidden');
             var grp = (s === 'groupe') ? data.energie : data.energie.groupe;
-            document.getElementById('res_puissance_groupe').innerText = grp.puissance_groupe_kW;
-            document.getElementById('res_conso_jour').innerText       = grp.consommation_jour_litres;
-            document.getElementById('res_conso_mois').innerText       = grp.consommation_mois_litres;
+            var _el = document.getElementById('res_puissance_groupe'); if (_el) _el.innerText = grp.puissance_groupe_kW;
+            var _el = document.getElementById('res_conso_jour'); if (_el) _el.innerText = grp.consommation_jour_litres;
+            var _el = document.getElementById('res_conso_mois'); if (_el) _el.innerText = grp.consommation_mois_litres;
         }
         if (s === 'hybride_batteries') {
             document.getElementById('res_energie_batteries').classList.remove('hidden');
-            document.getElementById('res_energie_stockage').innerText = data.energie.energie_stockage_kWh;
-            document.getElementById('res_capacite_totale').innerText  = data.energie.capacite_totale_Ah;
-            document.getElementById('res_nb_batteries').innerText     = data.energie.nb_batteries;
+            var _el = document.getElementById('res_energie_stockage'); if (_el) _el.innerText = data.energie.energie_stockage_kWh;
+            var _el = document.getElementById('res_capacite_totale'); if (_el) _el.innerText = data.energie.capacite_totale_Ah;
+            var _el = document.getElementById('res_nb_batteries'); if (_el) _el.innerText = data.energie.nb_batteries;
         }
         if (data.cout) {
-            document.getElementById('res_cout_pompe').innerText        = data.cout.C_pompe.toLocaleString('fr-FR');
-            document.getElementById('res_cout_energie').innerText      = data.cout.C_energie.toLocaleString('fr-FR');
-            document.getElementById('res_cout_installation').innerText = data.cout.C_installation.toLocaleString('fr-FR');
-            document.getElementById('res_cout_divers').innerText       = data.cout.C_divers.toLocaleString('fr-FR');
-            document.getElementById('res_cout_total').innerText        = data.cout.C_total.toLocaleString('fr-FR');
+            var el_pompe   = document.getElementById('res_cout_pompe');
+            var el_energie = document.getElementById('res_cout_energie');
+            var el_install = document.getElementById('res_cout_installation');
+            var el_divers  = document.getElementById('res_cout_divers');
+            var el_total   = document.getElementById('res_cout_total');
+            if (el_pompe)   el_pompe.innerText   = data.cout.C_pompe.toLocaleString('fr-FR');
+            if (el_energie) el_energie.innerText = data.cout.C_energie.toLocaleString('fr-FR');
+            if (el_install) el_install.innerText = data.cout.C_installation.toLocaleString('fr-FR');
+            if (el_divers)  el_divers.innerText  = data.cout.C_divers.toLocaleString('fr-FR');
+            if (el_total)   el_total.innerText   = data.cout.C_total.toLocaleString('fr-FR');
         }
         afficherEquipements(data);
     } catch(e) {

@@ -321,6 +321,9 @@ def calculer():
             }
             resultats['cout'] = calculer_cout(cout_data)
         except Exception as e:
+            print("ERREUR COUT:", str(e))
+            import traceback
+            traceback.print_exc()
             resultats['cout'] = None
         print("DEBUG COUT:", cout_data if 'cout_data' in locals() else "cout_data non défini")
         print("DEBUG RESULTAT COUT:", resultats.get('cout'))
