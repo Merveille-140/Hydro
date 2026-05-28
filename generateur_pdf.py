@@ -181,6 +181,22 @@ def separateur_section():
                       spaceAfter=8, spaceBefore=2)
 
 
+def titre_section_bandeau(texte):
+    style = ParagraphStyle(
+        name='TitreBandeau', fontName='Helvetica-Bold',
+        fontSize=10, textColor=BLANC, alignment=TA_LEFT,
+    )
+    table = Table([[Paragraph(texte, style)]], colWidths=[17.0 * cm])
+    table.setStyle(TableStyle([
+        ('BACKGROUND',    (0,0),(-1,-1), VERT_TITRE),
+        ('TOPPADDING',    (0,0),(-1,-1), 8),
+        ('BOTTOMPADDING', (0,0),(-1,-1), 8),
+        ('LEFTPADDING',   (0,0),(-1,-1), 10),
+        ('RIGHTPADDING',  (0,0),(-1,-1), 10),
+    ]))
+    return table
+
+
 # ============================================================
 # FONCTION PRINCIPALE
 # ============================================================
@@ -197,7 +213,7 @@ def generer_rapport(data):
 
     contenu = []
     contenu += page_de_garde(data, styles)
-    contenu.append(PageBreak())
+    contenu.append(Spacer(1, 0.8 * cm))
     contenu += section_identification(data, styles)
     contenu += section_localisation(data, styles)
     contenu += section_besoins(data, styles)
@@ -220,106 +236,127 @@ def generer_rapport(data):
 def page_de_garde(data, styles):
     elements = []
 
-    # A) Bandeau logo
-    logo_data = [[
+    # BANDEAU PRINCIPAL VERT
+    bandeau_data = [[
         Paragraph(
-            '<font color="#22c55e" size="22">●</font>'
-            '  <font color="white" size="28"><b>HydroPump</b></font>',
-            styles["titre_garde"]
-        ),
+            '<font color="#22c55e">●</font>  '
+            '<font color="white"><b>HydroPump</b></font>',
+            ParagraphStyle(
+                name='TG', fontName='Helvetica-Bold',
+                fontSize=26, textColor=BLANC,
+                alignment=TA_CENTER
+            )
+        )
     ]]
-    logo_table = Table(logo_data, colWidths=[17.0 * cm])
-    logo_table.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), VERT_TITRE),
-        ('TOPPADDING',    (0, 0), (-1, -1), 30),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-        ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
+    bandeau = Table(bandeau_data, colWidths=[17.0 * cm])
+    bandeau.setStyle(TableStyle([
+        ('BACKGROUND',    (0,0),(-1,-1), VERT_TITRE),
+        ('TOPPADDING',    (0,0),(-1,-1), 28),
+        ('BOTTOMPADDING', (0,0),(-1,-1), 8),
+        ('ALIGN',         (0,0),(-1,-1), 'CENTER'),
     ]))
-    elements.append(logo_table)
+    elements.append(bandeau)
 
-    # Sous-titre
+    # SOUS-TITRE
     sous_data = [[
         Paragraph(
-            "Rapport de dimensionnement — Système de pompage solaire",
-            styles["sous_titre_garde"]
-        ),
+            "Rapport de dimensionnement — "
+            "Système de pompage solaire",
+            ParagraphStyle(
+                name='STG', fontName='Helvetica',
+                fontSize=12,
+                textColor=colors.HexColor("#bbf7d0"),
+                alignment=TA_CENTER
+            )
+        )
     ]]
-    sous_table = Table(sous_data, colWidths=[17.0 * cm])
-    sous_table.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), VERT_MOYEN),
-        ('TOPPADDING',    (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 30),
+    sous = Table(sous_data, colWidths=[17.0 * cm])
+    sous.setStyle(TableStyle([
+        ('BACKGROUND',    (0,0),(-1,-1), VERT_MOYEN),
+        ('TOPPADDING',    (0,0),(-1,-1), 8),
+        ('BOTTOMPADDING', (0,0),(-1,-1), 28),
     ]))
-    elements.append(sous_table)
+    elements.append(sous)
 
-    # B) Bandeau projet — 4 colonnes
+    # BANDEAU PROJET — 4 colonnes
     nom_projet  = str(data.get('nom_projet',  'Non renseigné'))
     nom_client  = str(data.get('nom_client',  'Non renseigné'))
     realise_par = str(data.get('realise_par', 'Non renseigné'))
     date_projet = formater_date(data.get('date_projet', ''))
 
-    sep_color = colors.HexColor("#ffffff")
-    infos_data = [
-        [
-            Paragraph("PROJET",      styles["label_garde"]),
-            Paragraph("CLIENT",      styles["label_garde"]),
-            Paragraph("RÉALISÉ PAR", styles["label_garde"]),
-            Paragraph("DATE",        styles["label_garde"]),
-        ],
-        [
-            Paragraph(nom_projet,  styles["info_garde"]),
-            Paragraph(nom_client,  styles["info_garde"]),
-            Paragraph(realise_par, styles["info_garde"]),
-            Paragraph(date_projet, styles["info_garde"]),
-        ],
+    lbl = ParagraphStyle(
+        name='LG', fontName='Helvetica', fontSize=8,
+        textColor=colors.HexColor("#bbf7d0"),
+        alignment=TA_CENTER
+    )
+    val = ParagraphStyle(
+        name='VG', fontName='Helvetica-Bold', fontSize=10,
+        textColor=BLANC, alignment=TA_CENTER
+    )
+
+    projet_data = [
+        [Paragraph("PROJET",      lbl),
+         Paragraph("CLIENT",      lbl),
+         Paragraph("RÉALISÉ PAR", lbl),
+         Paragraph("DATE",        lbl)],
+        [Paragraph(nom_projet,  val),
+         Paragraph(nom_client,  val),
+         Paragraph(realise_par, val),
+         Paragraph(date_projet, val)],
     ]
-    infos_table = Table(infos_data,
-                        colWidths=[4.25 * cm, 4.25 * cm, 4.25 * cm, 4.25 * cm])
-    infos_table.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), VERT_TITRE),
-        ('TOPPADDING',    (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-        ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
-        ('LINEAFTER',     (0, 0), (2, -1),  0.5, colors.HexColor("#ffffff33")),
+    projet_table = Table(
+        projet_data,
+        colWidths=[4.25*cm, 4.25*cm, 4.25*cm, 4.25*cm]
+    )
+    projet_table.setStyle(TableStyle([
+        ('BACKGROUND',    (0,0),(-1,-1), VERT_TITRE),
+        ('TOPPADDING',    (0,0),(-1,-1), 10),
+        ('BOTTOMPADDING', (0,0),(-1,-1), 12),
+        ('ALIGN',         (0,0),(-1,-1), 'CENTER'),
+        ('LINEAFTER',     (0,0),(2,-1),  0.5, colors.HexColor("#22c55e")),
+        ('LINEBEFORE',    (0,0),(0,-1),  0, VERT_TITRE),
     ]))
-    elements.append(infos_table)
-    elements.append(Spacer(1, 1.5 * cm))
+    elements.append(projet_table)
+    elements.append(Spacer(1, 1.2 * cm))
 
-    # D) Résumé technique
+    # RÉSUMÉ TECHNIQUE
     cout = data.get('cout') or {}
-    source_energie = data.get('source_energie', '—')
-    lat = data.get('lat', '—')
-    lon = data.get('lon', '—')
-    hmt = str(data.get('hydraulique', {}).get('HMT_m', '—')) + " m"
-    debit = str(data.get('hydraulique', {}).get('debit_m3_h', '—')) + " m³/h"
-    pm = str(data.get('pompe', {}).get('Pm_kW', '—')) + " kW"
-
     resume_data = [
         ["Paramètre", "Valeur"],
-        ["Localisation",     "Lat : " + str(lat) + "° — Lon : " + str(lon) + "°"],
-        ["Source d'énergie", str(source_energie).replace('_', ' ').title()],
-        ["Débit calculé",    debit],
-        ["HMT calculée",     hmt],
-        ["Puissance moteur", pm],
+        ["Localisation",
+            "Lat : " + str(data.get('lat','—')) +
+            "° — Lon : " + str(data.get('lon','—')) + "°"],
+        ["Source d'énergie",
+            str(data.get('source_energie','—'))
+            .replace('_',' ').title()],
+        ["Débit calculé",
+            str(data.get('hydraulique',{}).get('debit_m3_h','—'))
+            + " m³/h"],
+        ["HMT calculée",
+            str(data.get('hydraulique',{}).get('HMT_m','—'))
+            + " m"],
+        ["Puissance moteur",
+            str(data.get('pompe',{}).get('Pm_kW','—'))
+            + " kW"],
     ]
-
-    if cout and cout.get('C_total'):
+    if cout.get('C_total'):
         resume_data.append([
             "Coût total estimatif",
-            "{:,.0f}".format(cout.get('C_total', 0)).replace(',', ' ') + " FCFA"
+            "{:,.0f}".format(cout['C_total'])
+            .replace(',', ' ') + " FCFA"
         ])
 
-    resume_table = Table(resume_data, colWidths=[8.5 * cm, 8.5 * cm])
-    base = style_tableau()
-    if cout and cout.get('C_total'):
-        resume_table.setStyle(TableStyle([
-            *base._cmds,
-            ('FONTNAME',   (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('TEXTCOLOR',  (0, -1), (-1, -1), VERT_TITRE),
-            ('BACKGROUND', (0, -1), (-1, -1), VERT_LEGER),
-        ]))
-    else:
-        resume_table.setStyle(base)
+    resume_table = Table(
+        resume_data, colWidths=[8.5*cm, 8.5*cm]
+    )
+    cmds = list(style_tableau()._cmds)
+    if cout.get('C_total'):
+        cmds += [
+            ('FONTNAME',   (0,-1),(-1,-1), 'Helvetica-Bold'),
+            ('TEXTCOLOR',  (0,-1),(-1,-1), VERT_TITRE),
+            ('BACKGROUND', (0,-1),(-1,-1), VERT_LEGER),
+        ]
+    resume_table.setStyle(TableStyle(cmds))
     elements.append(resume_table)
 
     return elements
@@ -331,8 +368,9 @@ def page_de_garde(data, styles):
 
 def section_identification(data, styles):
     elements = []
-    elements.append(Paragraph("1. Identification du projet", styles["titre_section"]))
-    elements.append(separateur_section())
+    elements.append(Spacer(1, 0.4 * cm))
+    elements.append(titre_section_bandeau("1. Identification du projet"))
+    elements.append(Spacer(1, 0.2 * cm))
 
     tableau_data = [
         ["Paramètre", "Valeur"],
@@ -357,8 +395,9 @@ def section_identification(data, styles):
 
 def section_localisation(data, styles):
     elements = []
-    elements.append(Paragraph("2. Localisation et données climatiques", styles["titre_section"]))
-    elements.append(separateur_section())
+    elements.append(Spacer(1, 0.4 * cm))
+    elements.append(titre_section_bandeau("2. Localisation et données climatiques"))
+    elements.append(Spacer(1, 0.2 * cm))
 
     tableau_data = [
         ["Paramètre", "Valeur"],
@@ -387,8 +426,9 @@ def section_localisation(data, styles):
 def section_besoins(data, styles):
     elements = []
     besoins = data.get('besoins', {})
-    elements.append(Paragraph("3. Besoins en eau", styles["titre_section"]))
-    elements.append(separateur_section())
+    elements.append(Spacer(1, 0.4 * cm))
+    elements.append(titre_section_bandeau("3. Besoins en eau"))
+    elements.append(Spacer(1, 0.2 * cm))
 
     tableau_data = [
         ["Paramètre", "Valeur"],
@@ -416,8 +456,9 @@ def section_besoins(data, styles):
 def section_hydraulique(data, styles):
     elements = []
     h = data.get('hydraulique', {})
-    elements.append(Paragraph("4. Dimensionnement hydraulique", styles["titre_section"]))
-    elements.append(separateur_section())
+    elements.append(Spacer(1, 0.4 * cm))
+    elements.append(titre_section_bandeau("4. Dimensionnement hydraulique"))
+    elements.append(Spacer(1, 0.2 * cm))
 
     debit_ls = val_ou_nc(h.get('debit_L_s'))
     vitesse  = val_ou_nc(h.get('vitesse_m_s'))
@@ -448,8 +489,9 @@ def section_hydraulique(data, styles):
 def section_pompe(data, styles):
     elements = []
     pompe = data.get('pompe', {})
-    elements.append(Paragraph("5. Dimensionnement de la pompe", styles["titre_section"]))
-    elements.append(separateur_section())
+    elements.append(Spacer(1, 0.4 * cm))
+    elements.append(titre_section_bandeau("5. Dimensionnement de la pompe"))
+    elements.append(Spacer(1, 0.2 * cm))
 
     tableau_data = [
         ["Paramètre", "Valeur"],
@@ -481,8 +523,9 @@ def section_energie(data, styles):
     elements = []
     energie = data.get('energie', {})
     source  = data.get('source_energie', 'solaire')
-    elements.append(Paragraph("6. Dimensionnement énergétique", styles["titre_section"]))
-    elements.append(separateur_section())
+    elements.append(Spacer(1, 0.4 * cm))
+    elements.append(titre_section_bandeau("6. Dimensionnement énergétique"))
+    elements.append(Spacer(1, 0.2 * cm))
 
     # Tension système : U_syst (entier) ou tension_pv (string "48V")
     def tension_str(e):
@@ -597,8 +640,9 @@ def section_equipements(data, styles):
     if not hasPV and not data.get('marque_pompe'):
         return elements
 
-    elements.append(Paragraph("7. Équipements sélectionnés", styles["titre_section"]))
-    elements.append(separateur_section())
+    elements.append(Spacer(1, 0.4 * cm))
+    elements.append(titre_section_bandeau("7. Équipements sélectionnés"))
+    elements.append(Spacer(1, 0.2 * cm))
 
     marque_pompe = data.get('marque_pompe', '')
     modele_pompe = data.get('modele_pompe', '')
@@ -660,8 +704,9 @@ def section_cout(data, styles):
     if not cout:
         return elements
 
-    elements.append(Paragraph("8. Coût estimatif de l'installation", styles["titre_section"]))
-    elements.append(separateur_section())
+    elements.append(Spacer(1, 0.4 * cm))
+    elements.append(titre_section_bandeau("8. Coût estimatif de l'installation"))
+    elements.append(Spacer(1, 0.2 * cm))
 
     tableau_data = [
         ["Poste", "Montant (FCFA)"],
@@ -696,8 +741,9 @@ def section_cout(data, styles):
 
 def section_conclusion(data, styles):
     elements = []
-    elements.append(Paragraph("9. Conclusion", styles["titre_section"]))
-    elements.append(separateur_section())
+    elements.append(Spacer(1, 0.4 * cm))
+    elements.append(titre_section_bandeau("9. Conclusion"))
+    elements.append(Spacer(1, 0.2 * cm))
 
     h    = data.get('hydraulique', {})
     p    = data.get('pompe', {})
