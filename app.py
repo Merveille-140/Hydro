@@ -421,6 +421,27 @@ def get_modeles_batteries():
     return jsonify({"succes": True, "modeles": equipements_mod.get_modeles_batteries(data.get('marque', ''))})
 
 
+@app.route('/get_types_onduleurs')
+@login_required
+def get_types_onduleurs():
+    from equipements import get_types_onduleurs
+    return jsonify({'succes': True, 'types': get_types_onduleurs()})
+
+@app.route('/get_marques_onduleurs', methods=['POST'])
+@login_required
+def get_marques_onduleurs():
+    from equipements import get_marques_onduleurs
+    data = request.get_json()
+    return jsonify({'succes': True, 'marques': get_marques_onduleurs(data.get('type_onduleur'))})
+
+@app.route('/get_modeles_onduleurs', methods=['POST'])
+@login_required
+def get_modeles_onduleurs():
+    from equipements import get_modeles_onduleurs
+    data = request.get_json()
+    return jsonify({'succes': True, 'modeles': get_modeles_onduleurs(data.get('marque'), data.get('type_onduleur'))})
+
+
 # ============================================================
 # LANCEMENT
 # ============================================================

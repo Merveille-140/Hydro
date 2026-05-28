@@ -1569,6 +1569,63 @@
                         </div>
                     </div>
                 </div>
+                <div id="div_choix_onduleur" class="hidden">
+                    <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Onduleur</p>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+                        <label class="option-radio"><input type="radio" name="choix_onduleur" value="base" onchange="afficherChoixEquipement('onduleur','base')"/> Choisir dans la base de données</label>
+                        <label class="option-radio"><input type="radio" name="choix_onduleur" value="manuel" onchange="afficherChoixEquipement('onduleur','manuel')"/> Saisir manuellement mes caractéristiques</label>
+                    </div>
+                    <div id="onduleur_bd" class="hidden">
+                        <div class="form-group">
+                            <label class="form-label">Type d'onduleur</label>
+                            <select id="type_onduleur" onchange="chargerMarquesOnduleurs()">
+                                <option value="">— Choisissez un type —</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Marque</label>
+                                <select id="marque_onduleur" onchange="chargerModelesOnduleurs()" disabled>
+                                    <option value="">— Choisissez d'abord un type —</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Modèle</label>
+                                <select id="modele_onduleur" disabled>
+                                    <option value="">— Choisissez d'abord une marque —</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="carac_onduleur" class="hidden">
+                            <div class="pompe-carac-box">
+                                <div class="pompe-carac-title">Caractéristiques de l'onduleur</div>
+                                <div class="form-row">
+                                    <div>
+                                        <div class="result-row"><span class="result-label">Type</span><span class="result-value" id="ond_type">—</span></div>
+                                        <div class="result-row"><span class="result-label">Puissance</span><span class="result-value" id="ond_puissance">—</span></div>
+                                    </div>
+                                    <div>
+                                        <div class="result-row"><span class="result-label">Tension système</span><span class="result-value" id="ond_tension">—</span></div>
+                                        <div class="result-row"><span class="result-label">Rendement</span><span class="result-value" id="ond_rendement">—</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="onduleur_manuel" class="hidden">
+                        <div class="pompe-carac-box">
+                            <div class="pompe-carac-title">Saisie manuelle — Onduleur</div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Marque</label><input type="text" id="man_ond_marque" placeholder="Ex: Victron"/></div>
+                                <div class="form-group"><label class="form-label">Modèle</label><input type="text" id="man_ond_modele" placeholder="Ex: MultiPlus 3000"/></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Puissance (W)</label><input type="number" id="man_ond_puissance" placeholder="Ex: 3000" step="100"/></div>
+                                <div class="form-group"><label class="form-label">Tension système (V)</label><input type="number" id="man_ond_tension" placeholder="Ex: 48" step="12"/></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="nav-buttons">
@@ -2132,6 +2189,67 @@ function afficherCaracBatterie() {
     }
 }
 
+function chargerTypesOnduleurs() {
+    fetch('/get_types_onduleurs').then(function(r) { return r.json(); }).then(function(data) {
+        if (data.succes) {
+            var select = document.getElementById('type_onduleur');
+            select.innerHTML = '<option value="">— Choisissez un type —</option>';
+            data.types.forEach(function(t) { select.innerHTML += '<option value="' + t + '">' + t + '</option>'; });
+        }
+    });
+}
+
+function chargerMarquesOnduleurs() {
+    var type = document.getElementById('type_onduleur').value;
+    var selectMarque = document.getElementById('marque_onduleur');
+    var selectModele = document.getElementById('modele_onduleur');
+    selectMarque.innerHTML = '<option value="">— Choisissez une marque —</option>';
+    selectMarque.disabled = true;
+    selectModele.innerHTML = '<option value="">— Choisissez d\'abord une marque —</option>';
+    selectModele.disabled = true;
+    document.getElementById('carac_onduleur').classList.add('hidden');
+    if (!type) return;
+    fetch('/get_marques_onduleurs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type_onduleur:type}) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.succes) {
+            data.marques.forEach(function(m) { selectMarque.innerHTML += '<option value="' + m + '">' + m + '</option>'; });
+            selectMarque.disabled = false;
+        }
+    });
+}
+
+function chargerModelesOnduleurs() {
+    var type = document.getElementById('type_onduleur').value;
+    var marque = document.getElementById('marque_onduleur').value;
+    var selectModele = document.getElementById('modele_onduleur');
+    selectModele.innerHTML = '<option value="">— Choisissez un modèle —</option>';
+    selectModele.disabled = true;
+    document.getElementById('carac_onduleur').classList.add('hidden');
+    if (!marque) return;
+    fetch('/get_modeles_onduleurs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, type_onduleur:type}) })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.succes && data.modeles.length > 0) {
+            data.modeles.forEach(function(o, i) { selectModele.innerHTML += '<option value="' + i + '">' + o.modele + ' — ' + (o.puissance_W/1000).toFixed(1) + ' kW — ' + o.tension_systeme_V + 'V</option>'; });
+            selectModele.disabled = false;
+            selectModele._modeles = data.modeles;
+            selectModele.onchange = function() {
+                var idx = parseInt(selectModele.value);
+                var modeles = selectModele._modeles || [];
+                if (!isNaN(idx) && modeles[idx]) {
+                    var o = modeles[idx];
+                    document.getElementById('ond_type').innerText = o.type;
+                    document.getElementById('ond_puissance').innerText = o.puissance_W + ' W';
+                    document.getElementById('ond_tension').innerText = o.tension_systeme_V + ' V';
+                    document.getElementById('ond_rendement').innerText = (o.rendement * 100).toFixed(0) + '%';
+                    document.getElementById('carac_onduleur').classList.remove('hidden');
+                }
+            };
+        }
+    });
+}
+
 function mettreAJourEquipements() {
     var source = document.getElementById('source_energie').value;
     var hasPV  = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
@@ -2140,6 +2258,17 @@ function mettreAJourEquipements() {
     document.getElementById('div_choix_batteries').classList.toggle('hidden', !hasBat);
     var cardEq = document.getElementById('card-equipements');
     if (cardEq) cardEq.classList.toggle('hidden', !hasPV);
+    var pompeAC = false;
+    var radioPompe = document.querySelector('input[name="choix_pompe_cl"]:checked');
+    if (radioPompe && radioPompe.value === 'base') {
+        var modelePompe = document.getElementById('modele_pompe');
+        if (modelePompe && modelePompe.value) {
+            pompeAC = true;
+        }
+    }
+    var needOnduleur = hasPV && pompeAC;
+    var divOnd = document.getElementById('div_choix_onduleur');
+    if (divOnd) divOnd.classList.toggle('hidden', !needOnduleur);
 }
 
 var PLAGES_HEURES = {
@@ -2479,6 +2608,7 @@ setTimeout(function() {
     chargerMarques();
     chargerMarquesPanneaux();
     chargerMarquesBatteries();
+    chargerTypesOnduleurs();
     mettreAJourEquipements();
 }, 1000);
 
