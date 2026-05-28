@@ -1,6 +1,8 @@
 # ============================================================
 # MODULE COÛT ESTIMATIF
-# Sources : Senegrid 2025, SOS Énergie 2024, Senemarket 2025
+# Sources : Senegrid 2025, SOS Énergie 2024, Senemarket 2025,
+#           HélioBénin 2025 (All-in-One),
+#           senegrid.sn/onduleur-solaire/prix (Classique/Hybride 2023)
 # Marge k=1.15 selon AACE International Class 5
 # ============================================================
 
@@ -37,6 +39,39 @@ def prix_groupe(puissance_kW):
     else:
         return 2600000
 
+def prix_onduleur(puissance_kW, type_onduleur='Classique'):
+    """
+    Prix onduleur selon puissance et type.
+    Sources :
+    - Classique/Hybride : senegrid.sn/onduleur-solaire/prix (2023)
+    - All-in-One : HélioBénin 2025
+    """
+    t = type_onduleur.lower()
+
+    if 'classique' in t or 'offgrid' in t:
+        if puissance_kW <= 1.0:   return 150000
+        elif puissance_kW <= 2.0: return 240000
+        elif puissance_kW <= 3.0: return 450000
+        else:                     return 590000
+
+    elif 'hybride' in t:
+        if puissance_kW <= 3.0: return 450000
+        else:                   return 590000
+
+    elif 'all' in t or 'aio' in t:
+        if puissance_kW <= 1.0:   return 189000
+        elif puissance_kW <= 2.0: return 294000
+        elif puissance_kW <= 3.0: return 472500
+        elif puissance_kW <= 5.0: return 619500
+        else:                     return 892500
+
+    else:
+        if puissance_kW <= 1.0:   return 150000
+        elif puissance_kW <= 2.0: return 240000
+        elif puissance_kW <= 3.0: return 450000
+        else:                     return 590000
+
+
 def calculer_cout(data):
     """
     Calcule le coût estimatif total de l'installation.
@@ -56,6 +91,13 @@ def calculer_cout(data):
         nb_panneaux   = int(data.get('nb_panneaux', 0))
         puissance_wc  = float(data.get('puissance_panneau_Wc', 300))
         C_energie    += nb_panneaux * puissance_wc * PRIX_PANNEAU_PAR_WC
+
+    # Onduleur
+    if source in ['solaire', 'hybride_batteries', 'hybride_groupe']:
+        puissance_ond = float(data.get('puissance_onduleur_kW', 0))
+        type_ond      = data.get('type_onduleur', 'Classique')
+        if puissance_ond > 0:
+            C_energie += prix_onduleur(puissance_ond, type_ond)
 
     if source == 'hybride_batteries':
         nb_batteries  = int(data.get('nb_batteries', 0))
