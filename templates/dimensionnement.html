@@ -1315,11 +1315,11 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Diamètre (m)</label>
-                                <input type="number" id="diametre_reservoir_f" placeholder="" step="0.1" readonly style="color:white;"/>
+                                <input type="number" id="diametre_reservoir_f" placeholder="" step="0.1"/>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Hauteur (m)</label>
-                                <input type="number" id="hauteur_reservoir_f" placeholder="" step="0.1" readonly style="color:white;"/>
+                                <input type="number" id="hauteur_reservoir_f" placeholder="" step="0.1"/>
                             </div>
                         </div>
                     </div>
@@ -1350,11 +1350,11 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Diamètre (m)</label>
-                                <input type="number" id="diametre_reservoir_l" placeholder="" step="0.1" readonly style="color:white;"/>
+                                <input type="number" id="diametre_reservoir_l" placeholder="" step="0.1"/>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Hauteur (m)</label>
-                                <input type="number" id="hauteur_reservoir_l" placeholder="" step="0.1" readonly style="color:white;"/>
+                                <input type="number" id="hauteur_reservoir_l" placeholder="" step="0.1"/>
                             </div>
                         </div>
                     </div>
@@ -1905,18 +1905,11 @@ function calculerNiveauPompeLac() {
 }
 
 function calculerReservoir(type) {
-    var besoin = parseFloat(document.getElementById('besoin_journalier').value) || 0;
-    if (besoin <= 0) {
-        alert('Veuillez d\'abord renseigner le besoin journalier !');
-        return;
-    }
-    var volume = besoin * 0.30;
+    var volumeEl = document.getElementById('volume_reservoir_' + type);
+    var volume = parseFloat(volumeEl.value);
+    if (!volume || volume <= 0) return;
     var D = Math.pow(volume / 1.178, 1/3);
     var H = 1.5 * D;
-    volume = Math.ceil(volume * 10) / 10;
-    D = Math.ceil(D * 10) / 10;
-    H = Math.ceil(H * 10) / 10;
-    document.getElementById('volume_reservoir_' + type).value = volume.toFixed(1);
     document.getElementById('diametre_reservoir_' + type).value = D.toFixed(2);
     document.getElementById('hauteur_reservoir_' + type).value = H.toFixed(2);
 }
