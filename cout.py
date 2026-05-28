@@ -15,11 +15,11 @@ def prix_pompe(puissance_kW, alimentation):
     """Retourne le prix estimatif de la pompe selon puissance et type."""
     if alimentation == 'DC':
         if puissance_kW <= 1:
-            return 1100000
+            return 450000
         elif puissance_kW <= 4:
-            return 1500000
+            return 850000
         else:
-            return 2500000
+            return 1500000
     else:  # AC
         if puissance_kW <= 0.5:
             return 50000
