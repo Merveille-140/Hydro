@@ -1675,7 +1675,7 @@
                         <div id="res_energie_solaire" class="hidden">
                             <div class="result-row"><span class="result-label">Énergie / jour</span><span class="result-value"><span id="res_energie_jour">—</span><span class="result-unit">kWh</span></span></div>
                             <div class="result-row"><span class="result-label">Puissance crête</span><span class="result-value"><span id="res_puissance_crete">—</span><span class="result-unit">kWc</span></span></div>
-                            <div class="result-row"><span class="result-label">Panneaux 300Wc</span><span class="result-value highlight"><span id="res_nb_panneaux">—</span><span class="result-unit">panneaux</span></span></div>
+                            <div class="result-row"><span class="result-label">Nombre de panneaux (<span id="res_label_panneau">—</span>)</span><span class="result-value highlight"><span id="res_nb_panneaux">—</span><span class="result-unit">panneaux</span></span></div>
                         </div>
                         <div id="res_energie_groupe" class="hidden">
                             <div class="result-row"><span class="result-label">Puissance groupe</span><span class="result-value"><span id="res_puissance_groupe">—</span><span class="result-unit">kW</span></span></div>
@@ -1706,7 +1706,7 @@
                 </div>
                 <div class="nav-buttons">
                     <button class="btn-back" onclick="allerVers('energie')">← Modifier</button>
-                    <button class="btn-pdf" onclick="genererPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Télécharger le rapport PDF</button>
+                    <button class="btn-pdf" onclick="ouvrirModalPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Télécharger le rapport PDF</button>
                 </div>
             </div>
         </div>
@@ -2569,6 +2569,18 @@ function afficherResultats(data) {
             var _el = document.getElementById('res_puissance_crete'); if (_el) _el.innerText = sol.puissance_crete_kWp;
             var _el = document.getElementById('res_nb_panneaux'); if (_el) _el.innerText = sol.nb_panneaux_300Wc;
             var _el = document.getElementById('res_courant_pv'); if (_el) _el.innerText = sol.courant_A;
+            var selectPan = document.getElementById('modele_panneau');
+            var radioPan  = document.querySelector('input[name="choix_panneau"]:checked');
+            var puissancePan = '—';
+            if (radioPan && radioPan.value === 'manuel') {
+                var p = document.getElementById('man_pan_puissance').value;
+                puissancePan = p ? p + 'W' : '—';
+            } else if (selectPan && selectPan._modeles) {
+                var val = selectPan.value.split('_');
+                puissancePan = val[0] ? val[0] + 'W' : '—';
+            }
+            var elLabel = document.getElementById('res_label_panneau');
+            if (elLabel) elLabel.innerText = puissancePan;
         }
         if (s === 'groupe' || s === 'hybride_groupe') {
             document.getElementById('res_energie_groupe').classList.remove('hidden');
@@ -2583,6 +2595,7 @@ function afficherResultats(data) {
             var _el = document.getElementById('res_capacite_totale'); if (_el) _el.innerText = data.energie.capacite_totale_Ah;
             var _el = document.getElementById('res_nb_batteries'); if (_el) _el.innerText = data.energie.nb_batteries;
         }
+        window._lastCout = data.cout || null;
         if (data.cout) {
             var el_pompe   = document.getElementById('res_cout_pompe');
             var el_energie = document.getElementById('res_cout_energie');
@@ -2645,6 +2658,21 @@ function afficherEquipements(data) {
     content.innerHTML = html;
 }
 
+function ouvrirModalPDF() {
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('pdf_date').value = today;
+    var modal = document.getElementById('modal-pdf');
+    modal.style.display = 'flex';
+}
+
+function fermerModalPDF() {
+    document.getElementById('modal-pdf').style.display = 'none';
+}
+
+document.getElementById('modal-pdf').addEventListener('click', function(e) {
+    if (e.target === this) fermerModalPDF();
+});
+
 function genererPDF() {
     if (!lat_choisie) { alert('Données incomplètes !'); return; }
     var source_energie = document.getElementById('source_energie').value;
@@ -2657,9 +2685,11 @@ function genererPDF() {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
             lat:lat_choisie, lon:lon_choisie,
-            nom_projet:'',
-            realise_par:'',
-            date_projet:'',
+            nom_projet:  document.getElementById('pdf_nom_projet').value  || 'Non renseigné',
+            nom_client:  document.getElementById('pdf_nom_client').value  || 'Non renseigné',
+            realise_par: document.getElementById('pdf_realise_par').value || 'Non renseigné',
+            date_projet: document.getElementById('pdf_date').value        || new Date().toLocaleDateString('fr-FR'),
+            cout: window._lastCout || null,
             temperature_max:document.getElementById('temperature_max').innerText,
             temperature_min:document.getElementById('temperature_min').innerText,
             irradiation:document.getElementById('irradiation').innerText,
@@ -2683,8 +2713,9 @@ function genererPDF() {
     .then(function(blob) {
         var url = window.URL.createObjectURL(blob);
         var a = document.createElement('a');
-        a.href = url; a.download = 'rapport_hydro.pdf'; a.click();
+        a.href = url; a.download = 'rapport_hydropump.pdf'; a.click();
         window.URL.revokeObjectURL(url);
+        fermerModalPDF();
     });
 }
 
@@ -2751,5 +2782,44 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
+
+<div id="modal-pdf" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:999; align-items:center; justify-content:center;">
+  <div style="background:#0f1912; border:1px solid rgba(255,255,255,0.15); border-radius:14px; padding:28px 32px; width:480px; max-width:90vw;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+      <div style="width:3px; height:18px; background:#22c55e; border-radius:2px;"></div>
+      <span style="font-size:15px; font-weight:600; color:white;">Informations du rapport</span>
+      <span style="margin-left:auto; font-size:11px; color:rgba(255,255,255,0.4); font-style:italic;">Optionnel</span>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div>
+        <label style="display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.05em;">Nom du projet</label>
+        <input type="text" id="pdf_nom_projet" placeholder="Ex : Pompage village de Zè" style="width:100%; box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.05em;">Nom du client</label>
+        <input type="text" id="pdf_nom_client" placeholder="Ex : Mairie de Zè" style="width:100%; box-sizing:border-box;"/>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+      <div>
+        <label style="display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.05em;">Réalisé par</label>
+        <input type="text" id="pdf_realise_par" placeholder="Ex : Merveille JOHNSON" style="width:100%; box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.05em;">Date</label>
+        <input type="date" id="pdf_date" style="width:100%; box-sizing:border-box;"/>
+      </div>
+    </div>
+    <div style="height:1px; background:rgba(255,255,255,0.08); margin-bottom:20px;"></div>
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <span style="font-size:12px; color:rgba(255,255,255,0.35);">HydroPump v1.0 · Rapport professionnel</span>
+      <div style="display:flex; gap:10px;">
+        <button onclick="fermerModalPDF()" style="padding:9px 20px; font-size:13px; cursor:pointer; background:transparent; border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.6); border-radius:9px;">Annuler</button>
+        <button onclick="genererPDF()" style="padding:9px 22px; font-size:13px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,#f59e0b,#fbbf24); border:none; color:#000; border-radius:9px;">Télécharger le PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
