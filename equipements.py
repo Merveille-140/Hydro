@@ -242,10 +242,80 @@ def get_marques_batteries():
 
 
 def get_modeles_batteries(marque):
-    result = []
-    for b in BATTERIES:
-        if b["marque"] == marque:
-            bat = dict(b)
-            bat['dod'] = float(bat.get('dod', 0.8) or 0.8)
-            result.append(bat)
-    return result
+    return [b for b in BATTERIES if b["marque"] == marque]
+
+
+# ============================================================
+# ONDULEURS
+# ============================================================
+
+ONDULEURS = [
+    # ── Classiques ─────────────────────────────────────────
+    {"marque": "Deye",          "modele": "SUN-1K-SG01LP1",       "type": "Classique",   "puissance_W": 1000,  "tension_sortie_V": 230, "tension_systeme_V": 12, "rendement": 0.93},
+    {"marque": "Deye",          "modele": "SUN-2K-SG01LP1",       "type": "Classique",   "puissance_W": 2000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.93},
+    {"marque": "Deye",          "modele": "SUN-3K-SG01LP1",       "type": "Classique",   "puissance_W": 3000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.93},
+    {"marque": "Deye",          "modele": "SUN-5K-SG01LP1",       "type": "Classique",   "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.94},
+    {"marque": "Voltronic",     "modele": "Axpert MKS 1K",        "type": "Classique",   "puissance_W": 1000,  "tension_sortie_V": 230, "tension_systeme_V": 12, "rendement": 0.93},
+    {"marque": "Voltronic",     "modele": "Axpert MKS 2K",        "type": "Classique",   "puissance_W": 2000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.93},
+    {"marque": "Voltronic",     "modele": "Axpert MKS 3K",        "type": "Classique",   "puissance_W": 3000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.93},
+    {"marque": "Voltronic",     "modele": "Axpert MKS 5K",        "type": "Classique",   "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.93},
+    {"marque": "Voltronic",     "modele": "Axpert VM II 3K",      "type": "Classique",   "puissance_W": 3000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.94},
+    {"marque": "Voltronic",     "modele": "Axpert VM II 5K",      "type": "Classique",   "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.94},
+    {"marque": "Felicity Solar","modele": "IVCM1K",               "type": "Classique",   "puissance_W": 1000,  "tension_sortie_V": 230, "tension_systeme_V": 12, "rendement": 0.92},
+    {"marque": "Felicity Solar","modele": "IVCM2K",               "type": "Classique",   "puissance_W": 2000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.93},
+    {"marque": "Felicity Solar","modele": "IVCM3K",               "type": "Classique",   "puissance_W": 3000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.93},
+    {"marque": "Felicity Solar","modele": "IVCM5K",               "type": "Classique",   "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.93},
+    # ── Hybrides ───────────────────────────────────────────
+    {"marque": "Deye",          "modele": "SUN-3K-SG04LP3-EU",    "type": "Hybride",     "puissance_W": 3000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Deye",          "modele": "SUN-5K-SG04LP3-EU",    "type": "Hybride",     "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Deye",          "modele": "SUN-6K-SG04LP3-EU",    "type": "Hybride",     "puissance_W": 6000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Deye",          "modele": "SUN-8K-SG04LP3-EU",    "type": "Hybride",     "puissance_W": 8000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Deye",          "modele": "SUN-10K-SG04LP3-EU",   "type": "Hybride",     "puissance_W": 10000, "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Deye",          "modele": "SUN-12K-SG04LP3-EU",   "type": "Hybride",     "puissance_W": 12000, "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Victron",       "modele": "MultiPlus-II 1600VA",  "type": "Hybride",     "puissance_W": 1600,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.96},
+    {"marque": "Victron",       "modele": "MultiPlus-II 3000VA",  "type": "Hybride",     "puissance_W": 3000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.96},
+    {"marque": "Victron",       "modele": "MultiPlus-II 5000VA",  "type": "Hybride",     "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.96},
+    {"marque": "Victron",       "modele": "MultiPlus-II 8000VA",  "type": "Hybride",     "puissance_W": 8000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.96},
+    {"marque": "Victron",       "modele": "MultiPlus-II 10000VA", "type": "Hybride",     "puissance_W": 10000, "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.96},
+    {"marque": "Victron",       "modele": "Quattro 5000VA",       "type": "Hybride",     "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.96},
+    {"marque": "Victron",       "modele": "Quattro 8000VA",       "type": "Hybride",     "puissance_W": 8000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.96},
+    {"marque": "Victron",       "modele": "Quattro 10000VA",      "type": "Hybride",     "puissance_W": 10000, "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.96},
+    {"marque": "Sungrow",       "modele": "SH3.0RS",              "type": "Hybride",     "puissance_W": 3000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Sungrow",       "modele": "SH5.0RS",              "type": "Hybride",     "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Sungrow",       "modele": "SH6.0RS",              "type": "Hybride",     "puissance_W": 6000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Sungrow",       "modele": "SH8.0RS",              "type": "Hybride",     "puissance_W": 8000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Sungrow",       "modele": "SH10RT",               "type": "Hybride",     "puissance_W": 10000, "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    # ── All-in-One ─────────────────────────────────────────
+    {"marque": "Deye",          "modele": "SUN-3K-SG01LP1 AIO",   "type": "All-in-One",  "puissance_W": 3000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.97},
+    {"marque": "Deye",          "modele": "SUN-5K-SG01LP1 AIO",   "type": "All-in-One",  "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Deye",          "modele": "SUN-8K-SG01LP1 AIO",   "type": "All-in-One",  "puissance_W": 8000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Deye",          "modele": "SUN-12K-SG01LP1 AIO",  "type": "All-in-One",  "puissance_W": 12000, "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Felicity Solar","modele": "IVEM5048",              "type": "All-in-One",  "puissance_W": 5000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Felicity Solar","modele": "IVEM8048",              "type": "All-in-One",  "puissance_W": 8000,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "Felicity Solar","modele": "IVEM12048",             "type": "All-in-One",  "puissance_W": 12000, "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.97},
+    {"marque": "WHC Solar",     "modele": "HVM 1.2K Plus",        "type": "All-in-One",  "puissance_W": 1200,  "tension_sortie_V": 230, "tension_systeme_V": 12, "rendement": 0.93},
+    {"marque": "WHC Solar",     "modele": "HVM-2KW",              "type": "All-in-One",  "puissance_W": 2000,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.93},
+    {"marque": "WHC Solar",     "modele": "HVM-IV 3.5KW",         "type": "All-in-One",  "puissance_W": 3500,  "tension_sortie_V": 230, "tension_systeme_V": 24, "rendement": 0.94},
+    {"marque": "WHC Solar",     "modele": "HVM-6.2KW",            "type": "All-in-One",  "puissance_W": 6200,  "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.94},
+    {"marque": "WHC Solar",     "modele": "HVM-11KW",             "type": "All-in-One",  "puissance_W": 11000, "tension_sortie_V": 230, "tension_systeme_V": 48, "rendement": 0.94},
+]
+
+
+# ============================================================
+# FONCTIONS DE RECHERCHE — ONDULEURS
+# ============================================================
+
+def get_types_onduleurs():
+    return ["Classique", "All-in-One", "Hybride"]
+
+
+def get_marques_onduleurs(type_onduleur=None):
+    marques = []
+    for o in ONDULEURS:
+        if (type_onduleur is None or o["type"] == type_onduleur) and o["marque"] not in marques:
+            marques.append(o["marque"])
+    return sorted(marques)
+
+
+def get_modeles_onduleurs(marque, type_onduleur=None):
+    return [o for o in ONDULEURS if o["marque"] == marque and (type_onduleur is None or o["type"] == type_onduleur)]
