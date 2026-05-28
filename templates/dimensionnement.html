@@ -2722,10 +2722,40 @@ function genererPDF() {
 }
 
 function obtenirDonneesEnergie(s) {
-    if (s === 'solaire') return {energie_jour_kWh:document.getElementById('res_energie_jour').innerText,puissance_crete_kWp:document.getElementById('res_puissance_crete').innerText,nb_panneaux_300Wc:document.getElementById('res_nb_panneaux').innerText,courant_A:document.getElementById('res_courant_pv').innerText};
-    if (s === 'groupe')  return {puissance_groupe_kW:document.getElementById('res_puissance_groupe').innerText,consommation_jour_litres:document.getElementById('res_conso_jour').innerText,consommation_mois_litres:document.getElementById('res_conso_mois').innerText};
-    if (s === 'hybride_groupe') return {solaire:{puissance_crete_kWp:document.getElementById('res_puissance_crete').innerText,nb_panneaux_300Wc:document.getElementById('res_nb_panneaux').innerText},groupe:{puissance_groupe_kW:document.getElementById('res_puissance_groupe').innerText,consommation_jour_litres:document.getElementById('res_conso_jour').innerText}};
-    if (s === 'hybride_batteries') return {solaire:{puissance_crete_kWp:document.getElementById('res_puissance_crete').innerText,nb_panneaux_300Wc:document.getElementById('res_nb_panneaux').innerText},energie_stockage_kWh:document.getElementById('res_energie_stockage').innerText,capacite_totale_Ah:document.getElementById('res_capacite_totale').innerText,nb_batteries:document.getElementById('res_nb_batteries').innerText};
+    function val(id) {
+        var el = document.getElementById(id);
+        return el ? el.innerText : '—';
+    }
+    if (s === 'solaire') return {
+        energie_jour_kWh:    val('res_energie_jour'),
+        puissance_crete_kWp: val('res_puissance_crete'),
+        nb_panneaux_300Wc:   val('res_nb_panneaux'),
+        courant_A:           val('res_courant_pv')
+    };
+    if (s === 'groupe') return {
+        puissance_groupe_kW:       val('res_puissance_groupe'),
+        consommation_jour_litres:  val('res_conso_jour'),
+        consommation_mois_litres:  val('res_conso_mois')
+    };
+    if (s === 'hybride_groupe') return {
+        solaire: {
+            puissance_crete_kWp: val('res_puissance_crete'),
+            nb_panneaux_300Wc:   val('res_nb_panneaux')
+        },
+        groupe: {
+            puissance_groupe_kW:      val('res_puissance_groupe'),
+            consommation_jour_litres: val('res_conso_jour')
+        }
+    };
+    if (s === 'hybride_batteries') return {
+        solaire: {
+            puissance_crete_kWp: val('res_puissance_crete'),
+            nb_panneaux_300Wc:   val('res_nb_panneaux')
+        },
+        energie_stockage_kWh: val('res_energie_stockage'),
+        capacite_totale_Ah:   val('res_capacite_totale'),
+        nb_batteries:         val('res_nb_batteries')
+    };
     return {};
 }
 
