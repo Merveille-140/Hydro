@@ -2377,8 +2377,6 @@ function mettreAJourEquipements() {
     document.getElementById('div_choix_batteries').classList.toggle('hidden', !hasBat);
     var cardEq = document.getElementById('card-equipements');
     if (cardEq) cardEq.classList.toggle('hidden', !hasPV);
-    var divOnd = document.getElementById('div_choix_onduleur');
-    if (divOnd) divOnd.classList.add('hidden');
 }
 
 var PLAGES_HEURES = {
@@ -2708,7 +2706,26 @@ function genererPDF() {
             besoins:{ETc:document.getElementById('res_ETc').innerText,besoin_net_m3_jour:document.getElementById('res_besoin_net').innerText,besoin_brut_m3_jour:document.getElementById('res_besoin_brut').innerText,besoin_session_m3:document.getElementById('res_besoin_session').innerText},
             hydraulique:{debit_m3_h:document.getElementById('res_debit').innerText,hauteur_geo_m:document.getElementById('res_hgeo').innerText,pertes_charge_m:document.getElementById('res_pertes').innerText,HMT_m:document.getElementById('res_HMT').innerText,debit_L_s:'—',vitesse_m_s:'—'},
             pompe:{Ph_kW:document.getElementById('res_Ph').innerText,Pp_kW:document.getElementById('res_Pp').innerText,Pm_kW:document.getElementById('res_Pm').innerText,Pm_commercial_kW:document.getElementById('res_Pm_commercial').innerText,debit_L_s:'—'},
-            energie:obtenirDonneesEnergie(source_energie)
+            energie:obtenirDonneesEnergie(source_energie),
+            tension_systeme: (function() {
+                var el = document.getElementById('prev_usyst_badge');
+                if (!el) return '—';
+                var txt = el.innerText.replace(/[^0-9]/g, '');
+                return txt ? txt + ' V' : '—';
+            })(),
+            type_onduleur: (document.getElementById('type_onduleur') ?
+                document.getElementById('type_onduleur').value : '') ||
+                (document.getElementById('man_ond_marque') ? 'manuel' : ''),
+            puissance_onduleur_kW: document.getElementById('ond_puissance') ?
+                parseFloat(document.getElementById('ond_puissance').innerText) / 1000 || 0 : 0,
+            marque_onduleur: document.getElementById('marque_onduleur') ?
+                document.getElementById('marque_onduleur').value : '',
+            modele_onduleur: (function() {
+                var sel = document.getElementById('modele_onduleur');
+                if (!sel || sel.selectedIndex < 0) return '';
+                var opt = sel.options[sel.selectedIndex];
+                return opt ? opt.text : '';
+            })()
         })
     })
     .then(function(r) { return r.blob(); })
@@ -2748,6 +2765,7 @@ function obtenirDonneesEnergie(s) {
         }
     };
     if (s === 'hybride_batteries') return {
+        energie_jour_kWh: val('res_energie_jour'),
         solaire: {
             puissance_crete_kWp: val('res_puissance_crete'),
             nb_panneaux_300Wc:   val('res_nb_panneaux')

@@ -1,36 +1,60 @@
 # ============================================================
-# MODULE GÉNÉRATION PDF
-# Rapport professionnel de dimensionnement HydroPump
+# MODULE GÉNÉRATION PDF — HydroPump v1.0
+# Rapport professionnel de dimensionnement
 # ============================================================
 
-from reportlab.lib.pagesizes   import A4
-from reportlab.lib             import colors
-from reportlab.lib.styles      import ParagraphStyle
-from reportlab.lib.units       import cm
-from reportlab.platypus        import (
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import cm
+from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer,
-    Table, TableStyle, HRFlowable, PageBreak
+    Table, TableStyle, HRFlowable, KeepTogether, PageBreak
 )
-from reportlab.lib.enums       import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
-from io                        import BytesIO
-from datetime                  import datetime
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfgen import canvas as pdfcanvas
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
+from io import BytesIO
+from datetime import datetime
+
+# ============================================================
+# NUMÉROTATION DES PAGES
+# ============================================================
+
+class NumerotationPages:
+    def __init__(self, doc):
+        self.doc = doc
+
+    def __call__(self, canv, doc):
+        canv.saveState()
+        canv.setFont('Helvetica', 8)
+        canv.setFillColorRGB(0.58, 0.64, 0.70)  # GRIS_PIED
+        page_num = "Page %d" % doc.page
+        canv.drawRightString(
+            doc.pagesize[0] - doc.rightMargin,
+            1.0 * cm,
+            page_num
+        )
+        canv.restoreState()
 
 
 # ============================================================
 # PALETTE
 # ============================================================
 
-VERT_TITRE   = colors.HexColor("#166534")
-VERT_LEGER   = colors.HexColor("#f0fdf4")
-VERT_MOYEN   = colors.HexColor("#15803d")
-VERT_ACCENT  = colors.HexColor("#22c55e")
-GRIS_TEXTE   = colors.HexColor("#475569")
-GRIS_LIGNE   = colors.HexColor("#e2e8f0")
-GRIS_FOND    = colors.HexColor("#f8fafc")
-GRIS_SOUS    = colors.HexColor("#94a3b8")
-NOIR         = colors.HexColor("#0f172a")
-BLANC        = colors.white
+VERT_FONCE  = colors.HexColor("#166534")
+VERT_MOYEN  = colors.HexColor("#15803d")
+VERT_ACCENT = colors.HexColor("#22c55e")
+VERT_LEGER  = colors.HexColor("#f0fdf4")
+VERT_BORD   = colors.HexColor("#bbf7d0")
+GRIS_TEXTE  = colors.HexColor("#475569")
+GRIS_LIGNE  = colors.HexColor("#e2e8f0")
+GRIS_FOND   = colors.HexColor("#f8fafc")
+GRIS_PIED   = colors.HexColor("#94a3b8")
+NOIR        = colors.HexColor("#0f172a")
+BLANC       = colors.white
 
+PAGE_W = 17.0 * cm  # largeur utile (A4 - marges 2cm)
 
 # ============================================================
 # HELPERS
@@ -46,155 +70,169 @@ def formater_date(date_str):
 
 
 def val_ou_nc(v):
-    return str(v) if v and str(v) != '—' else 'Non calculé'
+    return str(v) if v and str(v) not in ('—', 'None', '') else 'Non calculé'
 
 
-def unite_nb(valeur, singulier, pluriel_form):
+def pluriel(valeur, sing, plur):
     try:
         nb = int(float(str(valeur)))
+        return str(nb) + " " + (sing if nb <= 1 else plur)
     except Exception:
         return str(valeur)
-    return str(nb) + " " + (singulier if nb <= 1 else pluriel_form)
+
+
+def fmt_fcfa(valeur):
+    try:
+        return "{:,.0f}".format(float(valeur)).replace(',', ' ')
+    except Exception:
+        return str(valeur)
 
 
 # ============================================================
-# STYLES
+# STYLES PARAGRAPHES
 # ============================================================
 
 def creer_styles():
-
-    titre_garde = ParagraphStyle(
-        name='TitreGarde', fontName='Helvetica-Bold',
-        fontSize=28, textColor=BLANC, alignment=TA_CENTER, spaceAfter=4,
-    )
-    sous_titre_garde = ParagraphStyle(
-        name='SousTitreGarde', fontName='Helvetica',
-        fontSize=13, textColor=colors.HexColor("#bbf7d0"),
-        alignment=TA_CENTER, spaceAfter=4,
-    )
-    titre_section = ParagraphStyle(
-        name='TitreSection', fontName='Helvetica-Bold',
-        fontSize=11, textColor=VERT_TITRE,
-        spaceBefore=14, spaceAfter=6,
-    )
-    normal = ParagraphStyle(
-        name='NormalCustom', fontName='Helvetica',
-        fontSize=9, textColor=GRIS_TEXTE, spaceAfter=3, leading=14,
+    pied = ParagraphStyle(
+        name='Pied', fontName='Helvetica', fontSize=8,
+        textColor=GRIS_PIED, alignment=TA_CENTER,
     )
     gras = ParagraphStyle(
-        name='Gras', fontName='Helvetica-Bold',
-        fontSize=9, textColor=NOIR, spaceAfter=3,
+        name='Gras', fontName='Helvetica-Bold', fontSize=9,
+        textColor=NOIR, spaceAfter=4,
     )
-    pied = ParagraphStyle(
-        name='Pied', fontName='Helvetica',
-        fontSize=8, textColor=GRIS_SOUS, alignment=TA_CENTER,
+    conclusion = ParagraphStyle(
+        name='Conclusion', fontName='Helvetica', fontSize=9,
+        textColor=GRIS_TEXTE, leading=16,
+        alignment=TA_JUSTIFY, spaceAfter=10,
     )
-    label_garde = ParagraphStyle(
-        name='LabelGarde', fontName='Helvetica',
-        fontSize=8, textColor=colors.HexColor("#bbf7d0"),
-        alignment=TA_CENTER, spaceAfter=2,
-    )
-    info_garde = ParagraphStyle(
-        name='InfoGarde', fontName='Helvetica-Bold',
-        fontSize=10, textColor=BLANC,
-        alignment=TA_CENTER, spaceAfter=4,
-    )
-    return {
-        "titre_garde":      titre_garde,
-        "sous_titre_garde": sous_titre_garde,
-        "titre_section":    titre_section,
-        "normal":           normal,
-        "gras":             gras,
-        "pied":             pied,
-        "label_garde":      label_garde,
-        "info_garde":       info_garde,
-    }
+    return {"pied": pied, "gras": gras, "conclusion": conclusion}
 
 
 # ============================================================
-# STYLES TABLEAUX
+# COMPOSANTS RÉUTILISABLES
 # ============================================================
 
-def style_tableau():
-    return TableStyle([
+def bandeau(texte, bg=None, fg=BLANC, taille=10, padding_v=8, padding_h=10, gras=True):
+    """Crée un bandeau coloré avec texte — utilisé pour titres de sections."""
+    bg = bg or VERT_FONCE
+    style = ParagraphStyle(
+        name='Bandeau', fontName='Helvetica-Bold' if gras else 'Helvetica',
+        fontSize=taille, textColor=fg, alignment=TA_LEFT,
+    )
+    t = Table([[Paragraph(texte, style)]], colWidths=[PAGE_W])
+    t.setStyle(TableStyle([
+        ('BACKGROUND',    (0, 0), (-1, -1), bg),
+        ('TOPPADDING',    (0, 0), (-1, -1), padding_v),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), padding_v),
+        ('LEFTPADDING',   (0, 0), (-1, -1), padding_h),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), padding_h),
+    ]))
+    return t
+
+
+def tableau_donnees(lignes, col_g=9.5*cm, col_d=7.5*cm):
+    """Tableau paramètre / valeur avec en-tête vert et alternance."""
+    t = Table(lignes, colWidths=[col_g, col_d])
+    cmds = [
         # En-tête
-        ('BACKGROUND',    (0, 0), (-1, 0),  VERT_TITRE),
-        ('TEXTCOLOR',     (0, 0), (-1, 0),  BLANC),
-        ('FONTNAME',      (0, 0), (-1, 0),  'Helvetica-Bold'),
-        ('FONTSIZE',      (0, 0), (-1, 0),  9),
-        ('ALIGN',         (0, 0), (-1, 0),  'LEFT'),
-        ('TOPPADDING',    (0, 0), (-1, 0),  7),
-        ('BOTTOMPADDING', (0, 0), (-1, 0),  7),
-        ('LEFTPADDING',   (0, 0), (-1, 0),  10),
+        ('BACKGROUND',    (0, 0), (-1, 0), VERT_FONCE),
+        ('TEXTCOLOR',     (0, 0), (-1, 0), BLANC),
+        ('FONTNAME',      (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE',      (0, 0), (-1, 0), 9),
+        ('TOPPADDING',    (0, 0), (-1, 0), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('LEFTPADDING',   (0, 0), (-1, 0), 10),
+        ('RIGHTPADDING',  (0, 0), (-1, 0), 10),
         # Données
-        ('FONTNAME',      (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTNAME',      (0, 1), (0, -1), 'Helvetica'),
+        ('FONTNAME',      (1, 1), (1, -1), 'Helvetica-Bold'),
         ('FONTSIZE',      (0, 1), (-1, -1), 9),
-        ('TEXTCOLOR',     (0, 1), (0, -1),  GRIS_TEXTE),
-        ('TEXTCOLOR',     (1, 1), (1, -1),  NOIR),
-        ('FONTNAME',      (1, 1), (1, -1),  'Helvetica-Bold'),
-        ('ALIGN',         (0, 1), (0, -1),  'LEFT'),
-        ('ALIGN',         (1, 1), (1, -1),  'RIGHT'),
+        ('TEXTCOLOR',     (0, 1), (0, -1), GRIS_TEXTE),
+        ('TEXTCOLOR',     (1, 1), (1, -1), NOIR),
+        ('ALIGN',         (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN',         (1, 0), (1, -1), 'RIGHT'),
         ('TOPPADDING',    (0, 1), (-1, -1), 7),
         ('BOTTOMPADDING', (0, 1), (-1, -1), 7),
-        ('LEFTPADDING',   (0, 0), (-1, -1), 10),
-        ('RIGHTPADDING',  (0, 0), (-1, -1), 10),
+        ('LEFTPADDING',   (0, 1), (-1, -1), 10),
+        ('RIGHTPADDING',  (0, 1), (-1, -1), 10),
         # Alternance
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [BLANC, GRIS_FOND]),
-        # Bordures
+        # Grille légère
         ('GRID',          (0, 0), (-1, -1), 0.3, GRIS_LIGNE),
-        ('LINEBELOW',     (0, 0), (-1, 0),  1.0, VERT_TITRE),
-    ])
+        ('LINEBELOW',     (0, 0), (-1, 0),  1.0, VERT_FONCE),
+    ]
+    t.setStyle(TableStyle(cmds))
+    return t
 
 
-def style_tableau_equipement():
-    return TableStyle([
+def tableau_donnees_avec_total(lignes, col_g=9.5*cm, col_d=7.5*cm):
+    """Comme tableau_donnees mais dernière ligne en vert gras."""
+    t = Table(lignes, colWidths=[col_g, col_d])
+    cmds = [
+        ('BACKGROUND',    (0, 0), (-1, 0), VERT_FONCE),
+        ('TEXTCOLOR',     (0, 0), (-1, 0), BLANC),
+        ('FONTNAME',      (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE',      (0, 0), (-1, 0), 9),
+        ('TOPPADDING',    (0, 0), (-1, 0), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('LEFTPADDING',   (0, 0), (-1, 0), 10),
+        ('RIGHTPADDING',  (0, 0), (-1, 0), 10),
+        ('FONTNAME',      (0, 1), (0, -1), 'Helvetica'),
+        ('FONTNAME',      (1, 1), (1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE',      (0, 1), (-1, -1), 9),
+        ('TEXTCOLOR',     (0, 1), (0, -1), GRIS_TEXTE),
+        ('TEXTCOLOR',     (1, 1), (1, -1), NOIR),
+        ('ALIGN',         (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN',         (1, 0), (1, -1), 'RIGHT'),
+        ('TOPPADDING',    (0, 1), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 7),
+        ('LEFTPADDING',   (0, 1), (-1, -1), 10),
+        ('RIGHTPADDING',  (0, 1), (-1, -1), 10),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -2), [BLANC, GRIS_FOND]),
+        ('GRID',          (0, 0), (-1, -1), 0.3, GRIS_LIGNE),
+        ('LINEBELOW',     (0, 0), (-1, 0),  1.0, VERT_FONCE),
+        # Dernière ligne
+        ('FONTNAME',      (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR',     (0, -1), (-1, -1), VERT_FONCE),
+        ('BACKGROUND',    (0, -1), (-1, -1), VERT_LEGER),
+        ('LINEABOVE',     (0, -1), (-1, -1), 1.0, VERT_FONCE),
+    ]
+    t.setStyle(TableStyle(cmds))
+    return t
+
+
+def tableau_equipement(lignes, col_widths=None):
+    """Tableau équipements avec en-tête gris clair."""
+    col_widths = col_widths or [5.5*cm, 8.0*cm, 3.5*cm]
+    t = Table(lignes, colWidths=col_widths)
+    t.setStyle(TableStyle([
         ('BACKGROUND',    (0, 0), (-1, 0),  GRIS_FOND),
-        ('TEXTCOLOR',     (0, 0), (-1, 0),  VERT_TITRE),
+        ('TEXTCOLOR',     (0, 0), (-1, 0),  VERT_FONCE),
         ('FONTNAME',      (0, 0), (-1, 0),  'Helvetica-Bold'),
-        ('FONTSIZE',      (0, 0), (-1, 0),  9),
+        ('FONTSIZE',      (0, 0), (-1, -1), 9),
+        ('FONTNAME',      (0, 1), (0, -1),  'Helvetica'),
+        ('FONTNAME',      (1, 1), (-1, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR',     (0, 1), (0, -1),  GRIS_TEXTE),
+        ('TEXTCOLOR',     (1, 1), (-1, -1), NOIR),
         ('ALIGN',         (0, 0), (-1, -1), 'LEFT'),
         ('TOPPADDING',    (0, 0), (-1, -1), 7),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
         ('LEFTPADDING',   (0, 0), (-1, -1), 10),
         ('RIGHTPADDING',  (0, 0), (-1, -1), 10),
-        ('FONTNAME',      (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE',      (0, 1), (-1, -1), 9),
-        ('TEXTCOLOR',     (0, 1), (0, -1),  GRIS_TEXTE),
-        ('TEXTCOLOR',     (1, 1), (1, -1),  NOIR),
-        ('FONTNAME',      (1, 1), (1, -1),  'Helvetica-Bold'),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [BLANC, GRIS_FOND]),
+        ('ROWBACKGROUNDS',(0, 1), (-1, -1), [BLANC, GRIS_FOND]),
         ('GRID',          (0, 0), (-1, -1), 0.3, GRIS_LIGNE),
-    ])
-
-
-# ============================================================
-# SÉPARATEURS
-# ============================================================
-
-def separateur():
-    return HRFlowable(width="100%", thickness=0.5, color=GRIS_LIGNE,
-                      spaceAfter=6, spaceBefore=2)
-
-
-def separateur_section():
-    return HRFlowable(width="100%", thickness=1.5, color=VERT_TITRE,
-                      spaceAfter=8, spaceBefore=2)
-
-
-def titre_section_bandeau(texte):
-    style = ParagraphStyle(
-        name='TitreBandeau', fontName='Helvetica-Bold',
-        fontSize=10, textColor=BLANC, alignment=TA_LEFT,
-    )
-    table = Table([[Paragraph(texte, style)]], colWidths=[17.0 * cm])
-    table.setStyle(TableStyle([
-        ('BACKGROUND',    (0,0),(-1,-1), VERT_TITRE),
-        ('TOPPADDING',    (0,0),(-1,-1), 8),
-        ('BOTTOMPADDING', (0,0),(-1,-1), 8),
-        ('LEFTPADDING',   (0,0),(-1,-1), 10),
-        ('RIGHTPADDING',  (0,0),(-1,-1), 10),
+        ('LINEBELOW',     (0, 0), (-1, 0),  1.0, VERT_FONCE),
     ]))
-    return table
+    return t
+
+
+def sep():
+    return Spacer(1, 0.15 * cm)
+
+
+def esp():
+    return Spacer(1, 0.4 * cm)
 
 
 # ============================================================
@@ -207,25 +245,32 @@ def generer_rapport(data):
 
     doc = SimpleDocTemplate(
         buffer, pagesize=A4,
-        leftMargin=2.0 * cm, rightMargin=2.0 * cm,
-        topMargin=1.5 * cm, bottomMargin=2.0 * cm,
+        leftMargin=2.0*cm, rightMargin=2.0*cm,
+        topMargin=1.5*cm, bottomMargin=2.0*cm,
     )
 
     contenu = []
     contenu += page_de_garde(data, styles)
-    contenu.append(Spacer(1, 0.8 * cm))
-    contenu += section_identification(data, styles)
-    contenu += section_localisation(data, styles)
-    contenu += section_besoins(data, styles)
-    contenu += section_hydraulique(data, styles)
-    contenu += section_pompe(data, styles)
-    contenu += section_energie(data, styles)
-    contenu += section_equipements(data, styles)
-    contenu += section_cout(data, styles)
-    contenu += section_conclusion(data, styles)
+    contenu.append(PageBreak())
+
+    def ajouter_section(fn):
+        bloc = fn(data, styles)
+        if bloc:
+            contenu.append(KeepTogether(bloc))
+
+    ajouter_section(section_identification)
+    ajouter_section(section_localisation)
+    ajouter_section(section_besoins)
+    ajouter_section(section_hydraulique)
+    ajouter_section(section_pompe)
+    ajouter_section(section_energie)
+    ajouter_section(section_equipements)
+    ajouter_section(section_cout)
+    ajouter_section(section_conclusion)
     contenu += pied_de_page(styles)
 
-    doc.build(contenu)
+    numerotation = NumerotationPages(doc)
+    doc.build(contenu, onFirstPage=numerotation, onLaterPages=numerotation)
     return buffer
 
 
@@ -236,143 +281,96 @@ def generer_rapport(data):
 def page_de_garde(data, styles):
     elements = []
 
-    # BANDEAU PRINCIPAL VERT
-    bandeau_data = [[
-        Paragraph(
-            '<font color="#22c55e">●</font>  '
-            '<font color="white"><b>HydroPump</b></font>',
-            ParagraphStyle(
-                name='TG', fontName='Helvetica-Bold',
-                fontSize=26, textColor=BLANC,
-                alignment=TA_CENTER
-            )
-        )
-    ]]
-    bandeau = Table(bandeau_data, colWidths=[17.0 * cm])
-    bandeau.setStyle(TableStyle([
-        ('BACKGROUND',    (0,0),(-1,-1), VERT_TITRE),
-        ('TOPPADDING',    (0,0),(-1,-1), 28),
-        ('BOTTOMPADDING', (0,0),(-1,-1), 8),
-        ('ALIGN',         (0,0),(-1,-1), 'CENTER'),
-    ]))
-    elements.append(bandeau)
-
-    # SOUS-TITRE
-    sous_data = [[
-        Paragraph(
-            "Rapport de dimensionnement — "
-            "Système de pompage solaire",
-            ParagraphStyle(
-                name='STG', fontName='Helvetica',
-                fontSize=12,
-                textColor=colors.HexColor("#bbf7d0"),
-                alignment=TA_CENTER
-            )
-        )
-    ]]
-    sous = Table(sous_data, colWidths=[17.0 * cm])
-    sous.setStyle(TableStyle([
-        ('BACKGROUND',    (0,0),(-1,-1), VERT_MOYEN),
-        ('TOPPADDING',    (0,0),(-1,-1), 8),
-        ('BOTTOMPADDING', (0,0),(-1,-1), 28),
-    ]))
-    elements.append(sous)
-
-    # BANDEAU PROJET — 4 colonnes
     nom_projet  = str(data.get('nom_projet',  'Non renseigné'))
     nom_client  = str(data.get('nom_client',  'Non renseigné'))
+    tel_client  = str(data.get('tel_client',  ''))
     realise_par = str(data.get('realise_par', 'Non renseigné'))
-    date_projet = formater_date(data.get('date_projet', ''))
+    date_str    = formater_date(data.get('date_projet', ''))
+    lat         = str(data.get('lat', '—'))
+    lon         = str(data.get('lon', '—'))
+    irr         = str(data.get('irradiation', '—'))
+    mois        = str(data.get('mois_critique', '—'))
 
-    lbl = ParagraphStyle(
-        name='LG', fontName='Helvetica', fontSize=8,
-        textColor=colors.HexColor("#bbf7d0"),
-        alignment=TA_CENTER
+    titre_s = ParagraphStyle(
+        name='GardeTitre', fontName='Helvetica-Bold', fontSize=20,
+        textColor=VERT_FONCE, alignment=TA_CENTER, spaceAfter=6,
     )
-    val = ParagraphStyle(
-        name='VG', fontName='Helvetica-Bold', fontSize=10,
-        textColor=BLANC, alignment=TA_CENTER
+    sous_s = ParagraphStyle(
+        name='GardeSous', fontName='Helvetica', fontSize=12,
+        textColor=GRIS_TEXTE, alignment=TA_CENTER, spaceAfter=0,
+    )
+    section_s = ParagraphStyle(
+        name='GardeSection', fontName='Helvetica-Bold', fontSize=10,
+        textColor=VERT_FONCE, spaceAfter=4, spaceBefore=4,
+    )
+    lbl_s = ParagraphStyle(
+        name='GardeLbl', fontName='Helvetica', fontSize=9,
+        textColor=GRIS_TEXTE,
+    )
+    val_s = ParagraphStyle(
+        name='GardeVal', fontName='Helvetica-Bold', fontSize=9,
+        textColor=NOIR,
     )
 
-    projet_data = [
-        [Paragraph("PROJET",      lbl),
-         Paragraph("CLIENT",      lbl),
-         Paragraph("RÉALISÉ PAR", lbl),
-         Paragraph("DATE",        lbl)],
-        [Paragraph(nom_projet,  val),
-         Paragraph(nom_client,  val),
-         Paragraph(realise_par, val),
-         Paragraph(date_projet, val)],
-    ]
-    projet_table = Table(
-        projet_data,
-        colWidths=[4.25*cm, 4.25*cm, 4.25*cm, 4.25*cm]
-    )
-    projet_table.setStyle(TableStyle([
-        ('BACKGROUND',    (0,0),(-1,-1), VERT_TITRE),
-        ('TOPPADDING',    (0,0),(-1,-1), 10),
-        ('BOTTOMPADDING', (0,0),(-1,-1), 12),
-        ('ALIGN',         (0,0),(-1,-1), 'CENTER'),
-        ('LINEAFTER',     (0,0),(2,-1),  0.5, colors.HexColor("#22c55e")),
-        ('LINEBEFORE',    (0,0),(0,-1),  0, VERT_TITRE),
-    ]))
-    elements.append(projet_table)
-    elements.append(Spacer(1, 1.2 * cm))
+    # Ligne décorative verte
+    def ligne_verte():
+        return HRFlowable(width="100%", thickness=2, color=VERT_FONCE,
+                          spaceAfter=8, spaceBefore=0)
 
-    # RÉSUMÉ TECHNIQUE
-    cout = data.get('cout') or {}
-    resume_data = [
-        ["Paramètre", "Valeur"],
-        ["Localisation",
-            "Lat : " + str(data.get('lat','—')) +
-            "° — Lon : " + str(data.get('lon','—')) + "°"],
-        ["Source d'énergie",
-            str(data.get('source_energie','—'))
-            .replace('_',' ').title()],
-        ["Débit calculé",
-            str(data.get('hydraulique',{}).get('debit_m3_h','—'))
-            + " m³/h"],
-        ["HMT calculée",
-            str(data.get('hydraulique',{}).get('HMT_m','—'))
-            + " m"],
-        ["Puissance moteur",
-            str(data.get('pompe',{}).get('Pm_kW','—'))
-            + " kW"],
-    ]
-    if cout.get('C_total'):
-        resume_data.append([
-            "Coût total estimatif",
-            "{:,.0f}".format(cout['C_total'])
-            .replace(',', ' ') + " FCFA"
-        ])
+    def ligne_grise():
+        return HRFlowable(width="100%", thickness=0.5, color=GRIS_LIGNE,
+                          spaceAfter=6, spaceBefore=0)
 
-    resume_table = Table(
-        resume_data, colWidths=[8.5*cm, 8.5*cm]
-    )
-    cmds = list(style_tableau()._cmds)
-    if cout.get('C_total'):
-        cmds += [
-            ('FONTNAME',   (0,-1),(-1,-1), 'Helvetica-Bold'),
-            ('TEXTCOLOR',  (0,-1),(-1,-1), VERT_TITRE),
-            ('BACKGROUND', (0,-1),(-1,-1), VERT_LEGER),
-        ]
-    resume_table.setStyle(TableStyle(cmds))
-    elements.append(resume_table)
+    def row(label, valeur):
+        t = Table(
+            [[Paragraph(label, lbl_s), Paragraph(valeur, val_s)]],
+            colWidths=[5.0*cm, 12.0*cm]
+        )
+        t.setStyle(TableStyle([
+            ('TOPPADDING',    (0,0),(-1,-1), 4),
+            ('BOTTOMPADDING', (0,0),(-1,-1), 4),
+            ('LEFTPADDING',   (0,0),(-1,-1), 0),
+            ('RIGHTPADDING',  (0,0),(-1,-1), 0),
+            ('VALIGN',        (0,0),(-1,-1), 'TOP'),
+        ]))
+        return t
+
+    # TITRE
+    elements.append(Spacer(1, 1.5*cm))
+    elements.append(Paragraph("RAPPORT TECHNIQUE", titre_s))
+    elements.append(Spacer(1, 0.4*cm))
+    elements.append(ligne_verte())
+    elements.append(Spacer(1, 0.8*cm))
+
+    # BLOC CLIENT
+    elements.append(Paragraph("CLIENT", section_s))
+    elements.append(ligne_grise())
+    elements.append(row("Nom", nom_client))
+    if tel_client:
+        elements.append(row("Téléphone", tel_client))
+    elements.append(Spacer(1, 0.6*cm))
+
+    # BLOC LOCALISATION & PROJET
+    elements.append(Paragraph("LOCALISATION & PROJET", section_s))
+    elements.append(ligne_grise())
+    elements.append(row("Latitude",   lat + "°"))
+    elements.append(row("Longitude",  lon + "°"))
+    elements.append(row("Irradiation", irr + " kWh/m²/j (" + mois + ")"))
+    elements.append(row("Projet",     nom_projet))
+    elements.append(row("Technicien", realise_par))
+    elements.append(row("Date rapport", date_str))
+    elements.append(Spacer(1, 0.5*cm))
 
     return elements
 
 
 # ============================================================
-# SECTION 1 — IDENTIFICATION
+# SECTIONS
 # ============================================================
 
 def section_identification(data, styles):
-    elements = []
-    elements.append(Spacer(1, 0.4 * cm))
-    elements.append(titre_section_bandeau("1. Identification du projet"))
-    elements.append(Spacer(1, 0.2 * cm))
-
-    tableau_data = [
+    elements = [bandeau("1. Identification du projet"), sep()]
+    lignes = [
         ["Paramètre", "Valeur"],
         ["Nom du projet",   str(data.get('nom_projet',  'Non renseigné'))],
         ["Nom du client",   str(data.get('nom_client',  'Non renseigné'))],
@@ -381,420 +379,404 @@ def section_identification(data, styles):
         ["Logiciel",        "HydroPump v1.0 — Dimensionnement pompage solaire"],
         ["Date de génération", datetime.now().strftime("%d/%m/%Y à %H:%M")],
     ]
-
-    tableau = Table(tableau_data, colWidths=[8.5 * cm, 8.5 * cm])
-    tableau.setStyle(style_tableau())
-    elements.append(tableau)
-    elements.append(Spacer(1, 0.3 * cm))
+    elements.append(tableau_donnees(lignes))
+    elements.append(esp())
     return elements
 
-
-# ============================================================
-# SECTION 2 — LOCALISATION
-# ============================================================
 
 def section_localisation(data, styles):
-    elements = []
-    elements.append(Spacer(1, 0.4 * cm))
-    elements.append(titre_section_bandeau("2. Localisation et données climatiques"))
-    elements.append(Spacer(1, 0.2 * cm))
-
-    tableau_data = [
+    elements = [bandeau("2. Localisation et données climatiques"), sep()]
+    lignes = [
         ["Paramètre", "Valeur"],
-        ["Latitude",            str(data.get('lat', '—')) + "°"],
-        ["Longitude",           str(data.get('lon', '—')) + "°"],
-        ["Température maximale", str(data.get('temperature_max', '—')) + " °C"],
-        ["Température minimale", str(data.get('temperature_min', '—')) + " °C"],
-        ["Irradiation solaire (mois critique)",
-            str(data.get('irradiation', '—')) + " kWh/m²/jour"],
+        ["Latitude",            str(data.get('lat','—')) + "°"],
+        ["Longitude",           str(data.get('lon','—')) + "°"],
+        ["Température maximale", str(data.get('temperature_max','—')) + " °C"],
+        ["Température minimale", str(data.get('temperature_min','—')) + " °C"],
+        ["Irradiation (mois critique)",
+            str(data.get('irradiation','—')) + " kWh/m²/jour"],
         ["ET0 maximale (Penman-Monteith FAO-56)",
-            str(data.get('ET0_max', '—')) + " mm/jour"],
-        ["Mois critique", str(data.get('mois_critique', '—'))],
+            str(data.get('ET0_max','—')) + " mm/jour"],
+        ["Mois critique", str(data.get('mois_critique','—'))],
     ]
-
-    tableau = Table(tableau_data, colWidths=[8.5 * cm, 8.5 * cm])
-    tableau.setStyle(style_tableau())
-    elements.append(tableau)
-    elements.append(Spacer(1, 0.3 * cm))
+    elements.append(tableau_donnees(lignes))
+    elements.append(esp())
     return elements
 
-
-# ============================================================
-# SECTION 3 — BESOINS EN EAU
-# ============================================================
 
 def section_besoins(data, styles):
-    elements = []
-    besoins = data.get('besoins', {})
-    elements.append(Spacer(1, 0.4 * cm))
-    elements.append(titre_section_bandeau("3. Besoins en eau"))
-    elements.append(Spacer(1, 0.2 * cm))
-
-    tableau_data = [
+    elements = [bandeau("3. Besoins en eau"), sep()]
+    b = data.get('besoins', {})
+    lignes = [
         ["Paramètre", "Valeur"],
         ["ETc / Besoin journalier",
-            str(besoins.get('ETc', '—')) + " mm/jour"],
+            str(b.get('ETc','—')) + " mm/jour"],
         ["Besoin net en eau",
-            str(besoins.get('besoin_net_m3_jour', '—')) + " m³/jour"],
+            str(b.get('besoin_net_m3_jour','—')) + " m³/jour"],
         ["Besoin brut en eau",
-            str(besoins.get('besoin_brut_m3_jour', '—')) + " m³/jour"],
+            str(b.get('besoin_brut_m3_jour','—')) + " m³/jour"],
         ["Besoin par session",
-            str(besoins.get('besoin_session_m3', '—')) + " m³"],
+            str(b.get('besoin_session_m3','—')) + " m³"],
     ]
-
-    tableau = Table(tableau_data, colWidths=[8.5 * cm, 8.5 * cm])
-    tableau.setStyle(style_tableau())
-    elements.append(tableau)
-    elements.append(Spacer(1, 0.3 * cm))
+    elements.append(tableau_donnees(lignes))
+    elements.append(esp())
     return elements
 
-
-# ============================================================
-# SECTION 4 — HYDRAULIQUE
-# ============================================================
 
 def section_hydraulique(data, styles):
-    elements = []
+    elements = [bandeau("4. Dimensionnement hydraulique"), sep()]
     h = data.get('hydraulique', {})
-    elements.append(Spacer(1, 0.4 * cm))
-    elements.append(titre_section_bandeau("4. Dimensionnement hydraulique"))
-    elements.append(Spacer(1, 0.2 * cm))
-
     debit_ls = val_ou_nc(h.get('debit_L_s'))
     vitesse  = val_ou_nc(h.get('vitesse_m_s'))
-
-    tableau_data = [
+    lignes = [
         ["Paramètre", "Valeur"],
         ["Débit Q",
-            str(h.get('debit_m3_h', '—')) + " m³/h  (" + debit_ls + " L/s)"],
+            str(h.get('debit_m3_h','—')) + " m³/h  (" +
+            (debit_ls + " L/s" if debit_ls != 'Non calculé' else 'Non calculé') + ")"],
         ["Hauteur géométrique",
-            str(h.get('hauteur_geo_m', '—')) + " m"],
+            str(h.get('hauteur_geo_m','—')) + " m"],
         ["Pertes de charge (Darcy-Weisbach)",
-            str(h.get('pertes_charge_m', '—')) + " m"],
-        ["Vitesse dans la canalisation", vitesse + (" m/s" if vitesse != 'Non calculé' else "")],
-        ["HMT totale", str(h.get('HMT_m', '—')) + " m"],
+            str(h.get('pertes_charge_m','—')) + " m"],
+        ["Vitesse dans la canalisation",
+            (vitesse + " m/s") if vitesse != 'Non calculé' else 'Non calculé'],
+        ["HMT totale",
+            str(h.get('HMT_m','—')) + " m"],
     ]
-
-    tableau = Table(tableau_data, colWidths=[8.5 * cm, 8.5 * cm])
-    tableau.setStyle(style_tableau())
-    elements.append(tableau)
-    elements.append(Spacer(1, 0.3 * cm))
+    elements.append(tableau_donnees(lignes))
+    elements.append(esp())
     return elements
 
-
-# ============================================================
-# SECTION 5 — POMPE
-# ============================================================
 
 def section_pompe(data, styles):
-    elements = []
-    pompe = data.get('pompe', {})
-    elements.append(Spacer(1, 0.4 * cm))
-    elements.append(titre_section_bandeau("5. Dimensionnement de la pompe"))
-    elements.append(Spacer(1, 0.2 * cm))
-
-    tableau_data = [
+    elements = [bandeau("5. Dimensionnement de la pompe"), sep()]
+    p = data.get('pompe', {})
+    lignes = [
         ["Paramètre", "Valeur"],
-        ["Puissance hydraulique Ph",     str(pompe.get('Ph_kW', '—')) + " kW"],
-        ["Puissance absorbée Pp",        str(pompe.get('Pp_kW', '—')) + " kW"],
-        ["Puissance moteur calculée Pm", str(pompe.get('Pm_kW', '—')) + " kW"],
+        ["Puissance hydraulique Ph",
+            str(p.get('Ph_kW','—')) + " kW"],
+        ["Puissance absorbée Pp",
+            str(p.get('Pp_kW','—')) + " kW"],
+        ["Puissance moteur calculée Pm",
+            str(p.get('Pm_kW','—')) + " kW"],
         ["Puissance commerciale normalisée",
-            str(pompe.get('Pm_commercial_kW', '—')) + " kW"],
+            str(p.get('Pm_commercial_kW','—')) + " kW"],
     ]
-
-    marque_pompe = data.get('marque_pompe', '')
-    modele_pompe = data.get('modele_pompe', '')
-    if marque_pompe and modele_pompe:
-        tableau_data.append(["Pompe sélectionnée",
-                              str(marque_pompe) + " — " + str(modele_pompe)])
-
-    tableau = Table(tableau_data, colWidths=[8.5 * cm, 8.5 * cm])
-    tableau.setStyle(style_tableau())
-    elements.append(tableau)
-    elements.append(Spacer(1, 0.3 * cm))
+    mp = data.get('marque_pompe','')
+    mp_mod = data.get('modele_pompe','')
+    if mp and mp_mod:
+        lignes.append(["Pompe sélectionnée", mp + " — " + mp_mod])
+    elements.append(tableau_donnees(lignes))
+    elements.append(esp())
     return elements
 
 
-# ============================================================
-# SECTION 6 — ÉNERGIE
-# ============================================================
+def _tension_str(e, data=None):
+    u = e.get('U_syst')
+    if u and str(u) not in ('—', '', 'None'):
+        return str(u) + " V"
+    if data:
+        ts = str(data.get('tension_systeme', '') or '')
+        if ts and ts not in ('—', '', 'None'):
+            v = ts.replace(' V', '').replace('V', '').strip()
+            return v + ' V' if v.isdigit() else ts
+    tv = str(e.get('tension_pv', '—'))
+    return tv if tv != '—' else '—'
+
 
 def section_energie(data, styles):
-    elements = []
-    energie = data.get('energie', {})
-    source  = data.get('source_energie', 'solaire')
-    elements.append(Spacer(1, 0.4 * cm))
-    elements.append(titre_section_bandeau("6. Dimensionnement énergétique"))
-    elements.append(Spacer(1, 0.2 * cm))
+    elements = [bandeau("6. Dimensionnement énergétique"), sep()]
+    e  = data.get('energie', {})
+    src = data.get('source_energie','solaire')
 
-    # Tension système : U_syst (entier) ou tension_pv (string "48V")
-    def tension_str(e):
-        u = e.get('U_syst')
-        if u:
-            return str(u) + " V"
-        tv = str(e.get('tension_pv', '—'))
-        return tv if tv == '—' else tv
-
-    if source == "solaire":
-        tableau_data = [
+    if src == "solaire":
+        lignes = [
             ["Paramètre", "Valeur"],
-            ["Source d'énergie",       "Solaire photovoltaïque"],
+            ["Source d'énergie", "Solaire photovoltaïque"],
             ["Énergie journalière",
-                str(energie.get('energie_jour_kWh', '—')) + " kWh/jour"],
+                str(e.get('energie_jour_kWh','—')) + " kWh/jour"],
             ["Puissance crête calculée",
-                str(energie.get('puissance_crete_kWp', '—')) + " kWc"],
+                str(e.get('puissance_crete_kWp','—')) + " kWc"],
             ["Nombre de panneaux",
-                unite_nb(energie.get('nb_panneaux_300Wc', '—'), 'panneau', 'panneaux')],
-            ["Tension système PV",     tension_str(energie)],
+                pluriel(e.get('nb_panneaux_300Wc','—'), 'panneau','panneaux')],
+            ["Tension système PV", _tension_str(e, data)],
             ["Courant total champ PV",
-                str(energie.get('courant_A', '—')) + " A"],
+                str(e.get('courant_A','—')) + " A"],
         ]
 
-    elif source == "groupe":
-        tableau_data = [
+    elif src == "groupe":
+        lignes = [
             ["Paramètre", "Valeur"],
-            ["Source d'énergie",           "Groupe électrogène"],
+            ["Source d'énergie", "Groupe électrogène"],
             ["Énergie journalière",
-                str(energie.get('energie_jour_kWh', '—')) + " kWh/jour"],
+                str(e.get('energie_jour_kWh','—')) + " kWh/jour"],
             ["Puissance groupe recommandée",
-                str(energie.get('puissance_groupe_kW', '—')) + " kW"],
+                str(e.get('puissance_groupe_kW','—')) + " kW"],
             ["Consommation gasoil / jour",
-                str(energie.get('consommation_jour_litres', '—')) + " L"],
+                str(e.get('consommation_jour_litres','—')) + " L"],
             ["Consommation gasoil / mois",
-                str(energie.get('consommation_mois_litres', '—')) + " L"],
-            ["Consommation gasoil / an",
-                str(energie.get('consommation_annee_litres', '—')) + " L"],
+                str(e.get('consommation_mois_litres','—')) + " L"],
         ]
 
-    elif source == "hybride_groupe":
-        sol = energie.get('solaire', {})
-        grp = energie.get('groupe',  {})
-        tableau_data = [
+    elif src == "hybride_groupe":
+        sol = e.get('solaire',{})
+        grp = e.get('groupe',{})
+        lignes = [
             ["Paramètre", "Valeur"],
-            ["Source d'énergie",           "Hybride — Solaire 70% + Groupe 30%"],
+            ["Source d'énergie", "Hybride — Solaire + Groupe"],
             ["Énergie totale journalière",
-                str(energie.get('energie_totale_kWh', '—')) + " kWh/jour"],
+                str(e.get('energie_totale_kWh','—')) + " kWh/jour"],
             ["— Puissance crête solaire",
-                str(sol.get('puissance_crete_kWp', '—')) + " kWc"],
+                str(sol.get('puissance_crete_kWp','—')) + " kWc"],
             ["— Nombre de panneaux",
-                unite_nb(sol.get('nb_panneaux_300Wc', '—'), 'panneau', 'panneaux')],
-            ["— Tension système",          tension_str(sol)],
-            ["— Courant champ PV",         str(sol.get('courant_A', '—')) + " A"],
-            ["— Puissance groupe",         str(grp.get('puissance_groupe_kW', '—')) + " kW"],
+                pluriel(sol.get('nb_panneaux_300Wc','—'), 'panneau','panneaux')],
+            ["— Tension système", _tension_str(sol, data)],
+            ["— Puissance groupe",
+                str(grp.get('puissance_groupe_kW','—')) + " kW"],
             ["— Consommation gasoil / jour",
-                str(grp.get('consommation_jour_litres', '—')) + " L"],
-            ["— Consommation gasoil / mois",
-                str(grp.get('consommation_mois_litres', '—')) + " L"],
+                str(grp.get('consommation_jour_litres','—')) + " L"],
         ]
 
-    elif source == "hybride_batteries":
-        sol = energie.get('solaire', {})
-        tableau_data = [
+    elif src == "hybride_batteries":
+        sol = e.get('solaire',{})
+        lignes = [
             ["Paramètre", "Valeur"],
-            ["Source d'énergie",          "Hybride — Solaire + Batteries"],
+            ["Source d'énergie", "Hybride — Solaire + Batteries"],
             ["— Énergie journalière",
-                str(energie.get('energie_jour_kWh',
-                    sol.get('energie_jour_kWh', '—'))) + " kWh/jour"],
+                str(e.get('energie_jour_kWh',
+                    sol.get('energie_jour_kWh','—'))) + " kWh/jour"],
             ["— Puissance crête solaire",
-                str(sol.get('puissance_crete_kWp', '—')) + " kWc"],
+                str(sol.get('puissance_crete_kWp','—')) + " kWc"],
             ["— Nombre de panneaux",
-                unite_nb(sol.get('nb_panneaux_300Wc', '—'), 'panneau', 'panneaux')],
-            ["— Tension système",         tension_str(sol)],
-            ["— Courant champ PV",        str(sol.get('courant_A', '—')) + " A"],
+                pluriel(sol.get('nb_panneaux_300Wc','—'), 'panneau','panneaux')],
+            ["— Tension système", _tension_str(sol, data)],
             ["— Énergie à stocker",
-                str(energie.get('energie_stockage_kWh', '—')) + " kWh"],
+                str(e.get('energie_stockage_kWh','—')) + " kWh"],
             ["— Capacité totale batteries",
-                str(energie.get('capacite_totale_Ah', '—')) + " Ah"],
+                str(e.get('capacite_totale_Ah','—')) + " Ah"],
             ["— Nombre de batteries",
-                unite_nb(energie.get('nb_batteries', '—'), 'batterie', 'batteries')],
+                pluriel(e.get('nb_batteries','—'), 'batterie','batteries')],
             ["— Jours d'autonomie",
                 str(data.get('jours_autonomie',
-                    energie.get('jours_autonomie', '—'))) + " jour(s)"],
-            ["— DoD",
-                str(round(float(data.get('dod', energie.get('dod', 0.70))) * 100)) + " %"],
+                    e.get('jours_autonomie','—'))) + " jour(s)"],
         ]
-
     else:
-        tableau_data = [
-            ["Paramètre", "Valeur"],
-            ["Source d'énergie", str(source)],
-        ]
+        lignes = [["Paramètre", "Valeur"], ["Source d'énergie", str(src)]]
 
-    tableau = Table(tableau_data, colWidths=[8.5 * cm, 8.5 * cm])
-    tableau.setStyle(style_tableau())
-    elements.append(tableau)
-    elements.append(Spacer(1, 0.3 * cm))
+    elements.append(tableau_donnees(lignes))
+    elements.append(esp())
     return elements
 
-
-# ============================================================
-# SECTION 7 — ÉQUIPEMENTS CHOISIS
-# ============================================================
 
 def section_equipements(data, styles):
-    elements = []
-    source      = data.get('source_energie', '')
-    equipements = data.get('equipements', {})
-    hasPV = source in ['solaire', 'hybride_groupe', 'hybride_batteries']
-
+    src   = data.get('source_energie','')
+    equip = data.get('equipements',{})
+    hasPV = src in ['solaire','hybride_groupe','hybride_batteries']
     if not hasPV and not data.get('marque_pompe'):
-        return elements
+        return []
 
-    elements.append(Spacer(1, 0.4 * cm))
-    elements.append(titre_section_bandeau("7. Équipements sélectionnés"))
-    elements.append(Spacer(1, 0.2 * cm))
+    elements = [bandeau("7. Équipements sélectionnés"), sep()]
 
-    marque_pompe = data.get('marque_pompe', '')
-    modele_pompe = data.get('modele_pompe', '')
-    if marque_pompe and modele_pompe:
+    mp  = data.get('marque_pompe','')
+    mdl = data.get('modele_pompe','')
+    if mp and mdl:
         elements.append(Paragraph("Pompe", styles["gras"]))
-        pompe_table = Table(
-            [["Marque", "Modèle"], [str(marque_pompe), str(modele_pompe)]],
-            colWidths=[8.5 * cm, 8.5 * cm]
-        )
-        pompe_table.setStyle(style_tableau_equipement())
-        elements.append(pompe_table)
-        elements.append(Spacer(1, 0.2 * cm))
+        elements.append(tableau_equipement(
+            [["Marque","Modèle"],[mp, mdl]],
+            col_widths=[8.5*cm, 8.5*cm]
+        ))
+        elements.append(Spacer(1, 0.25*cm))
 
     if hasPV:
-        marque_pan  = equipements.get('marque_panneau', '')
-        modele_pan  = equipements.get('modele_panneau', '')
-        nb_panneaux = data.get('nb_panneaux_calcul', '')
-
-        if marque_pan:
+        mp2 = equip.get('marque_panneau','')
+        md2 = equip.get('modele_panneau','')
+        nb2 = data.get('nb_panneaux_calcul','')
+        if mp2:
             elements.append(Paragraph("Panneau solaire", styles["gras"]))
-            pan_table = Table(
-                [["Marque", "Modèle", "Nombre calculé"],
-                 [str(marque_pan), str(modele_pan),
-                  unite_nb(nb_panneaux, 'panneau', 'panneaux')]],
-                colWidths=[5.0 * cm, 8.0 * cm, 4.0 * cm]
-            )
-            pan_table.setStyle(style_tableau_equipement())
-            elements.append(pan_table)
-            elements.append(Spacer(1, 0.2 * cm))
+            elements.append(tableau_equipement(
+                [["Marque","Modèle","Nombre calculé"],
+                 [mp2, md2, pluriel(nb2,'panneau','panneaux')]]
+            ))
+            elements.append(Spacer(1, 0.25*cm))
 
-        if source == 'hybride_batteries':
-            marque_bat = equipements.get('marque_batterie', '')
-            modele_bat = equipements.get('modele_batterie', '')
-            nb_bat     = data.get('energie', {}).get('nb_batteries', '')
-
-            if marque_bat:
+        if src == 'hybride_batteries':
+            mb  = equip.get('marque_batterie','')
+            mdb = equip.get('modele_batterie','')
+            nb3 = data.get('energie',{}).get('nb_batteries','')
+            if mb:
                 elements.append(Paragraph("Batterie", styles["gras"]))
-                bat_table = Table(
-                    [["Marque", "Modèle", "Nombre calculé"],
-                     [str(marque_bat), str(modele_bat),
-                      unite_nb(nb_bat, 'batterie', 'batteries')]],
-                    colWidths=[5.0 * cm, 8.0 * cm, 4.0 * cm]
-                )
-                bat_table.setStyle(style_tableau_equipement())
-                elements.append(bat_table)
-                elements.append(Spacer(1, 0.2 * cm))
+                elements.append(tableau_equipement(
+                    [["Marque","Modèle","Nombre calculé"],
+                     [mb, mdb, pluriel(nb3,'batterie','batteries')]]
+                ))
 
-    elements.append(Spacer(1, 0.3 * cm))
+        # Onduleur
+        marque_ond = equip.get('marque_onduleur', '')
+        modele_ond = equip.get('modele_onduleur', '')
+        type_ond   = data.get('type_onduleur', '')
+        if marque_ond and type_ond:
+            elements.append(Paragraph("Onduleur", styles["gras"]))
+            elements.append(tableau_equipement(
+                [["Marque", "Modèle", "Type"],
+                 [str(marque_ond), str(modele_ond), str(type_ond)]],
+                col_widths=[5.5*cm, 8.0*cm, 3.5*cm]
+            ))
+            elements.append(Spacer(1, 0.25*cm))
+
+    elements.append(esp())
     return elements
 
-
-# ============================================================
-# SECTION 8 — COÛT ESTIMATIF
-# ============================================================
 
 def section_cout(data, styles):
-    elements = []
     cout = data.get('cout') or {}
     if not cout:
-        return elements
+        return []
 
-    elements.append(Spacer(1, 0.4 * cm))
-    elements.append(titre_section_bandeau("8. Coût estimatif de l'installation"))
-    elements.append(Spacer(1, 0.2 * cm))
-
-    tableau_data = [
+    elements = [bandeau("8. Coût estimatif de l'installation"), sep()]
+    lignes = [
         ["Poste", "Montant (FCFA)"],
         ["Coût de la pompe",
-            "{:,.0f}".format(cout.get('C_pompe', 0)).replace(',', ' ')],
+            fmt_fcfa(cout.get('C_pompe',0))],
         ["Coût des équipements énergétiques",
-            "{:,.0f}".format(cout.get('C_energie', 0)).replace(',', ' ')],
+            fmt_fcfa(cout.get('C_energie',0))],
         ["Main d'œuvre & installation (15%)",
-            "{:,.0f}".format(cout.get('C_installation', 0)).replace(',', ' ')],
+            fmt_fcfa(cout.get('C_installation',0))],
         ["Divers & imprévus (10%)",
-            "{:,.0f}".format(cout.get('C_divers', 0)).replace(',', ' ')],
+            fmt_fcfa(cout.get('C_divers',0))],
         ["COÛT TOTAL ESTIMATIF",
-            "{:,.0f}".format(cout.get('C_total', 0)).replace(',', ' ')],
+            fmt_fcfa(cout.get('C_total',0))],
     ]
-
-    tableau = Table(tableau_data, colWidths=[8.5 * cm, 8.5 * cm])
-    tableau.setStyle(TableStyle([
-        *style_tableau()._cmds,
-        ('FONTNAME',   (0, -1), (-1, -1), 'Helvetica-Bold'),
-        ('TEXTCOLOR',  (0, -1), (-1, -1), VERT_TITRE),
-        ('LINEABOVE',  (0, -1), (-1, -1), 1.0, VERT_TITRE),
-        ('BACKGROUND', (0, -1), (-1, -1), VERT_LEGER),
-    ]))
-    elements.append(tableau)
-    elements.append(Spacer(1, 0.3 * cm))
+    elements.append(tableau_donnees_avec_total(lignes))
+    elements.append(esp())
     return elements
 
-
-# ============================================================
-# SECTION 9 — CONCLUSION
-# ============================================================
 
 def section_conclusion(data, styles):
-    elements = []
-    elements.append(Spacer(1, 0.4 * cm))
-    elements.append(titre_section_bandeau("9. Conclusion"))
-    elements.append(Spacer(1, 0.2 * cm))
-
-    h    = data.get('hydraulique', {})
-    p    = data.get('pompe', {})
-    src  = data.get('source_energie', '—')
-    mp   = data.get('marque_pompe', '—')
-    mdl  = data.get('modele_pompe', '—')
+    elements = [bandeau("9. Conclusion"), sep()]
+    h  = data.get('hydraulique',{})
+    p  = data.get('pompe',{})
+    src = data.get('source_energie','—')
+    mp  = data.get('marque_pompe','—')
+    mdl = data.get('modele_pompe','—')
     cout = data.get('cout') or {}
-    c_total = cout.get('C_total', 0)
 
     texte = (
-        "Le présent rapport présente les résultats du dimensionnement du système de pompage. "
-        "Le débit calculé est de <b>" + str(h.get('debit_m3_h', '—')) +
+        "Le présent rapport présente les résultats du dimensionnement "
+        "du système de pompage solaire. "
+        "Le débit calculé est de <b>" + str(h.get('debit_m3_h','—')) +
         " m³/h</b> pour une hauteur manométrique totale (HMT) de <b>" +
-        str(h.get('HMT_m', '—')) + " m</b>. "
-        "La puissance moteur nécessaire est de <b>" + str(p.get('Pm_kW', '—')) +
-        " kW</b> (puissance commerciale normalisée : <b>" +
-        str(p.get('Pm_commercial_kW', '—')) + " kW</b>). "
+        str(h.get('HMT_m','—')) + " m</b>. "
+        "La puissance moteur nécessaire est de <b>" +
+        str(p.get('Pm_kW','—')) + " kW</b> (puissance commerciale : <b>" +
+        str(p.get('Pm_commercial_kW','—')) + " kW</b>). "
         "La source d'énergie retenue est : <b>" +
-        str(src).replace('_', ' ').title() + "</b>. "
-        "La pompe sélectionnée est la <b>" + str(mp) + " " + str(mdl) + "</b>. "
-        "Le coût total estimatif de l'installation est de <b>" +
-        "{:,.0f}".format(c_total).replace(',', ' ') + " FCFA</b>."
+        str(src).replace('_',' ').title() + "</b>. "
+        "La pompe sélectionnée est la <b>" + mp + " " + mdl + "</b>."
     )
+    if cout.get('C_total'):
+        texte += (
+            " Le coût total estimatif de l'installation est de <b>" +
+            fmt_fcfa(cout['C_total']) + " FCFA</b>."
+        )
 
-    style_conc = ParagraphStyle(
-        name='Conclusion', fontName='Helvetica', fontSize=9,
-        textColor=GRIS_TEXTE, leading=16, alignment=TA_JUSTIFY, spaceAfter=10,
-    )
-    elements.append(Paragraph(texte, style_conc))
-    elements.append(Spacer(1, 0.3 * cm))
+    elements.append(Paragraph(texte, styles["conclusion"]))
+    elements.append(esp())
     return elements
 
 
-# ============================================================
-# PIED DE PAGE
-# ============================================================
+def section_signatures(data, styles):
+    elements = [PageBreak(), bandeau("Validation et signatures"), sep()]
+
+    realise_par = str(data.get('realise_par', 'Non renseigné'))
+    nom_client  = str(data.get('nom_client',  'Non renseigné'))
+    date_str    = formater_date(data.get('date_projet', ''))
+
+    lbl = ParagraphStyle(
+        name='SigLbl', fontName='Helvetica-Bold', fontSize=9,
+        textColor=BLANC, alignment=TA_CENTER,
+    )
+    txt = ParagraphStyle(
+        name='SigTxt', fontName='Helvetica', fontSize=9,
+        textColor=GRIS_TEXTE, leading=16,
+    )
+    ligne = HRFlowable(width="100%", thickness=0.5, color=GRIS_LIGNE,
+                       spaceAfter=4, spaceBefore=12)
+
+    # En-têtes colonnes
+    hdr_data = [[
+        Paragraph("LE TECHNICIEN", lbl),
+        Paragraph("LE CLIENT", lbl),
+    ]]
+    hdr_t = Table(hdr_data, colWidths=[8.5*cm, 8.5*cm])
+    hdr_t.setStyle(TableStyle([
+        ('BACKGROUND',    (0,0),(-1,-1), VERT_FONCE),
+        ('TOPPADDING',    (0,0),(-1,-1), 8),
+        ('BOTTOMPADDING', (0,0),(-1,-1), 8),
+        ('ALIGN',         (0,0),(-1,-1), 'CENTER'),
+        ('LINEAFTER',     (0,0),(0,-1),  0.5, VERT_ACCENT),
+    ]))
+    elements.append(hdr_t)
+    elements.append(Spacer(1, 0.4*cm))
+
+    # Texte technicien + client côte à côte
+    txt_tech = ("Je soussigné(e), <b>" + realise_par + "</b>, certifie avoir réalisé "
+                "cette étude conformément aux règles de l'art.")
+    txt_cli  = ("Je soussigné(e), <b>" + nom_client + "</b>, déclare avoir pris "
+                "connaissance de ce rapport de dimensionnement.")
+
+    corps_data = [[
+        Paragraph(txt_tech, txt),
+        Paragraph(txt_cli, txt),
+    ]]
+    corps_t = Table(corps_data, colWidths=[8.5*cm, 8.5*cm])
+    corps_t.setStyle(TableStyle([
+        ('VALIGN',        (0,0),(-1,-1), 'TOP'),
+        ('TOPPADDING',    (0,0),(-1,-1), 0),
+        ('LEFTPADDING',   (0,0),(-1,-1), 6),
+        ('RIGHTPADDING',  (0,0),(-1,-1), 6),
+    ]))
+    elements.append(corps_t)
+    elements.append(Spacer(1, 1.2*cm))
+
+    # Lignes signature + date + cachet
+    sig_style = ParagraphStyle(
+        name='SigLine', fontName='Helvetica', fontSize=9,
+        textColor=GRIS_TEXTE,
+    )
+    sig_data = [
+        [Paragraph("Signature :", sig_style),       Paragraph("Signature :", sig_style)],
+        [Spacer(1, 1.5*cm),                          Spacer(1, 1.5*cm)],
+        [HRFlowable(width=7*cm, thickness=0.5, color=GRIS_LIGNE, spaceAfter=8, spaceBefore=2),
+         HRFlowable(width=7*cm, thickness=0.5, color=GRIS_LIGNE, spaceAfter=8, spaceBefore=2)],
+        [Paragraph("Date : " + date_str, sig_style), Paragraph("Date : " + date_str, sig_style)],
+        [Spacer(1, 0.6*cm),                          Spacer(1, 0.6*cm)],
+        [HRFlowable(width=7*cm, thickness=0.5, color=GRIS_LIGNE, spaceAfter=8, spaceBefore=2),
+         HRFlowable(width=7*cm, thickness=0.5, color=GRIS_LIGNE, spaceAfter=8, spaceBefore=2)],
+        [Paragraph("Cachet :", sig_style),           Paragraph("", sig_style)],
+        [Spacer(1, 2.0*cm),                          Spacer(1, 0.5*cm)],
+        [HRFlowable(width=4*cm, thickness=0.5, color=GRIS_LIGNE, spaceAfter=2, spaceBefore=2),
+         Paragraph("", sig_style)],
+    ]
+    sig_t = Table(sig_data, colWidths=[8.5*cm, 8.5*cm])
+    sig_t.setStyle(TableStyle([
+        ('VALIGN',        (0,0),(-1,-1), 'TOP'),
+        ('TOPPADDING',    (0,0),(-1,-1), 4),
+        ('BOTTOMPADDING', (0,0),(-1,-1), 4),
+        ('LEFTPADDING',   (0,0),(-1,-1), 6),
+        ('RIGHTPADDING',  (0,0),(-1,-1), 6),
+    ]))
+    elements.append(sig_t)
+    return elements
+
 
 def pied_de_page(styles):
-    elements = []
-    elements.append(Spacer(1, 0.8 * cm))
-    elements.append(
-        HRFlowable(width="100%", thickness=1.5, color=VERT_TITRE,
-                   spaceAfter=6, spaceBefore=2)
-    )
-    elements.append(
+    return [
+        Spacer(1, 0.6*cm),
+        HRFlowable(width="100%", thickness=1.5, color=VERT_FONCE,
+                   spaceAfter=6, spaceBefore=2),
         Paragraph(
-            "HydroPump v1.0 · Rapport généré le "
-            + datetime.now().strftime("%d/%m/%Y à %H:%M")
-            + " · Les résultats sont donnés à titre indicatif "
+            "HydroPump v1.0  ·  Rapport généré le " +
+            datetime.now().strftime("%d/%m/%Y à %H:%M") +
+            "  ·  Les résultats sont donnés à titre indicatif "
             "et doivent être validés par un ingénieur qualifié.",
             styles["pied"]
-        )
-    )
-    return elements
+        ),
+    ]

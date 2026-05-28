@@ -327,6 +327,8 @@ def calculer():
                 'capacite_batterie_Ah': data.get('capacite_batterie_Ah', 200),
                 'type_batterie':        data.get('type_batterie', 'GEL'),
                 'puissance_groupe_kW':  resultats.get('energie', {}).get('puissance_groupe_kW', 0),
+                'puissance_onduleur_kW': float(data.get('puissance_onduleur_kW', 0) or 0),
+                'type_onduleur':         data.get('type_onduleur', ''),
             }
             resultats['cout'] = calculer_cout(cout_data)
         except Exception as e:
@@ -363,6 +365,11 @@ def generer_pdf():
     try:
         data = request.get_json()
         generateur_pdf = charger_module('generateur_pdf', os.path.join(dossier, 'generateur_pdf.py'))
+        tension_systeme       = data.get('tension_systeme', '—')
+        type_onduleur         = data.get('type_onduleur', '')
+        puissance_onduleur_kW = float(data.get('puissance_onduleur_kW', 0) or 0)
+        marque_onduleur       = data.get('marque_onduleur', '')
+        modele_onduleur       = data.get('modele_onduleur', '')
         data['equipements'] = {
             'marque_panneau':    data.get('marque_panneau', ''),
             'modele_panneau':    data.get('modele_panneau', ''),
@@ -370,9 +377,13 @@ def generer_pdf():
             'modele_regulateur': data.get('modele_regulateur', ''),
             'marque_batterie':   data.get('marque_batterie', ''),
             'modele_batterie':   data.get('modele_batterie', ''),
+            'marque_onduleur':   marque_onduleur,
+            'modele_onduleur':   modele_onduleur,
         }
+        data['tension_systeme']       = tension_systeme
+        data['type_onduleur']         = type_onduleur
+        data['puissance_onduleur_kW'] = puissance_onduleur_kW
         data.setdefault('nom_client',      '')
-        data.setdefault('tension_systeme', '')
         data.setdefault('jours_autonomie', None)
         data.setdefault('dod',             0.70)
         buffer = generateur_pdf.generer_rapport(data)
