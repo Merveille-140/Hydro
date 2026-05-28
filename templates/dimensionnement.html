@@ -2054,6 +2054,12 @@ function chargerCaracteristiques() {
             document.getElementById('carac_rendement').innerText   = (p.rendement * 100).toFixed(0) + '%';
             document.getElementById('carac_description').innerText = p.description;
             divC.classList.remove('hidden');
+            var source = document.getElementById('source_energie').value;
+            var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
+            var tension = p.tension_V ? p.tension_V.toString() : '';
+            var isAC = tension.includes('230') || tension.includes('AC') || p.type_pompe === 'AC';
+            var divOnd = document.getElementById('div_choix_onduleur');
+            if (divOnd) divOnd.classList.toggle('hidden', !(hasPV && isAC));
         }
     });
 }
@@ -2095,6 +2101,12 @@ function chargerCaracteristiquesIrr() {
             document.getElementById('carac_rendement_irr').innerText   = (p.rendement * 100).toFixed(0) + '%';
             document.getElementById('carac_description_irr').innerText = p.description;
             divC.classList.remove('hidden');
+            var source = document.getElementById('source_energie').value;
+            var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
+            var tension = p.tension_V ? p.tension_V.toString() : '';
+            var isAC = tension.includes('230') || tension.includes('AC') || p.type_pompe === 'AC';
+            var divOnd = document.getElementById('div_choix_onduleur');
+            if (divOnd) divOnd.classList.toggle('hidden', !(hasPV && isAC));
         }
     });
 }
@@ -2156,20 +2168,7 @@ function chargerMarquesBatteries() {
 }
 
 function chargerModelesBatteries() {
-    var marque = document.getElementById('marque_batterie').value;
-    if (!marque) return;
-    fetch('/get_modeles_batteries', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque}) })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.succes && data.modeles.length > 0) {
-            var select = document.getElementById('modele_batterie');
-            if (!select) return;
-            select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
-            data.modeles.forEach(function(b, i) { select.innerHTML += '<option value="' + i + '">' + b.capacite_Ah + 'Ah — ' + b.tension_V + 'V — ' + b.type + '</option>'; });
-            select.disabled = false;
-            select._modeles = data.modeles;
-        }
-    });
+    // modele_batterie supprimé — fonction désactivée
 }
 
 function afficherCaracBatterie() {
@@ -2258,17 +2257,8 @@ function mettreAJourEquipements() {
     document.getElementById('div_choix_batteries').classList.toggle('hidden', !hasBat);
     var cardEq = document.getElementById('card-equipements');
     if (cardEq) cardEq.classList.toggle('hidden', !hasPV);
-    var pompeAC = false;
-    var radioPompe = document.querySelector('input[name="choix_pompe_cl"]:checked');
-    if (radioPompe && radioPompe.value === 'base') {
-        var modelePompe = document.getElementById('modele_pompe');
-        if (modelePompe && modelePompe.value) {
-            pompeAC = true;
-        }
-    }
-    var needOnduleur = hasPV && pompeAC;
     var divOnd = document.getElementById('div_choix_onduleur');
-    if (divOnd) divOnd.classList.toggle('hidden', !needOnduleur);
+    if (divOnd) divOnd.classList.add('hidden');
 }
 
 var PLAGES_HEURES = {
