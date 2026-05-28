@@ -1722,9 +1722,9 @@ function allerVers(page) {
     if (page === 'localisation') { setTimeout(function() { carte.invalidateSize(); }, 300); }
     if (page === 'energie') {
         setTimeout(function() {
-            if (window._ir_nasa) {
-                mettreAJourPreviewPV();
-            }
+            afficherHeuresPompage();
+            mettreAJourEquipements();
+            mettreAJourPreviewPV();
         }, 200);
     }
 }
