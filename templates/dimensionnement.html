@@ -1283,8 +1283,7 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Besoin journalier total (m³/jour)</label>
-                            <input type="number" id="besoin_journalier" placeholder="Calculé automatiquement" step="0.1" min="0.1"/>
-                            <div class="form-hint">Calculé automatiquement ou saisissez manuellement</div>
+                            <input type="number" id="besoin_journalier" placeholder="" step="0.1" min="0.1"/>
                         </div>
                     </div>
                     <div id="msg_besoin_auto"></div>
@@ -1303,7 +1302,7 @@
                             <div class="form-group"><label class="form-label">Niveau dynamique (m)</label><input type="number" id="niveau_dynamique" placeholder="Ex: 25" step="0.5" min="0" onchange="calculerRabattement()"/><div class="form-hint">Profondeur de l'eau pendant le pompage</div></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group"><label class="form-label">Rabattement (m)</label><input type="number" id="rabattement" placeholder="Calculé automatiquement" readonly style="color:white;font-weight:600;"/><div class="form-hint">= Niveau dynamique − Niveau statique</div></div>
+                            <div class="form-group"><label class="form-label">Rabattement (m)</label><input type="number" id="rabattement" placeholder="" readonly style="color:white;font-weight:600;"/><div class="form-hint">= Niveau dynamique − Niveau statique</div></div>
                             <div class="form-group"><label class="form-label">Diamètre du forage</label><select id="diametre_forage"><option value="100">100 mm (4 pouces)</option><option value="125">125 mm (5 pouces)</option><option value="150">150 mm (6 pouces)</option><option value="200">200 mm (8 pouces)</option></select></div>
                         </div>
                     </div>
@@ -1316,17 +1315,13 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Diamètre (m)</label>
-                                <input type="number" id="diametre_reservoir_f" placeholder="Calculé auto" step="0.1" readonly style="color:white;"/>
+                                <input type="number" id="diametre_reservoir_f" placeholder="" step="0.1" readonly style="color:white;"/>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Hauteur (m)</label>
-                                <input type="number" id="hauteur_reservoir_f" placeholder="Calculée auto" step="0.1" readonly style="color:white;"/>
+                                <input type="number" id="hauteur_reservoir_f" placeholder="" step="0.1" readonly style="color:white;"/>
                             </div>
                         </div>
-                        <div id="msg_reservoir_f"></div>
-                        <button type="button" onclick="calculerReservoir('f')" style="margin-top:10px; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#86efac; padding:8px 16px; border-radius:8px; font-size:12px; cursor:pointer; font-family:inherit;">
-                            📐 Calculer les dimensions recommandées
-                        </button>
                     </div>
                     <div class="card">
                         <div class="card-title">Paramètres hydrauliques</div>
@@ -1355,17 +1350,13 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Diamètre (m)</label>
-                                <input type="number" id="diametre_reservoir_l" placeholder="Calculé auto" step="0.1" readonly style="color:white;"/>
+                                <input type="number" id="diametre_reservoir_l" placeholder="" step="0.1" readonly style="color:white;"/>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Hauteur (m)</label>
-                                <input type="number" id="hauteur_reservoir_l" placeholder="Calculée auto" step="0.1" readonly style="color:white;"/>
+                                <input type="number" id="hauteur_reservoir_l" placeholder="" step="0.1" readonly style="color:white;"/>
                             </div>
                         </div>
-                        <div id="msg_reservoir_l"></div>
-                        <button type="button" onclick="calculerReservoir('l')" style="margin-top:10px; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#86efac; padding:8px 16px; border-radius:8px; font-size:12px; cursor:pointer; font-family:inherit;">
-                            📐 Calculer les dimensions recommandées
-                        </button>
                     </div>
                     <div class="card">
                         <div class="card-title">Paramètres hydrauliques</div>
@@ -1928,8 +1919,6 @@ function calculerReservoir(type) {
     document.getElementById('volume_reservoir_' + type).value = volume.toFixed(1);
     document.getElementById('diametre_reservoir_' + type).value = D.toFixed(2);
     document.getElementById('hauteur_reservoir_' + type).value = H.toFixed(2);
-    var msgDiv = document.getElementById('msg_reservoir_' + type);
-    msgDiv.innerHTML = '<div class="msg msg-success">✅ Réservoir recommandé : ' + volume.toFixed(1) + ' m³ — Ø ' + D.toFixed(2) + ' m × H ' + H.toFixed(2) + ' m (30% du besoin journalier selon TRIFUNOVIC, 2006)</div>';
 }
 
 function verifierReservoir(type) {
