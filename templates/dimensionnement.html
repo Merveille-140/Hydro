@@ -1970,7 +1970,7 @@ function chargerModeles() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.succes && data.modeles.length > 0) {
-            data.modeles.forEach(function(m) { select.innerHTML += '<option value="' + m.modele + '">' + m.modele + ' — Q max ' + m.debit_max_m3h + ' m³/h — HMT ' + m.HMT_max_m + ' m</option>'; });
+            data.modeles.forEach(function(m) { select.innerHTML += '<option value="' + m.modele + '">' + m.modele + ' (' + (m.source_energie || '—') + ') — Q max ' + m.debit_max_m3h + ' m³/h — HMT ' + m.HMT_max_m + ' m</option>'; });
             select.disabled = false;
         }
     });
@@ -2012,7 +2012,7 @@ function chargerModelesIrr() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.succes && data.modeles.length > 0) {
-            data.modeles.forEach(function(m) { select.innerHTML += '<option value="' + m.modele + '">' + m.modele + ' — Q max ' + m.debit_max_m3h + ' m³/h — HMT ' + m.HMT_max_m + ' m</option>'; });
+            data.modeles.forEach(function(m) { select.innerHTML += '<option value="' + m.modele + '">' + m.modele + ' (' + (m.source_energie || '—') + ') — Q max ' + m.debit_max_m3h + ' m³/h — HMT ' + m.HMT_max_m + ' m</option>'; });
             select.disabled = false;
         }
     });
