@@ -1480,21 +1480,11 @@
                 </div>
                 <!-- 3-4. Jours autonomie + DoD (visible si hybride_batteries) -->
                 <div id="batteries_div" class="hidden">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Jours d'autonomie</label>
-                            <input type="number" id="jours_autonomie" value="2" min="1" max="5" oninput="mettreAJourPreviewPV()"/>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">DoD (Profondeur de décharge)</label>
-                            <select id="dod" onchange="mettreAJourPreviewPV()">
-                                <option value="0.50">50%</option>
-                                <option value="0.60">60%</option>
-                                <option value="0.70" selected>70%</option>
-                                <option value="0.80">80%</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">Jours d'autonomie</label>
+                        <input type="number" id="jours_autonomie" value="2" min="1" max="5" oninput="mettreAJourPreviewPV()"/>
                     </div>
+                    <input type="hidden" id="dod" value="0.70"/>
                 </div>
             </div>
 
@@ -1805,6 +1795,7 @@ function recupererDonnees() {
             document.getElementById('ET0_max').innerText         = data.ET0_max;
             document.getElementById('mois_critique').innerText   = data.mois_critique;
             document.getElementById('irradiation').innerText     = data.irradiation;
+            window._ir_nasa = parseFloat(data.irradiation) || 0;
             document.getElementById('temperature_max').innerText = data.temperature_max;
             document.getElementById('temperature_min').innerText = data.temperature_min;
             document.getElementById('climate-section').classList.remove('hidden');
@@ -2187,6 +2178,17 @@ function afficherCaracPanneau() {
     }
 }
 
+function mettreAJourDoD() {
+    var typeBat = '';
+    var manType = document.getElementById('man_bat_type');
+    if (manType) typeBat = manType.value.toLowerCase();
+    var dod = 0.70;
+    if (typeBat.includes('lithium')) dod = 0.80;
+    if (typeBat.includes('plomb'))   dod = 0.50;
+    document.getElementById('dod').value = dod;
+    mettreAJourPreviewPV();
+}
+
 function chargerMarquesBatteries() {
     fetch('/get_marques_batteries').then(function(r) { return r.json(); }).then(function(data) {
         if (data.succes) {
@@ -2311,14 +2313,24 @@ function mettreAJourPreviewPV() {
         }
     }
 
-    var Ir  = parseFloat(document.getElementById('irradiation').innerText) || 0;
+    var Ir = window._ir_nasa || parseFloat(document.getElementById('irradiation').innerText) || 0;
     var Pr  = parseFloat(document.getElementById('pr_ratio').value) || 0.75;
     var Rmp = 0.54;
+
+    if (Q <= 0 && modeActuel !== 'irrigation') {
+        var nb    = parseFloat(document.getElementById('nb_beneficiaires').value) || 0;
+        var conso = parseFloat((document.getElementById('consommation_unitaire') || {}).value) || 10;
+        if (nb > 0) Q = (conso * nb) / 1000;
+    }
 
     console.log('[Preview PV] Q=', Q, 'HMT=', HMT, 'Ir=', Ir,
                 'Pr=', Pr, 'mode=', modeActuel);
 
-    if (Q <= 0 || HMT <= 0 || Ir <= 0) { preview.classList.add('hidden'); return; }
+    if (Q <= 0 || HMT <= 0 || Ir <= 0) {
+        preview.classList.remove('hidden');
+        preview.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.4);text-align:center;padding:8px;">Complétez les étapes précédentes pour voir l\'estimation</div>';
+        return;
+    }
 
     var Eelec = (2.725 * Q * HMT) / (Rmp * 1000);
     var Pc    = Eelec / (Ir * Pr);
@@ -2710,10 +2722,12 @@ setTimeout(function() {
         var el = document.getElementById(id);
         if (el) el.addEventListener('input', mettreAJourPreviewPV);
     });
-    ['pr_ratio','dod','type_systeme_hydraulique'].forEach(function(id) {
+    ['pr_ratio','type_systeme_hydraulique'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener('change', mettreAJourPreviewPV);
     });
+    var manBatType = document.getElementById('man_bat_type');
+    if (manBatType) manBatType.addEventListener('change', mettreAJourDoD);
 }, 1000);
 
 document.addEventListener('keydown', function(e) {
