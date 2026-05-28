@@ -1442,76 +1442,7 @@
             <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="vertical-align:middle;margin-right:3px;"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>Besoins</div><div class="step-sub-lbl">Usage & eau</div></div></div>
             <div class="step-line done"></div>
             <div class="step-item active"><div class="step-circle">3</div><div class="step-info"><div class="step-lbl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="vertical-align:middle;margin-right:3px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Énergie</div><div class="step-sub-lbl">Source & hydraulique</div></div></div>
-         Dans templates/dimensionnement.html, corriger la fonction
-mettreAJourPreviewPV() pour qu'elle lise Q et HMT
-depuis les champs de saisie (étape Besoins),
-et non depuis les éléments de résultats.
-
-=== PROBLÈME ACTUEL ===
-Ces lignes lisent des éléments vides avant le calcul :
-  var Q   = parseFloat(document.getElementById('res_besoin_brut').innerText) || 0;
-  var HMT = parseFloat(document.getElementById('res_HMT').innerText) || 0;
-
-=== CORRECTION ===
-Remplacer la récupération de Q et HMT par cette logique :
-
-  // Q : besoin journalier brut en m³/jour
-  // Vient du champ besoin_journalier (mode classique)
-  // ou estimé depuis superficie + ET0 (mode irrigation)
-  var modeActuel = window.modeActuel || 'classique';
-  var Q = 0;
-  if (modeActuel === 'classique') {
-      Q = parseFloat(document.getElementById('besoin_journalier').value) || 0;
-  } else {
-      // irrigation : estimé depuis superficie (ha) et ET0
-      var superficie_ha = convertirSuperficie() || 0;
-      var ET0 = parseFloat(document.getElementById('ET0_max').innerText) || 0;
-      var culture = document.getElementById('culture').value;
-      var KC_MAP = {
-          'tomate': 1.03, 'piment': 1.04, 'riz': 1.20,
-          'autre': parseFloat(document.getElementById('kc_manuel').value) || 1.0
-      };
-      var Kc = KC_MAP[culture] || 1.0;
-      var ETc_mm = ET0 * Kc;
-      Q = (ETc_mm * superficie_ha * 10) / 1000; // m³/jour approx
-  }
-
-  // HMT : estimée depuis les champs de saisie
-  var HMT = 0;
-  if (modeActuel === 'classique') {
-      var type_sys = document.getElementById('type_systeme_hydraulique') ?
-                     document.getElementById('type_systeme_hydraulique').value : 'forage_reservoir';
-      if (type_sys === 'forage_reservoir') {
-          var nd = parseFloat(document.getElementById('niveau_dynamique').value) || 0;
-          var hr = parseFloat(document.getElementById('hauteur_reservoir_f').value) || 0;
-          HMT = nd + hr + 5; // 5m pertes de charge estimées
-      } else {
-          var ha = parseFloat(document.getElementById('hauteur_aspiration_lac').value) || 0;
-          var hr = parseFloat(document.getElementById('hauteur_reservoir_l').value) || 0;
-          HMT = ha + hr + 5;
-      }
-  } else {
-      var hasp = parseFloat(document.getElementById('profondeur_aspiration').value) || 0;
-      var href = parseFloat(document.getElementById('hauteur_refoulement').value) || 0;
-      HMT = hasp + href + 5; // 5m pertes de charge estimées
-  }
-
-  // Ir : déjà lu depuis la page localisation — conserver tel quel
-  var Ir = parseFloat(document.getElementById('irradiation').innerText) || 0;
-
-=== AUSSI : déclencher mettreAJourPreviewPV() automatiquement ===
-Ajouter des écouteurs oninput/onchange sur ces champs
-pour que le preview se mette à jour en temps réel :
-  - besoin_journalier (mode classique)
-  - niveau_dynamique, hauteur_reservoir_f (mode classique forage)
-  - profondeur_aspiration, hauteur_refoulement (mode irrigation)
-  - heures_pompage
-  - pr_ratio (déjà présent, conserver)
-
-=== CONTRAINTES ===
-- Ne modifier que la fonction mettreAJourPreviewPV()
-  et les écouteurs d'événements associés
-- Ne rien toucher d'autre   <div class="step-line"></div>
+<div class="step-line"></div>
             <div class="step-item"><div class="step-circle">4</div><div class="step-info"><div class="step-lbl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="vertical-align:middle;margin-right:3px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Résultats</div><div class="step-sub-lbl">Dimensionnement</div></div></div>
         </div>
     </div>
@@ -2354,70 +2285,61 @@ function mettreAJourPreviewPV() {
     var preview = document.getElementById('preview_pv');
     if (!hasPV || !preview) return;
 
-    var modeActuel = window.modeActuel || 'classique';
-    var Q = 0;
-    if (modeActuel === 'classique') {
-        Q = parseFloat(document.getElementById('besoin_journalier').value) || 0;
-    } else {
+    var Q = 0, HMT = 0;
+    if (modeActuel === 'irrigation') {
+        var hasp = parseFloat(document.getElementById('profondeur_aspiration').value) || 0;
+        var href  = parseFloat(document.getElementById('hauteur_refoulement').value)  || 0;
         var superficie_ha = convertirSuperficie() || 0;
         var ET0 = parseFloat(document.getElementById('ET0_max').innerText) || 0;
         var culture = document.getElementById('culture').value;
-        var KC_MAP = {
-            'tomate': 1.03, 'piment': 1.04, 'riz': 1.20,
-            'autre': parseFloat(document.getElementById('kc_manuel').value) || 1.0
-        };
+        var KC_MAP = {'tomate':1.03,'piment':1.04,'riz':1.20,'autre':parseFloat((document.getElementById('kc_manuel')||{}).value)||1.0};
         var Kc = KC_MAP[culture] || 1.0;
-        Q = (ET0 * Kc * superficie_ha * 10) / 1000;
-    }
-
-    var HMT = 0;
-    if (modeActuel === 'classique') {
+        Q   = (ET0 * Kc * superficie_ha * 10) / 1000;
+        HMT = hasp + href + 5;
+    } else {
+        Q = parseFloat(document.getElementById('besoin_journalier').value) || 0;
         var type_sys = document.getElementById('type_systeme_hydraulique') ?
                        document.getElementById('type_systeme_hydraulique').value : 'forage_reservoir';
         if (type_sys === 'forage_reservoir') {
-            var nd = parseFloat(document.getElementById('niveau_dynamique').value) || 0;
+            var nd = parseFloat(document.getElementById('niveau_dynamique').value)    || 0;
             var hr = parseFloat(document.getElementById('hauteur_reservoir_f').value) || 0;
             HMT = nd + hr + 5;
         } else {
-            var ha_l = parseFloat(document.getElementById('hauteur_aspiration_lac').value) || 0;
-            var hr_l = parseFloat(document.getElementById('hauteur_reservoir_l').value) || 0;
-            HMT = ha_l + hr_l + 5;
+            var ha2 = parseFloat(document.getElementById('hauteur_aspiration_lac').value) || 0;
+            var hr2 = parseFloat(document.getElementById('hauteur_reservoir_l').value)    || 0;
+            HMT = ha2 + hr2 + 5;
         }
-    } else {
-        var hasp = parseFloat(document.getElementById('profondeur_aspiration').value) || 0;
-        var href = parseFloat(document.getElementById('hauteur_refoulement').value) || 0;
-        HMT = hasp + href + 5;
     }
 
     var Ir  = parseFloat(document.getElementById('irradiation').innerText) || 0;
     var Pr  = parseFloat(document.getElementById('pr_ratio').value) || 0.75;
-    var Rmp = 0.54; // RENDEMENT_POMPE(0.60) × RENDEMENT_MOTEUR(0.90)
+    var Rmp = 0.54;
 
     if (Q <= 0 || HMT <= 0 || Ir <= 0) { preview.classList.add('hidden'); return; }
 
-    var Eelec = (2.725e-3 * Q * HMT) / Rmp;
+    var Eelec = (2.725 * Q * HMT) / (Rmp * 1000);
     var Pc    = Eelec / (Ir * Pr);
 
     var U, bgColor, msg = '';
     if      (Pc <= 0.5) { U = 12; bgColor = 'rgba(34,197,94,0.25)';  }
     else if (Pc <= 1.5) { U = 24; bgColor = 'rgba(34,197,94,0.25)';  }
     else if (Pc <= 5.0) { U = 48; bgColor = 'rgba(251,191,36,0.25)'; }
-    else                { U = 96; bgColor = 'rgba(239,68,68,0.25)'; msg = ' — Grand système — vérifier configuration'; }
+    else                { U = 96; bgColor = 'rgba(239,68,68,0.25)';
+                          msg = ' — Grand système, vérifier configuration'; }
 
-    var elEelec = document.getElementById('prev_eelec');
-    var elPc    = document.getElementById('prev_pc');
-    var elBadge = document.getElementById('prev_usyst_badge');
-    if (elEelec) elEelec.innerText = Eelec.toFixed(2);
-    if (elPc)    elPc.innerText    = Pc.toFixed(3);
-    if (elBadge) elBadge.innerHTML = '<span style="padding:3px 10px;border-radius:4px;background:' + bgColor + ';font-weight:600;color:white;">' + U + ' V</span>' + (msg ? '<span style="font-size:11px;color:#f87171;margin-left:6px;">' + msg + '</span>' : '');
+    document.getElementById('prev_eelec').innerText = Eelec.toFixed(2);
+    document.getElementById('prev_pc').innerText    = Pc.toFixed(3);
+    document.getElementById('prev_usyst_badge').innerHTML =
+        '<span style="padding:3px 10px;border-radius:4px;background:' + bgColor +
+        ';font-weight:600;color:white;">' + U + ' V</span>' +
+        (msg ? '<span style="font-size:11px;color:#f87171;margin-left:6px;">' + msg + '</span>' : '');
 
     var batRow = document.getElementById('prev_bat_row');
     if (source === 'hybride_batteries' && batRow) {
         var J   = parseInt(document.getElementById('jours_autonomie').value) || 2;
         var DoD = parseFloat(document.getElementById('dod').value) || 0.70;
         var CAh = Math.ceil((Eelec * 1000 * J) / (U * DoD));
-        var elCap = document.getElementById('prev_cap_ah');
-        if (elCap) elCap.innerText = CAh;
+        document.getElementById('prev_cap_ah').innerText = CAh;
         batRow.style.display = '';
     } else if (batRow) {
         batRow.style.display = 'none';
@@ -2778,14 +2700,14 @@ setTimeout(function() {
     chargerTypesOnduleurs();
     mettreAJourEquipements();
 
-    var _prevIDs = ['besoin_journalier', 'niveau_dynamique', 'hauteur_reservoir_f',
-                    'profondeur_aspiration', 'hauteur_refoulement', 'heures_pompage'];
-    _prevIDs.forEach(function(id) {
+    ['besoin_journalier','niveau_dynamique','hauteur_reservoir_f',
+     'hauteur_aspiration_lac','hauteur_reservoir_l',
+     'profondeur_aspiration','hauteur_refoulement',
+     'superficie','heures_pompage'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener('input', mettreAJourPreviewPV);
     });
-    var _prevSelects = ['pr_ratio', 'dod', 'type_systeme_hydraulique'];
-    _prevSelects.forEach(function(id) {
+    ['pr_ratio','dod','type_systeme_hydraulique'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener('change', mettreAJourPreviewPV);
     });
