@@ -2052,7 +2052,7 @@ function chargerCaracteristiques() {
             var source = document.getElementById('source_energie').value;
             var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
             var tension = p.tension_V ? p.tension_V.toString().toUpperCase() : '';
-            var isAC = tension.includes('AC') || tension.includes('230') || tension.includes('380');
+            var isAC = tension.includes('AC') || tension.includes('220') || tension.includes('230') || tension.includes('380');
             var isTriphase = tension.includes('380') || tension.includes('3X') || tension.includes('3x');
             var divOnd = document.getElementById('div_choix_onduleur');
             var msgOnd = document.getElementById('msg_onduleur_avert');
@@ -2112,7 +2112,7 @@ function chargerCaracteristiquesIrr() {
             var source = document.getElementById('source_energie').value;
             var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
             var tension = p.tension_V ? p.tension_V.toString().toUpperCase() : '';
-            var isAC = tension.includes('AC') || tension.includes('230') || tension.includes('380');
+            var isAC = tension.includes('AC') || tension.includes('220') || tension.includes('230') || tension.includes('380');
             var isTriphase = tension.includes('380') || tension.includes('3X') || tension.includes('3x');
             var divOnd = document.getElementById('div_choix_onduleur');
             var msgOnd = document.getElementById('msg_onduleur_avert');
