@@ -1454,24 +1454,40 @@
                 <div class="card-title">Source d'énergie</div>
                 <input type="hidden" id="source_energie" value="{{ session.get('source_energie', 'solaire') }}"/>
                 <p>Source : <strong style="color:#fbbf24;">{{ session.get('source_energie','solaire')|replace('_',' ')|title }}</strong></p>
-                <div id="pv_params_div" class="form-group">
-                    <label class="form-label">Ratio de performance Pr</label>
-                    <select id="pr_ratio">
-                        <option value="0.70">0.70 — Conditions défavorables</option>
-                        <option value="0.75" selected>0.75 — Standard (recommandé)</option>
-                        <option value="0.80">0.80 — Bonnes conditions</option>
-                    </select>
-                    <div id="badge_usyst" style="margin-top:8px; padding:6px 12px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); border-radius:6px; font-size:12px; color:#a5b4fc; display:none;"></div>
+                <!-- 1. Heures de pompage -->
+                <div class="form-group">
+                    <label class="form-label">Heures de pompage / jour</label>
+                    <input type="number" id="heures_pompage" value="6" step="0.5" min="1" max="16"/>
+                    <div id="heures_recommandees" class="msg msg-green" style="margin-top:8px;">Pour le solaire : entre 4h et 8h recommandées</div>
                 </div>
+                <!-- 2. Ratio Pr + preview (visible si source PV) -->
+                <div id="pv_params_div" class="hidden">
+                    <div class="form-group">
+                        <label class="form-label">Ratio de performance Pr</label>
+                        <select id="pr_ratio" onchange="mettreAJourPreviewPV()">
+                            <option value="0.70">0.70 — Conditions défavorables</option>
+                            <option value="0.75" selected>0.75 — Standard (recommandé)</option>
+                            <option value="0.80">0.80 — Bonnes conditions</option>
+                        </select>
+                    </div>
+                    <div id="preview_pv" class="hidden" style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.18); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+                        <div style="font-size:11px; font-weight:600; color:var(--gray-500); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">Estimation préliminaire</div>
+                        <div class="result-row"><span class="result-label">Énergie journalière</span><span class="result-value"><span id="prev_eelec">—</span> <span class="result-unit">kWh/j</span></span></div>
+                        <div class="result-row"><span class="result-label">Puissance crête</span><span class="result-value"><span id="prev_pc">—</span> <span class="result-unit">kWc</span></span></div>
+                        <div class="result-row"><span class="result-label">⚡ Tension système</span><span id="prev_usyst_badge" style="font-size:13px;">—</span></div>
+                        <div class="result-row" id="prev_bat_row" style="display:none;"><span class="result-label">Capacité totale batteries</span><span class="result-value"><span id="prev_cap_ah">—</span> <span class="result-unit">Ah</span></span></div>
+                    </div>
+                </div>
+                <!-- 3-4. Jours autonomie + DoD (visible si hybride_batteries) -->
                 <div id="batteries_div" class="hidden">
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Jours d'autonomie</label>
-                            <input type="number" id="jours_autonomie" value="2" min="1" max="5"/>
+                            <input type="number" id="jours_autonomie" value="2" min="1" max="5" oninput="mettreAJourPreviewPV()"/>
                         </div>
                         <div class="form-group">
                             <label class="form-label">DoD (Profondeur de décharge)</label>
-                            <select id="dod">
+                            <select id="dod" onchange="mettreAJourPreviewPV()">
                                 <option value="0.50">50%</option>
                                 <option value="0.60">60%</option>
                                 <option value="0.70" selected>70%</option>
@@ -1479,11 +1495,6 @@
                             </select>
                         </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Heures de pompage / jour</label>
-                    <input type="number" id="heures_pompage" value="6" step="0.5" min="1" max="16"/>
-                    <div id="heures_recommandees" class="msg msg-green" style="margin-top:8px;">Pour le solaire : entre 4h et 8h recommandées</div>
                 </div>
             </div>
 
@@ -2268,6 +2279,51 @@ function chargerModelesOnduleurs() {
     });
 }
 
+function mettreAJourPreviewPV() {
+    var source = document.getElementById('source_energie').value;
+    var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
+    var preview = document.getElementById('preview_pv');
+    if (!hasPV || !preview) return;
+
+    var Q   = parseFloat(document.getElementById('res_besoin_brut').innerText) || 0;
+    var HMT = parseFloat(document.getElementById('res_HMT').innerText) || 0;
+    var Ir  = parseFloat(document.getElementById('irradiation').innerText) || 0;
+    var Pr  = parseFloat(document.getElementById('pr_ratio').value) || 0.75;
+    var Rmp = 0.54; // RENDEMENT_POMPE(0.60) × RENDEMENT_MOTEUR(0.90)
+
+    if (Q <= 0 || HMT <= 0 || Ir <= 0) { preview.classList.add('hidden'); return; }
+
+    var Eelec = (2.725e-3 * Q * HMT) / Rmp;
+    var Pc    = Eelec / (Ir * Pr);
+
+    var U, bgColor, msg = '';
+    if      (Pc <= 0.5) { U = 12; bgColor = 'rgba(34,197,94,0.25)';  }
+    else if (Pc <= 1.5) { U = 24; bgColor = 'rgba(34,197,94,0.25)';  }
+    else if (Pc <= 5.0) { U = 48; bgColor = 'rgba(251,191,36,0.25)'; }
+    else                { U = 96; bgColor = 'rgba(239,68,68,0.25)'; msg = ' — Grand système — vérifier configuration'; }
+
+    var elEelec = document.getElementById('prev_eelec');
+    var elPc    = document.getElementById('prev_pc');
+    var elBadge = document.getElementById('prev_usyst_badge');
+    if (elEelec) elEelec.innerText = Eelec.toFixed(2);
+    if (elPc)    elPc.innerText    = Pc.toFixed(3);
+    if (elBadge) elBadge.innerHTML = '<span style="padding:3px 10px;border-radius:4px;background:' + bgColor + ';font-weight:600;color:white;">' + U + ' V</span>' + (msg ? '<span style="font-size:11px;color:#f87171;margin-left:6px;">' + msg + '</span>' : '');
+
+    var batRow = document.getElementById('prev_bat_row');
+    if (source === 'hybride_batteries' && batRow) {
+        var J   = parseInt(document.getElementById('jours_autonomie').value) || 2;
+        var DoD = parseFloat(document.getElementById('dod').value) || 0.70;
+        var CAh = Math.ceil((Eelec * 1000 * J) / (U * DoD));
+        var elCap = document.getElementById('prev_cap_ah');
+        if (elCap) elCap.innerText = CAh;
+        batRow.style.display = '';
+    } else if (batRow) {
+        batRow.style.display = 'none';
+    }
+
+    preview.classList.remove('hidden');
+}
+
 function mettreAJourEquipements() {
     var source = document.getElementById('source_energie').value;
     var hasPV  = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
@@ -2298,6 +2354,7 @@ function afficherHeuresPompage() {
     document.getElementById('heures_recommandees').innerText = plage.msg;
     document.getElementById('pv_params_div').classList.toggle('hidden', !hasPV);
     document.getElementById('batteries_div').classList.toggle('hidden', source !== 'hybride_batteries');
+    mettreAJourPreviewPV();
 }
 
 function getMarquePompe() {
@@ -2493,11 +2550,7 @@ function afficherResultats(data) {
             if (el_divers)  el_divers.innerText  = data.cout.C_divers.toLocaleString('fr-FR');
             if (el_total)   el_total.innerText   = data.cout.C_total.toLocaleString('fr-FR');
         }
-        var U = (data.energie && data.energie.U_syst) ? data.energie.U_syst
-               : (data.energie && data.energie.solaire && data.energie.solaire.U_syst) ? data.energie.solaire.U_syst
-               : null;
-        var badge = document.getElementById('badge_usyst');
-        if (badge) { if (U) { badge.innerText = 'Tension système calculée : ' + U + ' V'; badge.style.display = 'inline-block'; } else { badge.style.display = 'none'; } }
+        mettreAJourPreviewPV();
         afficherEquipements(data);
     } catch(e) {
         console.error('Erreur afficherResultats:', e.message, e.stack);
