@@ -371,6 +371,10 @@ def generer_pdf():
             'marque_batterie':   data.get('marque_batterie', ''),
             'modele_batterie':   data.get('modele_batterie', ''),
         }
+        data.setdefault('nom_client',      '')
+        data.setdefault('tension_systeme', '')
+        data.setdefault('jours_autonomie', None)
+        data.setdefault('dod',             0.70)
         buffer = generateur_pdf.generer_rapport(data)
         buffer.seek(0)
         return send_file(buffer, as_attachment=True,
