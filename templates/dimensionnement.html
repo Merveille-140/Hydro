@@ -2315,6 +2315,9 @@ function mettreAJourPreviewPV() {
     var Pr  = parseFloat(document.getElementById('pr_ratio').value) || 0.75;
     var Rmp = 0.54;
 
+    console.log('[Preview PV] Q=', Q, 'HMT=', HMT, 'Ir=', Ir,
+                'Pr=', Pr, 'mode=', modeActuel);
+
     if (Q <= 0 || HMT <= 0 || Ir <= 0) { preview.classList.add('hidden'); return; }
 
     var Eelec = (2.725 * Q * HMT) / (Rmp * 1000);
