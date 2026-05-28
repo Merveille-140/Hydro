@@ -656,7 +656,7 @@
         }
 
         .pompe-card:hover { border-color: var(--green-lite); }
-        .pompe-card.best  { border-color: var(--gold-lite); background: rgba(202,138,4,0.08); }
+        .pompe-card.best  { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
 
         .pompe-rank {
             width: 34px; height: 34px;
@@ -2355,7 +2355,7 @@ function afficherEquipements(data) {
         .then(function(resp) {
             if (resp.succes) {
                 var p = resp.pompe;
-                var ok_d = p.debit_max_m3h >= Q, ok_h = p.HMT_max_m >= HMT, ok_s = p.source_energie.includes(src);
+                var ok_d = p.debit_max_m3h >= Q, ok_h = p.HMT_max_m >= HMT, ok_s = true;
                 var compatHTML = ok_d && ok_h && ok_s
                     ? '<div class="msg msg-success" style="margin-top:8px;">✅ Pompe compatible avec le système.</div>'
                     : '<div class="msg msg-warning" style="margin-top:8px;">⚠️ ' + (!ok_d ? 'Débit insuffisant. ' : '') + (!ok_h ? 'HMT insuffisante. ' : '') + (!ok_s ? 'Source d\'énergie incompatible.' : '') + '</div>';
