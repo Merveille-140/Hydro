@@ -1454,30 +1454,30 @@
                 <div class="card-title">Source d'énergie</div>
                 <input type="hidden" id="source_energie" value="{{ session.get('source_energie', 'solaire') }}"/>
                 <p>Source : <strong style="color:#fbbf24;">{{ session.get('source_energie','solaire')|replace('_',' ')|title }}</strong></p>
-                <!-- 1. Heures de pompage -->
+                <!-- Heures de pompage -->
                 <div class="form-group">
                     <label class="form-label">Heures de pompage / jour</label>
                     <input type="number" id="heures_pompage" value="6" step="0.5" min="1" max="16"/>
                     <div id="heures_recommandees" class="msg msg-green" style="margin-top:8px;">Pour le solaire : entre 4h et 8h recommandées</div>
                 </div>
-                <!-- Pr hidden + preview (visible si source PV) -->
-                <div id="pv_params_div" class="hidden">
-                    <input type="hidden" id="pr_ratio" value="0.75"/>
-                </div>
-                <div id="preview_pv" class="hidden" style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.18); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
-                    <div style="font-size:11px; font-weight:600; color:var(--gray-500); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">Estimation préliminaire</div>
-                    <div class="result-row"><span class="result-label">Énergie journalière</span><span class="result-value"><span id="prev_eelec">—</span> <span class="result-unit">kWh/j</span></span></div>
-                    <div class="result-row"><span class="result-label">Puissance crête</span><span class="result-value"><span id="prev_pc">—</span> <span class="result-unit">kWc</span></span></div>
-                    <div class="result-row"><span class="result-label">⚡ Tension système</span><span id="prev_usyst_badge" style="font-size:13px;">—</span></div>
-                    <div class="result-row" id="prev_bat_row" style="display:none;"><span class="result-label">Capacité totale batteries</span><span class="result-value"><span id="prev_cap_ah">—</span> <span class="result-unit">Ah</span></span></div>
-                </div>
-                <!-- 3-4. Jours autonomie + DoD (visible si hybride_batteries) -->
+                <!-- Jours d'autonomie (visible si hybride_batteries) -->
                 <div id="batteries_div" class="hidden">
                     <div class="form-group">
                         <label class="form-label">Jours d'autonomie</label>
                         <input type="number" id="jours_autonomie" value="2" min="1" max="5" oninput="mettreAJourPreviewPV()"/>
                     </div>
                     <input type="hidden" id="dod" value="0.70"/>
+                </div>
+                <!-- Pr hidden + preview (visible si source PV) -->
+                <div id="pv_params_div" class="hidden">
+                    <input type="hidden" id="pr_ratio" value="0.75"/>
+                    <div id="preview_pv" class="hidden" style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.18); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+                        <div style="font-size:11px; font-weight:600; color:var(--gray-500); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">Estimation préliminaire</div>
+                        <div class="result-row"><span class="result-label">Énergie journalière</span><span class="result-value"><span id="prev_eelec">—</span> <span class="result-unit">kWh/j</span></span></div>
+                        <div class="result-row"><span class="result-label">Puissance crête</span><span class="result-value"><span id="prev_pc">—</span> <span class="result-unit">kWc</span></span></div>
+                        <div class="result-row"><span class="result-label">⚡ Tension système</span><span id="prev_usyst_badge" style="font-size:13px;">—</span></div>
+                        <div class="result-row" id="prev_bat_row" style="display:none;"><span class="result-label">Capacité totale batteries</span><span class="result-value"><span id="prev_cap_ah">—</span> <span class="result-unit">Ah</span></span></div>
+                    </div>
                 </div>
             </div>
 
