@@ -2663,15 +2663,17 @@ function ouvrirModalPDF() {
     document.getElementById('pdf_date').value = today;
     var modal = document.getElementById('modal-pdf');
     modal.style.display = 'flex';
+    if (!modal._listenerAdded) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) fermerModalPDF();
+        });
+        modal._listenerAdded = true;
+    }
 }
 
 function fermerModalPDF() {
     document.getElementById('modal-pdf').style.display = 'none';
 }
-
-document.getElementById('modal-pdf').addEventListener('click', function(e) {
-    if (e.target === this) fermerModalPDF();
-});
 
 function genererPDF() {
     if (!lat_choisie) { alert('Données incomplètes !'); return; }
