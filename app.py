@@ -202,7 +202,7 @@ def calculer():
         heures_pompage           = float(data['heures_pompage'])
         irradiation              = float(data['irradiation'])
         pr_ratio                 = float(data.get('pr_ratio', 0.75))
-        dod                      = float(data.get('dod', 0.70))
+        dod                      = float(data.get('dod') or 0.70)
         puissance_panneau_W      = float(data.get('puissance_panneau_Wc', 300))
         longueur_canalisation    = float(data.get('longueur_canalisation', 0))
         diametre_tuyau           = float(data.get('diametre_tuyau', 63))
@@ -278,7 +278,7 @@ def calculer():
             tension_bat_V   = bats[0]['tension_V'] if bats else 24
             energie = calculer_hybride_batteries(
                 Q_m3_jour, HMT_m, Rmp, irradiation, pr_ratio, puissance_panneau_W,
-                tension_bat_V, capacite_bat_Ah, int(data.get('jours_autonomie', 2)), dod
+                tension_bat_V, capacite_bat_Ah, int(data.get('jours_autonomie') or 2), dod
             )
         else:
             energie = {}
