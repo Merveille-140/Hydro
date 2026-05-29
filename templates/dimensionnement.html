@@ -67,7 +67,9 @@
             background-attachment: fixed;
             color: white;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             font-size: 14px;
             line-height: 1.5;
         }
@@ -876,41 +878,73 @@
         .proj-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 98; }
         .proj-overlay.visible { display: block; }
 
-        /* RESPONSIVE */
-        @media (max-width: 1024px) {
-            .page { margin-left: 52px; }
-            .main-content { max-width: 100%; padding: 20px 20px; }
-            .app-layout { grid-template-columns: 180px 1fr; }
-        }
-
-        @media (max-width: 768px) {
-            .thin-bar { width: 44px; }
-            .proj-sidebar { left: 44px; }
-            .proj-sidebar.open { width: calc(100vw - 44px); }
-            .page { margin-left: 44px; }
-            .stepper { overflow-x: auto; padding-bottom: 4px; }
-            .stepper::-webkit-scrollbar { height: 3px; }
-            .stepper::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-            .step-lbl, .step-sub-lbl { white-space: nowrap; }
-            .main-content { padding: 16px 12px; }
-            .app-layout { grid-template-columns: 1fr; }
-            .sidebar { display: none; }
-            #carte { height: 300px; }
-            .climate-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        /* Mobile petit 320-480px */
+        @media (max-width: 480px) {
+            body { font-size: 12px; }
+            .main-content { padding: 10px 8px; max-width: 100%; }
+            .card { padding: 12px 10px; }
             .form-row, .form-row-3 { grid-template-columns: 1fr; }
             .results-grid { grid-template-columns: 1fr; }
             .nav-buttons { flex-direction: column; gap: 8px; }
             .btn-back, .btn-next, .btn-calculate { width: 100%; }
+            input, select { font-size: 16px; padding: 10px 12px; }
+            .thin-bar { width: 36px; }
+            .page { margin-left: 36px; }
+            #carte { height: 200px; }
+            .climate-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .climate-value { font-size: 16px; }
+            .page-title { font-size: 18px; }
+            .stepper { overflow-x: auto; }
+            .step-lbl { font-size: 9px; white-space: nowrap; }
+            #modal-pdf > div { width: 95vw; padding: 14px 10px; }
         }
 
-        @media (max-width: 480px) {
-            .thin-bar { width: 44px; }
-            .page { margin-left: 44px; }
-            .main-content { padding: 12px 8px; }
-            #carte { height: 240px; }
-            .climate-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        /* Mobile grand 481-768px */
+        @media (max-width: 768px) {
+            body { font-size: 13px; }
+            .main-content { padding: 14px 12px; max-width: 100%; }
+            .card { padding: 14px 12px; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr; }
             .nav-buttons { flex-direction: column; gap: 8px; }
             .btn-back, .btn-next, .btn-calculate { width: 100%; }
+            input, select { font-size: 16px; }
+            .thin-bar { width: 40px; }
+            .page { margin-left: 40px; }
+            #carte { height: 250px; }
+            .climate-grid { grid-template-columns: repeat(2, 1fr); }
+            .climate-value { font-size: 18px; }
+            .page-title { font-size: 20px; }
+            .stepper { overflow-x: auto; padding-bottom: 4px; }
+            .step-lbl { font-size: 10px; white-space: nowrap; }
+            #modal-pdf > div { width: 90vw; padding: 16px 12px; }
+            .sidebar { display: none; }
+        }
+
+        /* Tablette 769-1024px */
+        @media (max-width: 1024px) {
+            .main-content { max-width: 100%; padding: 20px 16px; }
+            .form-row-3 { grid-template-columns: 1fr 1fr; }
+            .climate-grid { grid-template-columns: repeat(3, 1fr); }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+            .thin-bar { width: 44px; }
+            .page { margin-left: 44px; }
+            #carte { height: 300px; }
+        }
+
+        /* Laptop 1025-1440px */
+        @media (max-width: 1440px) {
+            .main-content { max-width: 800px; }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Grand écran 1441px+ */
+        @media (min-width: 1441px) {
+            .main-content { max-width: 900px; }
+            .page-title { font-size: 30px; }
+            .climate-grid { grid-template-columns: repeat(5, 1fr); }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+            body { font-size: 15px; }
         }
     </style>
     <script>

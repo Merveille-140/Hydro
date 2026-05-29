@@ -18,6 +18,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            -webkit-overflow-scrolling: touch;
         }
         body::before {
             content: '';
@@ -270,31 +271,73 @@
             box-shadow: 0 8px 28px rgba(245,158,11,0.4);
         }
 
-        /* RESPONSIVE */
-        @media (max-width: 1024px) {
-            .main { padding: 36px 24px; }
-            .page-title { font-size: 22px; }
-            .cards-grid { gap: 12px; }
-            .sys-card { padding: 18px 16px; }
-        }
-        @media (max-width: 768px) {
-            .page-body { min-height: calc(100vh - 56px); }
-            .thin-bar { width: 44px; }
-            .sidebar { left: 44px; }
-            .sidebar.open { width: calc(100vw - 44px); }
-            .main { padding: 28px 16px; }
-            .page-title { font-size: 18px; }
-            .cards-grid { gap: 10px; }
-            .sys-card { padding: 16px 14px; }
-            .card-icon { width: 40px; height: 40px; }
-            .card-title { font-size: 13px; }
-        }
+        /* Mobile petit 320-480px */
         @media (max-width: 480px) {
-            .main { padding: 20px 12px; align-items: flex-start; }
-            .page-header { margin-bottom: 20px; }
-            .page-title { font-size: 17px; }
-            .cards-grid { grid-template-columns: 1fr; gap: 10px; }
-            .btn-start { font-size: 14px; padding: 13px; width: 100%; }
+            body { font-size: 12px; }
+            .main-content { padding: 10px 8px; max-width: 100%; }
+            .card { padding: 12px 10px; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr; }
+            .nav-buttons { flex-direction: column; gap: 8px; }
+            .btn-back, .btn-next, .btn-calculate { width: 100%; }
+            input, select { font-size: 16px; padding: 10px 12px; }
+            .thin-bar { width: 36px; }
+            .page { margin-left: 36px; }
+            #carte { height: 200px; }
+            .climate-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .climate-value { font-size: 16px; }
+            .page-title { font-size: 18px; }
+            .stepper { overflow-x: auto; }
+            .step-lbl { font-size: 9px; white-space: nowrap; }
+            #modal-pdf > div { width: 95vw; padding: 14px 10px; }
+        }
+
+        /* Mobile grand 481-768px */
+        @media (max-width: 768px) {
+            body { font-size: 13px; }
+            .main-content { padding: 14px 12px; max-width: 100%; }
+            .card { padding: 14px 12px; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr; }
+            .nav-buttons { flex-direction: column; gap: 8px; }
+            .btn-back, .btn-next, .btn-calculate { width: 100%; }
+            input, select { font-size: 16px; }
+            .thin-bar { width: 40px; }
+            .page { margin-left: 40px; }
+            #carte { height: 250px; }
+            .climate-grid { grid-template-columns: repeat(2, 1fr); }
+            .climate-value { font-size: 18px; }
+            .page-title { font-size: 20px; }
+            .stepper { overflow-x: auto; padding-bottom: 4px; }
+            .step-lbl { font-size: 10px; white-space: nowrap; }
+            #modal-pdf > div { width: 90vw; padding: 16px 12px; }
+            .sidebar { display: none; }
+        }
+
+        /* Tablette 769-1024px */
+        @media (max-width: 1024px) {
+            .main-content { max-width: 100%; padding: 20px 16px; }
+            .form-row-3 { grid-template-columns: 1fr 1fr; }
+            .climate-grid { grid-template-columns: repeat(3, 1fr); }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+            .thin-bar { width: 44px; }
+            .page { margin-left: 44px; }
+            #carte { height: 300px; }
+        }
+
+        /* Laptop 1025-1440px */
+        @media (max-width: 1440px) {
+            .main-content { max-width: 800px; }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Grand écran 1441px+ */
+        @media (min-width: 1441px) {
+            .main-content { max-width: 900px; }
+            .page-title { font-size: 30px; }
+            .climate-grid { grid-template-columns: repeat(5, 1fr); }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+            body { font-size: 15px; }
         }
     </style>
     <script>
@@ -386,7 +429,7 @@
             <div class="container">
 
                 <div class="page-header">
-                    <h1 class="page-title">Quel type de pompage souhaitez-vous dimensionner&nbsp;?</h1>
+                    <h1 class="page-title">Choix du système</h1>
                     <p class="page-subtitle">Sélectionnez votre source d'énergie pour commencer le dimensionnement</p>
                 </div>
 
