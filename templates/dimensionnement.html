@@ -1287,6 +1287,12 @@
                         </div>
                     </div>
                     <div id="msg_besoin_auto"></div>
+                    <div class="form-group">
+                        <label class="form-label">Coefficient de majoration (%)</label>
+                        <input type="number" id="coeff_fuite_besoin" value="10" min="10" max="20" step="1" oninput="calculerBesoinAuto()"/>
+                        <div class="form-hint">Entre 10% et 20% — pertes, fuites et imprévus</div>
+                    </div>
+                    <div id="msg_besoin_brut" style="margin-top:6px;"></div>
                 </div>
 
                 <div class="card">
@@ -1330,16 +1336,6 @@
                             <div class="form-group"><label class="form-label">Diamètre du tuyau (mm)</label><select id="diametre_tuyau_f"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
                         </div>
                         <div class="form-group"><label class="form-label">Type d'alimentation du réservoir</label><select id="type_alimentation_f"><option value="bas">Par le bas</option><option value="haut">Par le haut</option></select></div>
-                        <div class="form-group">
-                            <label class="form-label">Pertes de charge (% de Hgéo)</label>
-                            <select id="coeff_pertes_charge_f">
-                                <option value="0.05">5%</option>
-                                <option value="0.10" selected>10% (recommandé)</option>
-                                <option value="0.15">15%</option>
-                                <option value="0.20">20%</option>
-                            </select>
-                            <div class="form-hint">Dépend de la longueur et du diamètre de la conduite</div>
-                        </div>
                     </div>
                 </div>
 
@@ -1375,24 +1371,6 @@
                             <div class="form-group"><label class="form-label">Diamètre du tuyau (mm)</label><select id="diametre_tuyau_l"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
                         </div>
                         <div class="form-group"><label class="form-label">Type d'alimentation du réservoir</label><select id="type_alimentation_l"><option value="bas">Par le bas</option><option value="haut">Par le haut</option></select></div>
-                        <div class="form-group">
-                            <label class="form-label">Pertes de charge (% de Hgéo)</label>
-                            <select id="coeff_pertes_charge_l">
-                                <option value="0.05">5%</option>
-                                <option value="0.10" selected>10% (recommandé)</option>
-                                <option value="0.15">15%</option>
-                                <option value="0.20">20%</option>
-                            </select>
-                            <div class="form-hint">Dépend de la longueur et du diamètre de la conduite</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Disponibilité de l'eau</div>
-                    <div class="form-row">
-                        <div class="form-group"><label class="form-label">Heures de disponibilité souhaitées</label><input type="number" id="heures_disponibilite" placeholder="Ex: 8" min="1" max="24" value="8"/></div>
-                        <div class="form-group"><label class="form-label">Coefficient de majoration</label><input type="number" id="coeff_fuite" value="1.10" step="0.05" min="1.0" max="1.5"/><div class="form-hint">Pertes et fuites (1.10 = 10% de marge)</div></div>
                     </div>
                 </div>
 
@@ -1490,7 +1468,13 @@
                 </div>
                 <!-- Pr hidden + preview (visible si source PV) -->
                 <div id="pv_params_div" class="hidden">
-                    <input type="hidden" id="pr_ratio" value="0.75"/>
+                    <div id="div_pr_ratio" class="hidden">
+                        <div class="form-group">
+                            <label class="form-label">Ratio de performance Pr</label>
+                            <input type="number" id="pr_ratio" value="0.75" min="0.60" max="0.80" step="0.01" oninput="mettreAJourPreviewPV()"/>
+                            <div class="form-hint">Entre 0.60 et 0.80 — rendement global du système PV (défaut : 0.75)</div>
+                        </div>
+                    </div>
                     <div id="preview_pv" class="hidden" style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.18); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
                         <div style="font-size:11px; font-weight:600; color:var(--gray-500); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">Estimation préliminaire</div>
                         <div class="result-row"><span class="result-label">Énergie journalière</span><span class="result-value"><span id="prev_eelec">—</span> <span class="result-unit">kWh/j</span></span></div>
@@ -1932,6 +1916,9 @@ function calculerBesoinAuto() {
         besoin = (consommation * nb) / 1000;
         document.getElementById('besoin_journalier').value = besoin.toFixed(2);
         msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour (' + consommation + ' L/j × ' + nb + ' personnes)</div>';
+        var pct = parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10;
+        var besoin_brut = besoin * (1 + pct / 100);
+        document.getElementById('msg_besoin_brut').innerHTML = '<div class="msg msg-info">ℹ️ Besoin brut (majoration ' + pct.toFixed(0) + '%) : <strong>' + besoin_brut.toFixed(2) + ' m³/jour</strong></div>';
         return;
     }
     if (usage === 'elevage_bovin') {
@@ -1952,6 +1939,9 @@ function calculerBesoinAuto() {
         besoin = (consommationAnimal * nb) / 1000;
         document.getElementById('besoin_journalier').value = besoin.toFixed(2);
         msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour (' + consommationAnimal + ' L/j × ' + nb + ' têtes)</div>';
+        var pct = parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10;
+        var besoin_brut = besoin * (1 + pct / 100);
+        document.getElementById('msg_besoin_brut').innerHTML = '<div class="msg msg-info">ℹ️ Besoin brut (majoration ' + pct.toFixed(0) + '%) : <strong>' + besoin_brut.toFixed(2) + ' m³/jour</strong></div>';
         return;
     }
     msgDiv.innerHTML = '<div class="msg msg-info">ℹ️ Veuillez saisir le volume journalier manuellement.</div>';
@@ -2038,12 +2028,24 @@ function chargerModeles() {
     select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
     select.disabled  = true; divC.classList.add('hidden');
     if (!marque) { return; }
-    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque}) })
+    var q_min = 0, hmt_min = 0;
+    if (modeActuel === 'classique') {
+        var nd     = parseFloat(document.getElementById('niveau_dynamique').value)    || 0;
+        var hr     = parseFloat(document.getElementById('hauteur_reservoir_f').value) || 0;
+        var besoin = parseFloat(document.getElementById('besoin_journalier').value)   || 0;
+        var coeff  = 1 + (parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10) / 100;
+        q_min   = (besoin * coeff) / 6;
+        hmt_min = nd + hr + 5;
+    }
+    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, q_min:q_min, hmt_min:hmt_min}) })
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.succes && data.modeles.length > 0) {
             data.modeles.forEach(function(m) { select.innerHTML += '<option value="' + m.modele + '">' + m.modele + ' (' + (m.alimentation || 'AC') + ') — Q max ' + m.debit_max_m3h + ' m³/h — HMT ' + m.HMT_max_m + ' m</option>'; });
             select.disabled = false;
+        } else {
+            select.innerHTML = '<option value="">— Aucun équipement compatible —</option>';
+            select.disabled = true;
         }
     });
 }
@@ -2099,12 +2101,20 @@ function chargerModelesIrr() {
     select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
     select.disabled  = true; divC.classList.add('hidden');
     if (!marque) { return; }
-    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque}) })
+    var q_min = 0, hmt_min = 0;
+    var hasp   = parseFloat(document.getElementById('profondeur_aspiration').value) || 0;
+    var href   = parseFloat(document.getElementById('hauteur_refoulement').value)   || 0;
+    var besoin = parseFloat(document.getElementById('besoin_journalier').value)     || 0;
+    if (besoin > 0) { q_min = besoin / 6; hmt_min = hasp + href + 5; }
+    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, q_min:q_min, hmt_min:hmt_min}) })
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.succes && data.modeles.length > 0) {
             data.modeles.forEach(function(m) { select.innerHTML += '<option value="' + m.modele + '">' + m.modele + ' (' + (m.alimentation || 'AC') + ') — Q max ' + m.debit_max_m3h + ' m³/h — HMT ' + m.HMT_max_m + ' m</option>'; });
             select.disabled = false;
+        } else {
+            select.innerHTML = '<option value="">— Aucun équipement compatible —</option>';
+            select.disabled = true;
         }
     });
 }
@@ -2169,12 +2179,20 @@ function chargerModelesPanneaux() {
     select.innerHTML = '<option value="">— Choisissez un modèle —</option>';
     select.disabled  = true; divC.classList.add('hidden');
     if (!marque) { return; }
-    fetch('/get_modeles_panneaux', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque}) })
+    var pc_min = 0;
+    var prev_pc = document.getElementById('prev_pc');
+    if (prev_pc && prev_pc.innerText !== '—') {
+        pc_min = parseFloat(prev_pc.innerText) || 0;
+    }
+    fetch('/get_modeles_panneaux', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, pc_min:pc_min}) })
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.succes && data.modeles.length > 0) {
             data.modeles.forEach(function(p) { select.innerHTML += '<option value="' + p.puissance_W + '_' + p.tension_V + '">' + p.puissance_W + 'W — ' + p.type + ' — ' + p.tension_V + 'V</option>'; });
             select.disabled = false; select._modeles = data.modeles;
+        } else {
+            select.innerHTML = '<option value="">— Aucun équipement compatible —</option>';
+            select.disabled = true;
         }
     });
 }
@@ -2397,6 +2415,8 @@ function mettreAJourEquipements() {
     document.getElementById('div_choix_batteries').classList.toggle('hidden', !hasBat);
     var cardEq = document.getElementById('card-equipements');
     if (cardEq) cardEq.classList.toggle('hidden', !hasPV);
+    var divPr = document.getElementById('div_pr_ratio');
+    if (divPr) divPr.classList.toggle('hidden', !hasPV);
 }
 
 var PLAGES_HEURES = {
@@ -2417,6 +2437,8 @@ function afficherHeuresPompage() {
     document.getElementById('heures_recommandees').innerText = plage.msg;
     document.getElementById('pv_params_div').classList.toggle('hidden', !hasPV);
     document.getElementById('batteries_div').classList.toggle('hidden', source !== 'hybride_batteries');
+    var divPr = document.getElementById('div_pr_ratio');
+    if (divPr) divPr.classList.toggle('hidden', !hasPV);
     mettreAJourPreviewPV();
 }
 
@@ -2530,8 +2552,7 @@ function calculer() {
         payload.besoin_journalier = parseFloat(document.getElementById('besoin_journalier').value);
         payload.consommation_unitaire = (function(){ var el = document.getElementById('consommation_unitaire'); return el ? parseFloat(el.value) || 10 : 10; })();
         payload.type_usage = document.getElementById('type_usage').value;
-        payload.heures_disponibilite = parseFloat(document.getElementById('heures_disponibilite').value);
-        payload.coeff_fuite = parseFloat(document.getElementById('coeff_fuite').value);
+        payload.coeff_fuite = 1 + (parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10) / 100;
         payload.systeme_irrigation = 'gravitaire'; payload.type_sol = 'limoneux';
         payload.type_systeme_hydraulique = type_sys;
         if (type_sys === 'forage_reservoir') {
@@ -2540,7 +2561,6 @@ function calculer() {
             payload.longueur_canalisation = parseFloat(document.getElementById('longueur_tuyau_f').value) || 0;
             payload.diametre_tuyau = parseFloat(document.getElementById('diametre_tuyau_f').value) || 63;
             payload.type_alimentation = document.getElementById('type_alimentation_f').value;
-            payload.coeff_pertes_charge = parseFloat(document.getElementById('coeff_pertes_charge_f').value) || 0.10;
         } else {
             payload.niveau_eau_lac = parseFloat(document.getElementById('niveau_eau_lac').value) || 0;
             payload.hauteur_aspiration = parseFloat(document.getElementById('hauteur_aspiration_lac').value) || 0;
@@ -2548,7 +2568,6 @@ function calculer() {
             payload.longueur_canalisation = parseFloat(document.getElementById('longueur_tuyau_l').value) || 0;
             payload.diametre_tuyau = parseFloat(document.getElementById('diametre_tuyau_l').value) || 63;
             payload.type_alimentation = document.getElementById('type_alimentation_l').value;
-            payload.coeff_pertes_charge = parseFloat(document.getElementById('coeff_pertes_charge_l').value) || 0.10;
         }
     }
     fetch('/calculer', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })

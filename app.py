@@ -440,11 +440,18 @@ def get_marques():
 @app.route('/get_modeles', methods=['POST'])
 @login_required
 def get_modeles():
-    data = request.get_json()
-    modeles = pompes_bd_mod.get_modeles_par_marque(data.get('marque', ''))
+    data    = request.get_json()
+    marque  = data.get('marque', '')
+    q_min   = float(data.get('q_min', 0))
+    hmt_min = float(data.get('hmt_min', 0))
+    modeles = pompes_bd_mod.get_modeles_par_marque(marque)
     for p in modeles:
         src = str(p.get('source_energie', '')).lower()
         p['alimentation'] = 'DC' if 'solaire' in src or 'dc' in src else 'AC'
+    if q_min > 0 and hmt_min > 0:
+        modeles = [p for p in modeles
+                   if p.get('debit_max_m3h', 0) >= q_min
+                   and p.get('HMT_max_m', 0) >= hmt_min]
     return jsonify({"succes": True, "modeles": modeles})
 
 @app.route('/get_pompe', methods=['POST'])
@@ -464,8 +471,14 @@ def get_marques_panneaux():
 @app.route('/get_modeles_panneaux', methods=['POST'])
 @login_required
 def get_modeles_panneaux():
-    data = request.get_json()
-    return jsonify({"succes": True, "modeles": equipements_mod.get_modeles_panneaux(data.get('marque', ''))})
+    data   = request.get_json()
+    marque = data.get('marque', '')
+    pc_min = float(data.get('pc_min', 0))
+    modeles = equipements_mod.get_modeles_panneaux(marque)
+    if pc_min > 0:
+        modeles = [p for p in modeles
+                   if p.get('puissance_W', 0) >= (pc_min * 1000 / 4)]
+    return jsonify({"succes": True, "modeles": modeles})
 
 @app.route('/get_marques_batteries', methods=['GET'])
 @login_required
