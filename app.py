@@ -164,26 +164,57 @@ def get_climate():
         }
         response = requests.get(url, params=params, timeout=60)
         donnees     = response.json()
-        T_max       = list(donnees['properties']['parameter']['T2M_MAX'].values())
-        T_min       = list(donnees['properties']['parameter']['T2M_MIN'].values())
-        vent        = list(donnees['properties']['parameter']['WS2M'].values())
-        humidite    = list(donnees['properties']['parameter']['RH2M'].values())
-        rayonnement = list(donnees['properties']['parameter']['ALLSKY_SFC_SW_DWN'].values())
+        T_max_raw    = list(donnees['properties']['parameter']['T2M_MAX'].values())
+        T_min_raw    = list(donnees['properties']['parameter']['T2M_MIN'].values())
+        vent_raw     = list(donnees['properties']['parameter']['WS2M'].values())
+        humidite_raw = list(donnees['properties']['parameter']['RH2M'].values())
+        ray_raw      = list(donnees['properties']['parameter']['ALLSKY_SFC_SW_DWN'].values())
 
-        mois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
+        nb_valeurs = len(T_max_raw)
+        nb_annees  = nb_valeurs // 12
+
+        T_max_moy = []
+        T_min_moy = []
+        vent_moy  = []
+        hum_moy   = []
+        ray_moy   = []
+
+        for m in range(12):
+            vals_tmax = [T_max_raw[a*12+m]    for a in range(nb_annees) if T_max_raw[a*12+m]    not in (-999, -99, None)]
+            vals_tmin = [T_min_raw[a*12+m]    for a in range(nb_annees) if T_min_raw[a*12+m]    not in (-999, -99, None)]
+            vals_vent = [vent_raw[a*12+m]      for a in range(nb_annees) if vent_raw[a*12+m]     not in (-999, -99, None)]
+            vals_hum  = [humidite_raw[a*12+m]  for a in range(nb_annees) if humidite_raw[a*12+m] not in (-999, -99, None)]
+            vals_ray  = [ray_raw[a*12+m]       for a in range(nb_annees) if ray_raw[a*12+m]      not in (-999, -99, None)]
+
+            T_max_moy.append(sum(vals_tmax)/len(vals_tmax) if vals_tmax else 0)
+            T_min_moy.append(sum(vals_tmin)/len(vals_tmin) if vals_tmin else 0)
+            vent_moy.append( sum(vals_vent)/len(vals_vent)  if vals_vent  else 0)
+            hum_moy.append(  sum(vals_hum) /len(vals_hum)  if vals_hum   else 0)
+            ray_moy.append(  sum(vals_ray) /len(vals_ray)  if vals_ray   else 0)
+
+        # Conversion MJ/m²/jour → kWh/m²/jour
+        ray_moy = [round(r / 3.6, 2) for r in ray_moy]
+
+        mois = ['Jan','Fév','Mar','Avr','Mai','Jun',
+                'Jul','Aoû','Sep','Oct','Nov','Déc']
         ET0_par_mois = {}
         for i in range(12):
-            ET0_par_mois[mois[i]] = calculer_ET0(T_max[i], T_min[i], humidite[i], vent[i], rayonnement[i])
+            ET0_par_mois[mois[i]] = calculer_ET0(
+                T_max_moy[i], T_min_moy[i],
+                hum_moy[i], vent_moy[i], ray_moy[i]
+            )
 
         mois_critique = max(ET0_par_mois, key=ET0_par_mois.get)
+        idx_critique  = mois.index(mois_critique)
+
         return jsonify({
-            "succes": True,
-            "ET0_par_mois": ET0_par_mois,
-            "mois_critique": mois_critique,
-            "ET0_max": ET0_par_mois[mois_critique],
-            "irradiation": max(rayonnement[:12]),
-            "temperature_max": max(T_max[:12]),
-            "temperature_min": min(T_min[:12]),
+            "succes":          True,
+            "ET0_par_mois":    ET0_par_mois,
+            "mois_critique":   mois_critique,
+            "ET0_max":         round(ET0_par_mois[mois_critique], 2),
+            "irradiation":     round(ray_moy[idx_critique], 2),
+            "temperature_max": round(max(T_max_moy), 2),
+            "temperature_min": round(min(T_min_moy), 2),
         })
     except Exception as e:
         return jsonify({"succes": False, "erreur": str(e)})
@@ -206,6 +237,7 @@ def calculer():
         puissance_panneau_W      = float(data.get('puissance_panneau_Wc', 300))
         longueur_canalisation    = float(data.get('longueur_canalisation', 0))
         diametre_tuyau           = float(data.get('diametre_tuyau', 63))
+        coeff_pertes_charge      = float(data.get('coeff_pertes_charge', 0.10))
         profondeur_aspiration    = float(data.get('profondeur_aspiration', 0))
         hauteur_refoulement      = float(data.get('hauteur_refoulement', 0))
         type_systeme_hydraulique = data.get('type_systeme_hydraulique', 'irrigation')
@@ -245,6 +277,7 @@ def calculer():
                 type_systeme_hydraulique=type_systeme_hydraulique, type_alimentation=type_alimentation,
                 hauteur_reservoir=hauteur_reservoir, niveau_dynamique=niveau_dynamique,
                 niveau_eau_lac=niveau_eau_lac, hauteur_aspiration=hauteur_aspiration,
+                coeff_pertes_charge=coeff_pertes_charge,
             )
         else:
             hydraulique = calculer_hydraulique(
@@ -254,6 +287,7 @@ def calculer():
                 longueur_canalisation=longueur_canalisation, diametre_tuyau_mm=diametre_tuyau,
                 type_systeme_hydraulique='irrigation', type_alimentation='bas',
                 hauteur_reservoir=0, niveau_dynamique=0, niveau_eau_lac=0, hauteur_aspiration=0,
+                coeff_pertes_charge=coeff_pertes_charge,
             )
 
         pompe = calculer_pompe(hydraulique['debit_m3_h'], hydraulique['HMT_m'])

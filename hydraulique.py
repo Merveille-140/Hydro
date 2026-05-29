@@ -48,6 +48,7 @@ def calculer_hydraulique(
     hauteur_aspiration       = 0,
     profondeur_aspiration    = 0,
     hauteur_refoulement      = 0,
+    coeff_pertes_charge      = 0.10,
 ):
     """
     Calcule le débit Q et la HMT selon le type de système.
@@ -73,6 +74,14 @@ def calculer_hydraulique(
     pertes_charge = 0.0
     vitesse       = 0.0
 
+    # Estimation préliminaire de la hauteur géo pour le fallback pertes
+    if type_systeme_hydraulique == 'forage_reservoir':
+        hauteur_geo_est = niveau_dynamique + hauteur_reservoir
+    elif type_systeme_hydraulique == 'lac_reservoir':
+        hauteur_geo_est = abs(niveau_eau_lac) + hauteur_aspiration + hauteur_reservoir
+    else:
+        hauteur_geo_est = profondeur_aspiration + hauteur_refoulement
+
     if longueur_canalisation > 0 and debit_m3_s > 0:
 
         diametre_m        = diametre_tuyau_mm / 1000
@@ -90,7 +99,7 @@ def calculer_hydraulique(
         pertes_charge      = pertes_lineaires + pertes_singulieres
 
     else:
-        pertes_charge = 0.15 * 20
+        pertes_charge = coeff_pertes_charge * hauteur_geo_est
 
     # ─────────────────────────────────────────────────────
     # HMT SELON TYPE DE SYSTÈME

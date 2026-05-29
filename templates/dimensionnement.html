@@ -1330,6 +1330,16 @@
                             <div class="form-group"><label class="form-label">Diamètre du tuyau (mm)</label><select id="diametre_tuyau_f"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
                         </div>
                         <div class="form-group"><label class="form-label">Type d'alimentation du réservoir</label><select id="type_alimentation_f"><option value="bas">Par le bas</option><option value="haut">Par le haut</option></select></div>
+                        <div class="form-group">
+                            <label class="form-label">Pertes de charge (% de Hgéo)</label>
+                            <select id="coeff_pertes_charge_f">
+                                <option value="0.05">5%</option>
+                                <option value="0.10" selected>10% (recommandé)</option>
+                                <option value="0.15">15%</option>
+                                <option value="0.20">20%</option>
+                            </select>
+                            <div class="form-hint">Dépend de la longueur et du diamètre de la conduite</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1365,6 +1375,16 @@
                             <div class="form-group"><label class="form-label">Diamètre du tuyau (mm)</label><select id="diametre_tuyau_l"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
                         </div>
                         <div class="form-group"><label class="form-label">Type d'alimentation du réservoir</label><select id="type_alimentation_l"><option value="bas">Par le bas</option><option value="haut">Par le haut</option></select></div>
+                        <div class="form-group">
+                            <label class="form-label">Pertes de charge (% de Hgéo)</label>
+                            <select id="coeff_pertes_charge_l">
+                                <option value="0.05">5%</option>
+                                <option value="0.10" selected>10% (recommandé)</option>
+                                <option value="0.15">15%</option>
+                                <option value="0.20">20%</option>
+                            </select>
+                            <div class="form-hint">Dépend de la longueur et du diamètre de la conduite</div>
+                        </div>
                     </div>
                 </div>
 
@@ -2520,6 +2540,7 @@ function calculer() {
             payload.longueur_canalisation = parseFloat(document.getElementById('longueur_tuyau_f').value) || 0;
             payload.diametre_tuyau = parseFloat(document.getElementById('diametre_tuyau_f').value) || 63;
             payload.type_alimentation = document.getElementById('type_alimentation_f').value;
+            payload.coeff_pertes_charge = parseFloat(document.getElementById('coeff_pertes_charge_f').value) || 0.10;
         } else {
             payload.niveau_eau_lac = parseFloat(document.getElementById('niveau_eau_lac').value) || 0;
             payload.hauteur_aspiration = parseFloat(document.getElementById('hauteur_aspiration_lac').value) || 0;
@@ -2527,6 +2548,7 @@ function calculer() {
             payload.longueur_canalisation = parseFloat(document.getElementById('longueur_tuyau_l').value) || 0;
             payload.diametre_tuyau = parseFloat(document.getElementById('diametre_tuyau_l').value) || 63;
             payload.type_alimentation = document.getElementById('type_alimentation_l').value;
+            payload.coeff_pertes_charge = parseFloat(document.getElementById('coeff_pertes_charge_l').value) || 0.10;
         }
     }
     fetch('/calculer', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
