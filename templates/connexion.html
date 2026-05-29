@@ -10,7 +10,7 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-image: url('/static/images/solar_pump.jpg');
+            background-image: url('/static/images/solar_pump.jpeg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -27,24 +27,6 @@
             z-index: 0;
             pointer-events: none;
         }
-        .navbar {
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #1a472a;
-            position: relative;
-            z-index: 10;
-        }
-        .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
-        .logo-icon {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 12px rgba(245,158,11,0.3);
-        }
-        .logo-text { font-size:19px; font-weight:800; color:white; letter-spacing:-0.3px; }
         .main { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 20px; position:relative; z-index:1; }
         .form-box {
             background: rgba(255,255,255,0.15);
@@ -131,7 +113,6 @@
         }
         .eye-toggle:hover { color:rgba(255,255,255,0.8); }
         @media (max-width: 768px) {
-            .navbar { height:56px; }
             .form-box { padding:36px 28px; }
             .form-title { font-size:20px; }
         }
@@ -143,12 +124,6 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <a href="/" class="logo">
-            <div class="logo-icon"><ph-drop-half weight="duotone" style="font-size:20px;color:#1a472a;"></ph-drop-half></div>
-            <span class="logo-text">HydroPump</span>
-        </a>
-    </nav>
     <div class="main">
         <div class="form-box">
             {% with messages = get_flashed_messages(with_categories=true) %}

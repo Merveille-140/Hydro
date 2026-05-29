@@ -61,7 +61,7 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-image: url('/static/images/solar_pump.jpg');
+            background-image: url('/static/images/solar_pump.jpeg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -327,34 +327,6 @@
             color: rgba(255,255,255,0.4);
         }
 
-        .app-navbar {
-            background: #1a472a;
-            height: 64px;
-            padding: 0 32px;
-            display: flex;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .app-navbar .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            font-size: 19px;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-        }
-
-        .app-navbar .logo-icon {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 12px rgba(245,158,11,0.3);
-        }
 
         .stepper-bar {
             background: var(--bg3);
@@ -868,7 +840,6 @@
 
         @media (max-width: 768px) {
             .accueil-navbar { padding: 0 20px; height: 56px; justify-content: center; }
-            .app-navbar { height: 56px; justify-content: center; }
             .accueil-navbar .logo-text { font-size: 16px; }
             .hero { padding: 40px 20px !important; min-height: calc(100vh - 56px); }
             .hero-title { font-size: 36px !important; }
@@ -880,7 +851,6 @@
 
         @media (max-width: 480px) {
             .accueil-navbar { padding: 0 16px; }
-            .app-navbar { padding: 0 16px; }
             .hero { padding: 32px 16px !important; }
             .hero-title { font-size: 28px !important; letter-spacing: -0.3px; margin-bottom: 14px; }
             .hero-desc { font-size: 14px; margin-bottom: 28px; }
@@ -931,7 +901,6 @@
             </div>
         </div>
 
-        <p class="hero-note">🔒 Vos données sont accessibles uniquement par vous.</p>
     </div>
 
 </div>
@@ -940,7 +909,6 @@
      PAGE LOCALISATION
 ================================================================ -->
 <div id="page-localisation" class="page">
-    <nav class="app-navbar"><div class="logo"><div class="logo-icon">💧</div>HydroPump</div></nav>
     <div class="stepper-bar">
         <div class="stepper">
             <div class="step-item active"><div class="step-circle">1</div><div class="step-info"><div class="step-lbl">Localisation</div><div class="step-sub-lbl">Site & climat</div></div></div>
@@ -1008,7 +976,6 @@
      PAGE BESOINS
 ================================================================ -->
 <div id="page-besoins" class="page">
-    <nav class="app-navbar"><div class="logo"><div class="logo-icon">💧</div>HydroPump</div></nav>
     <div class="stepper-bar">
         <div class="stepper">
             <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl">Localisation</div><div class="step-sub-lbl">Site & climat</div></div></div>
@@ -1310,7 +1277,6 @@
 
 <!-- PAGE ÉNERGIE & RÉSULTATS : identiques à l'original, copiées ici -->
 <div id="page-energie" class="page">
-    <nav class="app-navbar"><div class="logo"><div class="logo-icon">💧</div>HydroPump</div></nav>
     <div class="stepper-bar">
         <div class="stepper">
             <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl">Localisation</div><div class="step-sub-lbl">Site & climat</div></div></div>
@@ -1486,7 +1452,6 @@
 </div>
 
 <div id="page-resultats" class="page">
-    <nav class="app-navbar"><div class="logo"><div class="logo-icon">💧</div>HydroPump</div></nav>
     <div class="stepper-bar">
         <div class="stepper">
             <div class="step-item done"><div class="step-circle">✓</div><div class="step-info"><div class="step-lbl">Localisation</div><div class="step-sub-lbl">Site & climat</div></div></div>

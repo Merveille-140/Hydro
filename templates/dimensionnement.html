@@ -61,13 +61,13 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-image: url('/static/images/irrigation.jpg');
+            background-image: url('/static/images/solar_pump.jpeg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             color: white;
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow: hidden;
             font-size: 14px;
             line-height: 1.5;
         }
@@ -80,8 +80,8 @@
             pointer-events: none;
         }
 
-        .page { display: none; animation: fadeUp 0.3s ease; margin-left: 52px; }
-        .page.active { display: block; }
+        .page { display: none; animation: fadeUp 0.3s ease; margin-left: 52px; overflow-y: auto; height: calc(100vh - 64px); }
+        .page.active { display: block; min-height: 100vh; overflow-y: auto; }
 
         @keyframes fadeUp {
             from { opacity:0; transform:translateY(12px); }
@@ -93,37 +93,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* NAVBAR */
-        .app-navbar {
-            background: #1a472a;
-            height: 64px;
-            padding: 0 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .app-navbar .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            font-size: 19px;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-            text-decoration: none;
-        }
-
-        .app-navbar .logo-icon {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 12px rgba(245,158,11,0.3);
-        }
 
         /* STEPPER BAR */
         .stepper-bar {
@@ -1014,9 +983,6 @@
      PAGE LOCALISATION
 ================================================================ -->
 <div id="page-localisation" class="page active">
-    <nav class="app-navbar">
-        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="1.5" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>HydroPump</div>
-    </nav>
     <div class="page-bg">
     <div class="stepper-bar">
         <div class="stepper">
@@ -1113,9 +1079,6 @@
      PAGE BESOINS
 ================================================================ -->
 <div id="page-besoins" class="page">
-    <nav class="app-navbar">
-        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="1.5" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>HydroPump</div>
-    </nav>
     <div class="page-bg">
     <div class="stepper-bar">
         <div class="stepper">
@@ -1429,9 +1392,6 @@
 
 <!-- PAGE ÉNERGIE & RÉSULTATS : identiques à l'original, copiées ici -->
 <div id="page-energie" class="page">
-    <nav class="app-navbar">
-        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="1.5" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>HydroPump</div>
-    </nav>
     <div class="page-bg">
     <div class="stepper-bar">
         <div class="stepper">
@@ -1629,9 +1589,6 @@
 </div>
 
 <div id="page-resultats" class="page">
-    <nav class="app-navbar">
-        <div class="logo"><div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="1.5" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>HydroPump</div>
-    </nav>
     <div class="page-bg">
     <div class="stepper-bar">
         <div class="stepper">

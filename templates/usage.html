@@ -9,7 +9,7 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-image: url('/static/images/solar_pump.jpg');
+            background-image: url('/static/images/solar_pump.jpeg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -26,24 +26,6 @@
             z-index: 0;
             pointer-events: none;
         }
-        .navbar {
-            height: 56px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #1a472a;
-            position: relative;
-            z-index: 10;
-            flex-shrink: 0;
-        }
-        .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
-        .logo-icon {
-            width: 32px; height: 32px;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .logo-text { font-size:17px; font-weight:800; color:white; letter-spacing:-0.3px; }
         .main {
             flex: 1;
             display: flex;
@@ -134,14 +116,6 @@
 </head>
 <body>
 
-    <nav class="navbar">
-        <a href="/" class="logo">
-            <div class="logo-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="2" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-            </div>
-            <span class="logo-text">HydroPump</span>
-        </a>
-    </nav>
 
     <div class="main">
         <div class="container">

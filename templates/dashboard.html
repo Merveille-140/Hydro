@@ -10,7 +10,7 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-image: url('/static/images/irrigation.jpg');
+            background-image: url('/static/images/solar_pump.jpeg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -28,26 +28,6 @@
             pointer-events: none;
         }
 
-        /* NAVBAR */
-        .navbar {
-            height: 64px;
-            background: #1a472a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 30;
-        }
-        .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
-        .logo-icon {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 12px rgba(245,158,11,0.3);
-        }
-        .logo-text { font-size:19px; font-weight:800; color:white; letter-spacing:-0.3px; }
 
         /* PAGE BODY */
         .page-body {
@@ -298,7 +278,6 @@
             .sys-card { padding: 18px 16px; }
         }
         @media (max-width: 768px) {
-            .navbar { height: 56px; }
             .page-body { min-height: calc(100vh - 56px); }
             .thin-bar { width: 44px; }
             .sidebar { left: 44px; }
@@ -339,13 +318,6 @@
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a href="/" class="logo">
-            <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a472a" stroke-width="1.5" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
-            <span class="logo-text">HydroPump</span>
-        </a>
-    </nav>
 
     <!-- PAGE BODY -->
     <div class="page-body">
