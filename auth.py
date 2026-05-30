@@ -81,7 +81,7 @@ def connexion():
             session['user_email'] = user['email']
             session['connecte']   = True
             session['actif']      = True
-            return redirect(url_for('usage'))
+            return redirect(url_for('dashboard'))
         else:
             flash('Email ou mot de passe incorrect.', 'error')
             return render_template('connexion.html')

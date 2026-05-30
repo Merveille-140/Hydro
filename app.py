@@ -122,16 +122,18 @@ def usage():
         return redirect(url_for('dashboard'))
     return render_template('usage.html', user_nom=session.get('user_nom', ''))
 
-@app.route('/dashboard', methods=['GET', 'POST'])
+@app.route('/dashboard')
 @login_required
 def dashboard():
-    if request.method == 'POST':
-        source_energie = request.form.get('source_energie', '')
-        if source_energie:
-            session['source_energie'] = source_energie
-        return redirect(url_for('dimensionnement'))
+    if 'user_id' not in session:
+        return redirect(url_for('auth.connexion'))
     projets = get_projets_utilisateur(session['user_id'])
-    return render_template('dashboard.html', user_nom=session['user_nom'], user_email=session.get('user_email', ''), projets=projets)
+    return render_template(
+        'dashboard.html',
+        user_nom=session.get('user_nom', ''),
+        user_email=session.get('user_email', ''),
+        projets=projets
+    )
 
 @app.route('/dimensionnement')
 @login_required
@@ -387,7 +389,7 @@ def calculer():
 @login_required
 def supprimer_projet_route(projet_id):
     supprimer_projet(projet_id, session['user_id'])
-    return jsonify({"succes": True})
+    return redirect('/dashboard')
 
 # ============================================================
 # PDF
