@@ -131,7 +131,7 @@ def dashboard():
             session['source_energie'] = source_energie
         return redirect(url_for('dimensionnement'))
     projets = get_projets_utilisateur(session['user_id'])
-    return render_template('dashboard.html', user_nom=session['user_nom'], projets=projets)
+    return render_template('dashboard.html', user_nom=session['user_nom'], user_email=session.get('user_email', ''), projets=projets)
 
 @app.route('/dimensionnement')
 @login_required
