@@ -768,15 +768,4 @@ def section_signatures(data, styles):
 
 
 def pied_de_page(styles):
-    return [
-        Spacer(1, 0.6*cm),
-        HRFlowable(width="100%", thickness=1.5, color=VERT_FONCE,
-                   spaceAfter=6, spaceBefore=2),
-        Paragraph(
-            "HydroPump v1.0  ·  Rapport généré le " +
-            datetime.now().strftime("%d/%m/%Y à %H:%M") +
-            "  ·  Les résultats sont donnés à titre indicatif "
-            "et doivent être validés par un ingénieur qualifié.",
-            styles["pied"]
-        ),
-    ]
+    return []

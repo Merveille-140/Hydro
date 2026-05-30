@@ -77,7 +77,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.25);
+            background: rgba(0,0,0,0.55);
             z-index: 0;
             pointer-events: none;
         }
@@ -993,7 +993,7 @@
             <div class="proj-item">
                 <div class="proj-name">{{ projet.nom_projet }}</div>
                 <div class="proj-meta">{{ projet.source_energie or '—' }}{% if projet.date_modif %} · {{ projet.date_modif[:10] }}{% endif %}</div>
-                <a href="/dashboard?projet_id={{ projet.id }}" class="proj-resume-btn">Reprendre →</a>
+                <a href="/choix-systeme?projet_id={{ projet.id }}" class="proj-resume-btn">Reprendre →</a>
             </div>
             {% else %}
             <p class="proj-no-items">Aucun projet sauvegardé.<br>Commencez un dimensionnement.</p>
@@ -1280,16 +1280,16 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Besoin journalier total (m³/jour)</label>
-                            <input type="number" id="besoin_journalier" placeholder="" step="0.1" min="0.1"/>
+                            <input type="number" id="besoin_journalier" oninput="calculerDepuisBesoin()" placeholder="" step="0.1" min="0.1"/>
+                            <div class="form-hint">Saisissez directement ou calculé automatiquement depuis le nombre de bénéficiaires</div>
                         </div>
                     </div>
-                    <div id="msg_besoin_auto"></div>
                     <div class="form-group">
                         <label class="form-label">Coefficient de majoration (%)</label>
                         <input type="number" id="coeff_fuite_besoin" value="10" min="10" max="20" step="1" oninput="calculerBesoinAuto()"/>
                         <div class="form-hint">Entre 10% et 20% — pertes, fuites et imprévus</div>
                     </div>
-                    <div id="msg_besoin_brut" style="margin-top:6px;"></div>
+                    <div id="msg_besoin_auto"></div>
                 </div>
 
                 <div class="card">
@@ -1417,7 +1417,7 @@
 
             <div class="nav-buttons">
                 <button class="btn-back" onclick="allerVers('localisation')">← Retour</button>
-                <button class="btn-next" onclick="allerVers('energie')">Suivant →</button>
+                <button class="btn-next" onclick="validerBesoins()">Suivant →</button>
             </div>
         </div>
     </div>
@@ -1690,18 +1690,27 @@
                 </div>
                 <div class="result-card result-card-full" id="res_cout" style="margin-bottom:14px;">
                     <div class="result-card-title">Coût estimatif de l'installation</div>
-                    <div class="result-row"><span class="result-label">Coût de la pompe</span><span class="result-value"><span id="res_cout_pompe">—</span> <span class="result-unit">FCFA</span></span></div>
-                    <div class="result-row"><span class="result-label">Coût des équipements énergétiques</span><span class="result-value"><span id="res_cout_energie">—</span> <span class="result-unit">FCFA</span></span></div>
-                    <div class="result-row"><span class="result-label">Main d'œuvre & installation (15%)</span><span class="result-value"><span id="res_cout_installation">—</span> <span class="result-unit">FCFA</span></span></div>
-                    <div class="result-row"><span class="result-label">Divers & imprévus (10%)</span><span class="result-value"><span id="res_cout_divers">—</span> <span class="result-unit">FCFA</span></span></div>
-                    <div class="result-row" style="border-top:1px solid rgba(255,255,255,0.15); margin-top:8px; padding-top:12px;">
-                        <span class="result-label" style="font-size:14px; font-weight:600; color:white;">COÛT TOTAL ESTIMATIF</span>
-                        <span class="result-value highlight" style="font-size:20px;"><span id="res_cout_total">—</span> <span class="result-unit">FCFA</span></span>
-                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                        <thead>
+                            <tr style="background:rgba(255,255,255,0.06);">
+                                <th style="text-align:left; padding:10px 12px; color:rgba(255,255,255,0.5); font-weight:500;">Équipement</th>
+                                <th style="text-align:center; padding:10px 12px; color:rgba(255,255,255,0.5); font-weight:500;">Qté</th>
+                                <th style="text-align:right; padding:10px 12px; color:rgba(255,255,255,0.5); font-weight:500;">Prix unitaire (FCFA)</th>
+                                <th style="text-align:right; padding:10px 12px; color:rgba(255,255,255,0.5); font-weight:500;">Prix total (FCFA)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="res_cout_tbody">
+                        </tbody>
+                    </table>
                 </div>
                 <div class="nav-buttons">
                     <button class="btn-back" onclick="allerVers('energie')">← Modifier</button>
-                    <button class="btn-pdf" onclick="ouvrirModalPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Télécharger le rapport PDF</button>
+                    <div style="display:flex; gap:10px;">
+                        <a href="/dashboard" style="background:linear-gradient(135deg,#f59e0b,#fbbf24); border:none; color:#000; padding:10px 20px; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; text-decoration:none; display:flex; align-items:center;">
+                            🏠 Retour au dashboard
+                        </a>
+                        <button class="btn-pdf" onclick="ouvrirModalPDF()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Télécharger le rapport PDF</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1745,7 +1754,11 @@ carte.on('click', function(e) {
         nom_lieu = pays ? ville + ', ' + pays : ville;
         var titleEl = document.getElementById('nasa-card-title');
         if (titleEl) { titleEl.innerText = nom_lieu || ''; }
-    }).catch(function() {});
+    }).catch(function() {
+        nom_lieu = 'Lat: ' + lat_choisie + ', Lon: ' + lon_choisie;
+        var titleEl = document.getElementById('nasa-card-title');
+        if (titleEl) { titleEl.innerText = nom_lieu; }
+    });
     if (timer_click) { clearTimeout(timer_click); }
     timer_click = setTimeout(function() { recupererDonnees(); }, 500);
 });
@@ -1762,9 +1775,9 @@ function rechercherVille() {
             var partiesNom = data[0].display_name ? data[0].display_name.split(',') : [ville];
             var villeR = partiesNom[0].trim();
             var paysR  = partiesNom[partiesNom.length - 1].trim();
-            nom_lieu = paysR ? villeR + ', ' + paysR : villeR;
+            nom_lieu = villeR + (paysR ? ', ' + paysR : '');
             var titleEl = document.getElementById('nasa-card-title');
-            if (titleEl) { titleEl.innerText = nom_lieu || ''; }
+            if (titleEl) { titleEl.innerText = nom_lieu; }
             carte.setView([lat_choisie, lon_choisie], 11);
             if (marqueur) { carte.removeLayer(marqueur); }
             marqueur = L.marker([lat_choisie, lon_choisie]).addTo(carte);
@@ -1793,6 +1806,8 @@ function recupererDonnees() {
             window._ir_nasa = parseFloat(data.irradiation) || 0;
             document.getElementById('temperature_max').innerText = data.temperature_max;
             document.getElementById('temperature_min').innerText = data.temperature_min;
+            var titleEl = document.getElementById('nasa-card-title');
+            if (titleEl) { titleEl.innerText = nom_lieu || ''; }
             document.getElementById('climate-section').classList.remove('hidden');
         } else { alert('Erreur données climatiques : ' + data.erreur); }
     });
@@ -1816,6 +1831,21 @@ window.addEventListener('DOMContentLoaded', function() {
         document.getElementById('div_type_animal').classList.remove('hidden');
         document.getElementById('label_beneficiaires').innerText = "Nombre d'animaux";
         document.getElementById('hint_beneficiaires').innerText = "Nombre de têtes";
+    }
+  }
+  if (modeActuel === 'classique') {
+    var nbEl = document.getElementById('nb_beneficiaires');
+    var hintEl = document.getElementById('hint_beneficiaires');
+    if (usageType === 'eau_potable_rural' || usageType === 'eau_potable_village') {
+        nbEl.setAttribute('max', '5000');
+        nbEl.setAttribute('min', '50');
+        nbEl.setAttribute('placeholder', 'Ex: 500');
+        if (hintEl) { hintEl.innerText = 'Entre 50 et 5000 personnes'; }
+    } else {
+        nbEl.setAttribute('max', '50');
+        nbEl.setAttribute('min', '1');
+        nbEl.setAttribute('placeholder', 'Ex: 10');
+        if (hintEl) { hintEl.innerText = 'Maximum 50 personnes — usage domestique'; }
     }
   }
   var sourceEnergie = "{{ session.get('source_energie', 'solaire') }}";
@@ -1897,45 +1927,85 @@ function mettreAJourLabelBeneficiaires() {
 }
 
 function calculerBesoinAuto() {
-    var usage  = document.getElementById('type_usage').value;
-    var nb     = parseFloat(document.getElementById('nb_beneficiaires').value);
+    var nb    = parseFloat(document.getElementById('nb_beneficiaires').value) || 0;
+    var conso = parseFloat((document.getElementById('consommation_unitaire') || {}).value) || 10;
+    var pct   = parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10;
+    var coeff = 1 + (pct / 100);
     var msgDiv = document.getElementById('msg_besoin_auto');
+
     if (!nb || nb <= 0) return;
-    var besoin = 0;
-    if (usage === 'eau_potable_rural' || usage === 'eau_potable_village') {
-        var consommation = (function(){ var el = document.getElementById('consommation_unitaire'); return el ? parseFloat(el.value) || 10 : 10; })();
-        besoin = (consommation * nb) / 1000;
-        document.getElementById('besoin_journalier').value = besoin.toFixed(2);
-        msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour (' + consommation + ' L/j × ' + nb + ' personnes)</div>';
-        var pct = parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10;
-        var besoin_brut = besoin * (1 + pct / 100);
-        document.getElementById('msg_besoin_brut').innerHTML = '<div class="msg msg-info">ℹ️ Besoin brut (majoration ' + pct.toFixed(0) + '%) : <strong>' + besoin_brut.toFixed(2) + ' m³/jour</strong></div>';
-        return;
+
+    var besoin_net  = (conso * nb) / 1000;
+    var besoin_brut = besoin_net * coeff;
+
+    document.getElementById('besoin_journalier').value = besoin_brut.toFixed(2);
+
+    msgDiv.innerHTML =
+        '<div class="msg msg-success">✅ '
+        + 'Besoin net : <strong>' + besoin_net.toFixed(2) + ' m³/jour</strong>'
+        + ' → après majoration ' + pct + '% : '
+        + '<strong>' + besoin_brut.toFixed(2) + ' m³/jour</strong></div>';
+
+    var usage = document.getElementById('type_usage').value;
+    if (usage === 'eau_potable_village' && nb < 50) {
+        msgDiv.innerHTML += '<div class="msg msg-warning">⚠️ Mode Village nécessite au minimum 50 personnes. Choisissez "Résidentiel" pour moins de 50 personnes.</div>';
     }
-    if (usage === 'elevage_bovin') {
-        var typeAnimal = document.getElementById('type_animal').value;
-        var consommationAnimal = 0;
-        if (typeAnimal === 'autre') {
-            var manuelEl = document.getElementById('besoin_animal_manuel');
-            document.getElementById('div_besoin_animal_manuel').classList.remove('hidden');
-            consommationAnimal = parseFloat(manuelEl.value) || 0;
-            if (consommationAnimal <= 0) {
-                msgDiv.innerHTML = '<div class="msg msg-info">ℹ️ Renseignez le besoin journalier par tête.</div>';
+    if (usage === 'eau_potable_rural' && nb > 50) {
+        msgDiv.innerHTML += '<div class="msg msg-warning">⚠️ Mode Résidentiel limité à 50 personnes. Choisissez "Eau potable / village" pour ' + nb + ' personnes.</div>';
+    }
+}
+
+function calculerDepuisBesoin() {
+    var besoin = parseFloat(document.getElementById('besoin_journalier').value) || 0;
+    var conso  = parseFloat((document.getElementById('consommation_unitaire') || {}).value) || 10;
+    var pct    = parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10;
+    var coeff  = 1 + (pct / 100);
+    var msgDiv = document.getElementById('msg_besoin_auto');
+
+    if (!besoin || besoin <= 0) return;
+
+    var besoin_net = besoin / coeff;
+    var nb = Math.round((besoin_net * 1000) / conso);
+
+    document.getElementById('nb_beneficiaires').value = nb;
+
+    msgDiv.innerHTML =
+        '<div class="msg msg-info">ℹ️ '
+        + nb + ' personnes estimées '
+        + '— Besoin net : <strong>' + besoin_net.toFixed(2) + ' m³/jour</strong>'
+        + ' → Besoin brut : <strong>' + besoin + ' m³/jour</strong></div>';
+
+    var usage = document.getElementById('type_usage').value;
+    if (usage === 'eau_potable_village' && nb < 50) {
+        msgDiv.innerHTML += '<div class="msg msg-warning">⚠️ Mode Village nécessite au minimum 50 personnes. Choisissez "Résidentiel" pour moins de 50 personnes.</div>';
+    }
+    if (usage === 'eau_potable_rural' && nb > 50) {
+        msgDiv.innerHTML += '<div class="msg msg-warning">⚠️ Mode Résidentiel limité à 50 personnes. Choisissez "Eau potable / village" pour ' + nb + ' personnes.</div>';
+    }
+}
+
+function validerBesoins() {
+    if (modeActuel === 'classique') {
+        var usage = document.getElementById('type_usage').value;
+        var nb = parseFloat(document.getElementById('nb_beneficiaires').value) || 0;
+
+        if (usage === 'eau_potable_rural') {
+            if (nb > 50) {
+                alert('⚠️ Mode Résidentiel limité à 50 personnes maximum.\n'
+                    + 'Choisissez "Eau potable / village" pour ' + nb + ' personnes.');
                 return;
             }
-        } else {
-            document.getElementById('div_besoin_animal_manuel').classList.add('hidden');
-            consommationAnimal = parseFloat(typeAnimal);
         }
-        besoin = (consommationAnimal * nb) / 1000;
-        document.getElementById('besoin_journalier').value = besoin.toFixed(2);
-        msgDiv.innerHTML = '<div class="msg msg-success">✅ Besoin calculé : ' + besoin.toFixed(2) + ' m³/jour (' + consommationAnimal + ' L/j × ' + nb + ' têtes)</div>';
-        var pct = parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10;
-        var besoin_brut = besoin * (1 + pct / 100);
-        document.getElementById('msg_besoin_brut').innerHTML = '<div class="msg msg-info">ℹ️ Besoin brut (majoration ' + pct.toFixed(0) + '%) : <strong>' + besoin_brut.toFixed(2) + ' m³/jour</strong></div>';
-        return;
+
+        if (usage === 'eau_potable_village') {
+            if (nb < 50) {
+                alert('⚠️ Mode Village nécessite au minimum 50 personnes.\n'
+                    + 'Choisissez "Résidentiel" pour moins de 50 personnes.');
+                return;
+            }
+        }
     }
-    msgDiv.innerHTML = '<div class="msg msg-info">ℹ️ Veuillez saisir le volume journalier manuellement.</div>';
+    allerVers('energie');
 }
 
 function afficherParamsSysteme() {
@@ -2411,7 +2481,7 @@ function mettreAJourEquipements() {
 }
 
 var PLAGES_HEURES = {
-    'solaire':           {min:4,  max:8,  defaut:6,  msg:'Solaire : entre 4h et 8h recommandées'},
+    'solaire':           {min:3,  max:8,  defaut:6,  msg:'Solaire : entre 3h et 8h recommandées'},
     'groupe':            {min:6,  max:12, defaut:8,  msg:'Groupe : entre 6h et 12h recommandées'},
     'hybride_groupe':    {min:6,  max:12, defaut:8,  msg:'Hybride groupe : entre 6h et 12h recommandées'},
     'hybride_batteries': {min:8,  max:16, defaut:10, msg:'Hybride batteries : entre 8h et 16h recommandées'},
@@ -2627,16 +2697,68 @@ function afficherResultats(data) {
         }
         window._lastCout = data.cout || null;
         if (data.cout) {
-            var el_pompe   = document.getElementById('res_cout_pompe');
-            var el_energie = document.getElementById('res_cout_energie');
-            var el_install = document.getElementById('res_cout_installation');
-            var el_divers  = document.getElementById('res_cout_divers');
-            var el_total   = document.getElementById('res_cout_total');
-            if (el_pompe)   el_pompe.innerText   = data.cout.C_pompe.toLocaleString('fr-FR');
-            if (el_energie) el_energie.innerText = data.cout.C_energie.toLocaleString('fr-FR');
-            if (el_install) el_install.innerText = data.cout.C_installation.toLocaleString('fr-FR');
-            if (el_divers)  el_divers.innerText  = data.cout.C_divers.toLocaleString('fr-FR');
-            if (el_total)   el_total.innerText   = data.cout.C_total.toLocaleString('fr-FR');
+            var tbody = document.getElementById('res_cout_tbody');
+            var rows  = '';
+            var sect  = function(titre) {
+                return '<tr style="border-top:1px solid rgba(255,255,255,0.06);">'
+                     + '<td colspan="4" style="padding:8px 12px; font-size:11px; font-weight:600;'
+                     + ' color:#22c55e; text-transform:uppercase; letter-spacing:0.05em;">'
+                     + titre + '</td></tr>';
+            };
+            var ligne = function(label, qte, pu, total) {
+                return '<tr style="border-top:1px solid rgba(255,255,255,0.04);">'
+                     + '<td style="padding:9px 12px; color:rgba(255,255,255,0.85);">' + label + '</td>'
+                     + '<td style="padding:9px 12px; text-align:center; color:white;">' + qte + '</td>'
+                     + '<td style="padding:9px 12px; text-align:right; color:white; font-family:monospace;">' + pu + '</td>'
+                     + '<td style="padding:9px 12px; text-align:right; color:white; font-family:monospace; font-weight:600;">' + total + '</td></tr>';
+            };
+            var fmt = function(n) { return n.toLocaleString('fr-FR'); };
+
+            // Pompe
+            rows += sect('Pompe');
+            var marque_pompe = data.marque_pompe || 'Pompe';
+            var modele_pompe = data.modele_pompe || '';
+            rows += ligne(marque_pompe + (modele_pompe ? ' ' + modele_pompe : ''),
+                          '1', fmt(data.cout.C_pompe), fmt(data.cout.C_pompe));
+
+            // Équipements énergétiques
+            rows += sect('Équipements énergétiques');
+
+            var nb_pan = parseInt((document.getElementById('res_nb_panneaux') || {}).innerText) || 0;
+            if (nb_pan > 0 && data.cout.C_panneaux > 0) {
+                var pu_pan = Math.round(data.cout.C_panneaux / nb_pan);
+                var label_pan = (getMarquePanneau() || 'Panneau solaire')
+                              + (getModelePanneau() ? ' ' + getModelePanneau() : '');
+                rows += ligne(label_pan, nb_pan, fmt(pu_pan), fmt(data.cout.C_panneaux));
+            }
+
+            var nb_bat = parseInt((document.getElementById('res_nb_batteries') || {}).innerText) || 0;
+            if (nb_bat > 0 && data.cout.C_batteries > 0) {
+                var pu_bat = Math.round(data.cout.C_batteries / nb_bat);
+                rows += ligne('Batterie ' + (getMarqueBatterie() || ''), nb_bat, fmt(pu_bat), fmt(data.cout.C_batteries));
+            }
+
+            if (data.cout.C_onduleur > 0) {
+                rows += ligne('Onduleur', '1', fmt(data.cout.C_onduleur), fmt(data.cout.C_onduleur));
+            }
+
+            if (data.cout.C_groupe > 0) {
+                rows += ligne('Groupe électrogène', '1', fmt(data.cout.C_groupe), fmt(data.cout.C_groupe));
+            }
+
+            // Frais annexes
+            rows += sect('Frais annexes');
+            rows += ligne("Main d'œuvre & installation", '15%', '—', fmt(data.cout.C_installation));
+            rows += ligne('Divers & imprévus', '10%', '—', fmt(data.cout.C_divers));
+
+            // Total
+            rows += '<tr style="border-top:2px solid rgba(255,255,255,0.15); background:rgba(34,197,94,0.08);">'
+                  + '<td colspan="3" style="padding:12px; font-size:14px; font-weight:700; color:white;">COÛT TOTAL ESTIMATIF</td>'
+                  + '<td style="padding:12px; text-align:right; font-size:18px; font-weight:700; color:#22c55e; font-family:monospace;">'
+                  + fmt(data.cout.C_total)
+                  + ' <span style="font-size:12px; color:rgba(255,255,255,0.4);">FCFA</span></td></tr>';
+
+            tbody.innerHTML = rows;
         }
         mettreAJourPreviewPV();
         afficherEquipements(data);
