@@ -871,6 +871,25 @@
             .results-grid { grid-template-columns: 1fr 1fr; }
             body { font-size: 15px; }
         }
+
+        @media (max-width: 600px) {
+          /* Titre plus petit */
+          h1, .hero-title { font-size: 2rem !important; }
+
+          /* Cards en colonne */
+          .cards-container, .auth-cards, .hero-cards {
+            flex-direction: column !important;
+            align-items: center !important;
+            padding: 0 16px !important;
+          }
+
+          /* Chaque card prend toute la largeur */
+          .card, .auth-card {
+            width: 100% !important;
+            max-width: 360px !important;
+            margin-bottom: 16px !important;
+          }
+        }
     </style>
 </head>
 <body>
