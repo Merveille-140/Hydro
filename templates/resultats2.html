@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HydroPump — Résultats du dimensionnement</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --green-lite:#22c55e;--gold:#ca8a04;--gold-lite:#fbbf24;
+  --bg:#080e0a;--bg2:#0f1912;--bg3:#141f16;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#f0fdf4;--text2:rgba(240,253,244,0.55);--text3:rgba(240,253,244,0.3);
+  --radius-sm:6px;--radius-md:10px;--radius-lg:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background-image:url('/static/images/solar_pump.jpeg');
+  background-size:cover;background-position:center;background-attachment:fixed;
+  color:white;min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.5;
+}
+body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.60);z-index:0;pointer-events:none;}
+
+/* THIN BAR */
+.thin-bar{position:fixed;left:0;top:0;bottom:0;width:52px;background:var(--bg3);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  align-items:center;justify-content:space-between;padding:14px 0;z-index:150;}
+.menu-btn{width:34px;height:34px;background:rgba(255,255,255,.05);
+  border:1px solid var(--border2);border-radius:8px;color:var(--text2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.menu-btn:hover{background:rgba(255,255,255,.18);color:var(--text);}
+.bar-avatar{width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-lite));
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+  color:#000;cursor:pointer;border:none;box-shadow:0 2px 8px rgba(251,191,36,.3);transition:transform .2s;}
+.bar-avatar:hover{transform:scale(1.08);}
+
+/* PROJ SIDEBAR */
+.proj-sidebar{position:fixed;left:52px;top:0;bottom:0;width:0;background:var(--bg2);
+  overflow:hidden;transition:width .25s ease;z-index:99;
+  border-right:1px solid var(--border);box-shadow:4px 0 24px rgba(0,0,0,.4);}
+.proj-sidebar.open{width:240px;}
+.proj-sidebar-content{min-width:240px;height:100%;display:flex;flex-direction:column;}
+.proj-sidebar-header{display:flex;align-items:center;justify-content:space-between;
+  padding:18px 18px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.proj-sidebar-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;}
+.proj-close-btn{width:26px;height:26px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:6px;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.proj-list{flex:1;overflow-y:auto;padding:8px 0;}
+.proj-list::-webkit-scrollbar{width:3px;}
+.proj-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.proj-item{padding:12px 18px;border-bottom:1px solid var(--border);transition:background .15s;}
+.proj-item:hover{background:rgba(255,255,255,.03);}
+.proj-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.proj-meta{font-size:11px;color:var(--text3);margin-bottom:8px;}
+.proj-resume-btn{font-size:11px;font-weight:700;color:var(--green-lite);text-decoration:none;}
+.proj-no-items{padding:20px 18px;font-size:12px;color:var(--text3);line-height:1.6;}
+.proj-sidebar-footer{flex-shrink:0;padding:14px 18px 18px;border-top:1px solid var(--border);}
+.proj-user-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.proj-user-avatar{width:30px;height:30px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-lite));
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;}
+.proj-user-nom{font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.proj-logout{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;
+  color:#ef4444;text-decoration:none;padding:8px 10px;border-radius:8px;
+  background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);transition:all .2s;}
+.proj-logout:hover{background:rgba(239,68,68,.12);}
+.proj-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:98;}
+.proj-overlay.visible{display:block;}
+
+/* MAIN */
+.main-wrap{margin-left:52px;position:relative;z-index:1;min-height:100vh;}
+.page-header{background:rgba(0,0,0,.2);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.1);padding:0 24px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10;}
+.page-header-left{display:flex;align-items:center;gap:12px;}
+.page-title-sm{font-size:15px;font-weight:700;color:white;}
+.source-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;
+  border-radius:20px;font-size:12px;font-weight:600;
+  background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#86efac;}
+.header-btns{display:flex;gap:8px;}
+.btn-sm{font-size:12px;padding:6px 16px;border-radius:8px;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;text-decoration:none;
+  display:inline-flex;align-items:center;gap:5px;transition:all .2s;}
+.btn-outline{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);color:var(--text2);}
+.btn-outline:hover{background:rgba(255,255,255,.12);}
+.btn-gold{background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;color:#000;}
+.btn-gold:hover{opacity:.9;}
+.btn-green{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#86efac;}
+.btn-green:hover{background:rgba(34,197,94,.25);}
+
+.main-content{max-width:900px;margin:0 auto;padding:24px 28px 60px;}
+
+/* SECTION LABELS */
+.section-label{font-size:11px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:1px;margin:28px 0 10px;
+  display:flex;align-items:center;gap:8px;}
+.section-label::before{content:'';display:inline-block;width:3px;height:12px;
+  background:#22c55e;border-radius:2px;}
+
+/* CARDS */
+.card{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:14px;padding:20px 22px;margin-bottom:12px;backdrop-filter:blur(8px);}
+.card-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';width:3px;height:14px;background:#22c55e;border-radius:2px;flex-shrink:0;}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.card-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+
+/* RESULT ROWS */
+.res-row{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+.res-row:last-child{border-bottom:none;}
+.res-lbl{color:var(--text2);}
+.res-val{font-weight:600;color:white;font-family:monospace;font-size:14px;}
+.res-val.hi{color:#fbbf24;font-size:16px;}
+.res-val.green{color:#86efac;}
+.res-unit{font-size:11px;color:var(--text3);margin-left:3px;font-weight:400;font-family:'Plus Jakarta Sans',sans-serif;}
+
+/* EQUIP DETAIL */
+.equip-block{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+.equip-block-title{font-size:11px;font-weight:700;color:#86efac;text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:8px;}
+.equip-block-main{font-size:14px;font-weight:700;color:white;margin-bottom:6px;}
+.equip-block-specs{display:flex;flex-wrap:wrap;gap:6px;}
+.spec-pill{font-size:11px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  border-radius:5px;padding:3px 8px;color:var(--text2);}
+.spec-pill strong{color:white;font-weight:600;}
+.config-tag{display:inline-flex;align-items:center;gap:5px;
+  background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);
+  border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:#fbbf24;
+  margin-top:8px;}
+
+/* CABLES TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:rgba(255,255,255,.05);color:var(--text3);padding:8px 10px;
+  text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;
+  border-bottom:1px solid rgba(255,255,255,.1);}
+.tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl .s-norm{font-weight:700;color:#fbbf24;}
+.tbl .prix-col{text-align:right;color:#fbbf24;font-weight:600;}
+
+/* PARA CHIPS */
+.para-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.para-chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:8px 14px;font-size:12px;}
+.para-chip-title{font-weight:700;color:white;font-size:12px;margin-bottom:3px;}
+.para-chip-info{color:var(--text3);font-size:11px;}
+
+/* COST TABLE */
+.cost-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.cost-tbl th{background:rgba(255,255,255,.06);color:var(--text2);padding:9px 12px;
+  text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+  border-bottom:1px solid rgba(255,255,255,.12);}
+.cost-tbl td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.05);}
+.cost-tbl tr:last-child td{border-bottom:none;}
+.cost-tbl .td-label{color:var(--text2);}
+.cost-tbl .td-qty{text-align:center;color:var(--text);}
+.cost-tbl .td-unit{text-align:right;color:var(--text);font-family:monospace;}
+.cost-tbl .td-total{text-align:right;font-weight:600;color:white;font-family:monospace;}
+.cost-tbl tr.subtotal td{background:rgba(255,255,255,.04);border-top:1px solid rgba(255,255,255,.12);}
+.cost-tbl tr.subtotal .td-label{font-weight:600;color:var(--text);}
+.cost-tbl tr.total-row td{background:rgba(34,197,94,.08);border-top:2px solid rgba(34,197,94,.3);
+  border-bottom:none;}
+.cost-tbl tr.total-row .td-label{font-size:15px;font-weight:800;color:#86efac;}
+.cost-tbl tr.total-row .td-total{font-size:18px;font-weight:800;color:#86efac;font-family:monospace;}
+.cost-separator td{background:none;border:none;padding:2px;}
+
+/* SUMMARY BANNER */
+.summary-banner{
+  background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(34,197,94,.06));
+  border:1px solid rgba(34,197,94,.25);border-radius:14px;
+  padding:20px 24px;margin-bottom:20px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  backdrop-filter:blur(8px);}
+.banner-left{}
+.banner-title{font-size:13px;color:#86efac;font-weight:600;margin-bottom:4px;}
+.banner-total{font-size:32px;font-weight:800;color:white;font-family:monospace;}
+.banner-sub{font-size:12px;color:var(--text3);margin-top:4px;}
+.banner-right{text-align:right;}
+.banner-stat{margin-bottom:6px;}
+.banner-stat-val{font-size:18px;font-weight:700;color:#fbbf24;font-family:monospace;}
+.banner-stat-lbl{font-size:11px;color:var(--text3);}
+
+/* USYST BADGE */
+.usyst-badge{display:inline-flex;align-items:center;padding:3px 12px;border-radius:14px;
+  font-size:13px;font-weight:700;margin-left:6px;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .main-content{padding:14px 12px 50px;}
+  .card{padding:14px 12px;}
+  .card-grid,.card-grid-3{grid-template-columns:1fr;}
+  .header-btns .btn-sm span{display:none;}
+  .tbl,.cost-tbl{font-size:11px;}
+  .summary-banner{flex-direction:column;align-items:flex-start;}
+  .banner-right{text-align:left;}
+}
+@media(max-width:480px){
+  .thin-bar{width:36px;}.main-wrap{margin-left:36px;}
+  .banner-total{font-size:24px;}
+  .cost-tbl .td-unit{display:none;}
+}
+
+@media print{
+  .thin-bar,.proj-sidebar,.proj-overlay,.page-header,.header-btns{display:none!important;}
+  .main-wrap{margin-left:0!important;}
+  body::before{display:none;}
+  body{background:white;color:#000;}
+  .card{background:#f8f8f8;border:1px solid #ddd;box-shadow:none;}
+}
+</style>
+<script>
+window.addEventListener('load',function(){
+  if(!sessionStorage.getItem('hydropump_actif')){
+    fetch('/verifier_session_active',{method:'POST',headers:{'Content-Type':'application/json'}})
+    .then(r=>r.json()).then(d=>{
+      if(!d.actif)window.location.href='/connexion';
+      else sessionStorage.setItem('hydropump_actif','true');
+    });
+  }
+});
+function toggleProjSidebar(){
+  document.getElementById('proj-sidebar').classList.toggle('open');
+  document.getElementById('proj-overlay').classList.toggle('visible');
+}
+function closeProjSidebar(){
+  document.getElementById('proj-sidebar').classList.remove('open');
+  document.getElementById('proj-overlay').classList.remove('visible');
+}
+</script>
+</head>
+<body>
+
+<!-- THIN BAR -->
+<div class="thin-bar">
+  <button class="menu-btn" onclick="toggleProjSidebar()" title="Mes projets">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <button class="bar-avatar" onclick="toggleProjSidebar()">{{ user_nom[0]|upper if user_nom else 'U' }}</button>
+</div>
+
+<!-- PROJ SIDEBAR -->
+<div class="proj-sidebar" id="proj-sidebar">
+  <div class="proj-sidebar-content">
+    <div class="proj-sidebar-header">
+      <span class="proj-sidebar-title">Mes projets</span>
+      <button class="proj-close-btn" onclick="closeProjSidebar()">✕</button>
+    </div>
+    <div class="proj-list">
+      {% for projet in projets %}
+      <div class="proj-item">
+        <div class="proj-name">{{ projet.nom_projet }}</div>
+        <div class="proj-meta">{{ projet.source_energie or '—' }}{% if projet.date_modif %} · {{ projet.date_modif[:10] }}{% endif %}</div>
+        <a href="/dimensionnement2" class="proj-resume-btn">Reprendre →</a>
+      </div>
+      {% else %}
+      <p class="proj-no-items">Aucun projet sauvegardé.</p>
+      {% endfor %}
+    </div>
+    <div class="proj-sidebar-footer">
+      <div class="proj-user-row">
+        <div class="proj-user-avatar">{{ user_nom[0]|upper if user_nom else 'U' }}</div>
+        <span class="proj-user-nom">{{ user_nom }}</span>
+      </div>
+      <a href="/deconnexion" class="proj-logout">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Se déconnecter
+      </a>
+    </div>
+  </div>
+</div>
+<div class="proj-overlay" id="proj-overlay" onclick="closeProjSidebar()"></div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span class="page-title-sm">Résultats du dimensionnement</span>
+      <span class="source-badge">{{ calcul.source_energie | replace('_',' ') | title }}</span>
+    </div>
+    <div class="header-btns">
+      <a href="/equipements" class="btn-sm btn-outline">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Modifier</span>
+      </a>
+      <button class="btn-sm btn-gold" onclick="ouvrirModalPDF()" style="border:none;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>PDF</span>
+      </button>
+      <a href="/dashboard" class="btn-sm btn-outline">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span>Dashboard</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    {% set cout = equip.cout %}
+
+    <!-- ══ SECTION : BESOINS & HYDRAULIQUE ══ -->
+    <div class="section-label">Besoins &amp; Hydraulique</div>
+    <div class="card-grid" style="margin-bottom:12px;">
+
+      <!-- Card Besoins -->
+      <div class="card">
+        <div class="card-title">Besoins en eau</div>
+        {% set b = calcul.besoins %}
+        {% if b %}
+        <div class="res-row">
+          <span class="res-lbl">ETc / Besoin de base</span>
+          <span class="res-val">{{ "%.2f"|format(b.get('ETc', calcul.get('besoin_journalier', 0)) | float) }}<span class="res-unit">mm/j ou m³/j</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Besoin net</span>
+          <span class="res-val">{{ "%.2f"|format(b.get('besoin_net_m3_jour', 0) | float) }}<span class="res-unit">m³/j</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Besoin brut</span>
+          <span class="res-val hi">{{ "%.2f"|format(b.get('besoin_brut_m3_jour', 0) | float) }}<span class="res-unit">m³/j</span></span>
+        </div>
+        {% if b.get('kc_utilise') %}
+        <div class="res-row">
+          <span class="res-lbl">Kc utilisé</span>
+          <span class="res-val">{{ b.get('kc_utilise') }}</span>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="res-row"><span class="res-lbl">Besoin journalier</span>
+          <span class="res-val hi">{{ calcul.Q * calcul.heures_pompage | round(2) }}<span class="res-unit">m³/j</span></span></div>
+        {% endif %}
+        <div class="res-row">
+          <span class="res-lbl">Heures de pompage</span>
+          <span class="res-val">{{ calcul.heures_pompage }}<span class="res-unit">h/j</span></span>
+        </div>
+      </div>
+
+      <!-- Card Hydraulique -->
+      <div class="card">
+        <div class="card-title">Hydraulique</div>
+        <div class="res-row">
+          <span class="res-lbl">Débit Q</span>
+          <span class="res-val hi">{{ calcul.Q }}<span class="res-unit">m³/h</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Hauteur géométrique Hgeo</span>
+          <span class="res-val">{{ calcul.Hgeo }}<span class="res-unit">m</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Pertes de charge (10%)</span>
+          <span class="res-val">{{ calcul.Pc_pertes }}<span class="res-unit">m</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">HMT totale</span>
+          <span class="res-val hi">{{ calcul.HMT }}<span class="res-unit">m</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SECTION : PUISSANCES & ÉNERGIE ══ -->
+    <div class="section-label">Puissances &amp; Énergie</div>
+    <div class="card-grid" style="margin-bottom:12px;">
+
+      <!-- Card Pompe / Puissances -->
+      <div class="card">
+        <div class="card-title">Dimensionnement pompe</div>
+        <div class="res-row">
+          <span class="res-lbl">Puissance hydraulique Ph</span>
+          <span class="res-val">{{ "%.4f"|format(calcul.Ph) }}<span class="res-unit">kW</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">ηp × ηm (Rmp)</span>
+          <span class="res-val">{{ calcul.Rmp }} = {{ calcul.eta_p }} × {{ calcul.eta_m }}</span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Puissance pompe Pp</span>
+          <span class="res-val">{{ "%.4f"|format(calcul.Pp) }}<span class="res-unit">kW</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Puissance moteur Pm</span>
+          <span class="res-val hi">{{ "%.4f"|format(calcul.Pm) }}<span class="res-unit">kW</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Pm commercial (×1.25)</span>
+          <span class="res-val green">{{ calcul.Pm_commercial }}<span class="res-unit">kW</span></span>
+        </div>
+        {% if calcul.source_energie in ['sbee','reseau'] %}
+        <div class="res-row">
+          <span class="res-lbl">Courant Ia</span>
+          <span class="res-val">{{ calcul.Ia }}<span class="res-unit">A</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Type réseau</span>
+          <span class="res-val" style="font-size:12px;">{{ calcul.type_reseau }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Card Énergie -->
+      <div class="card">
+        <div class="card-title">
+          Énergie
+          {% if calcul.source_energie in ['solaire','hybride_batteries'] %}
+          <span style="font-size:12px;color:var(--text3);font-weight:400;">— Système solaire</span>
+          {% elif calcul.source_energie in ['groupe','groupe_electrogene'] %}
+          <span style="font-size:12px;color:var(--text3);font-weight:400;">— Groupe électrogène</span>
+          {% else %}
+          <span style="font-size:12px;color:var(--text3);font-weight:400;">— Réseau / SBEE</span>
+          {% endif %}
+        </div>
+
+        {% if calcul.source_energie in ['solaire','hybride_batteries'] %}
+        <div class="res-row">
+          <span class="res-lbl">Irradiation (NASA)</span>
+          <span class="res-val">{{ calcul.irradiation }}<span class="res-unit">kWh/m²/j</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Performance Ratio Pr</span>
+          <span class="res-val">{{ calcul.pr_ratio }}</span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Énergie électrique Eelec</span>
+          <span class="res-val">{{ "%.4f"|format(calcul.Eelec) }}<span class="res-unit">kWh/j</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Puissance crête Pc</span>
+          <span class="res-val hi">{{ "%.4f"|format(calcul.Pc_kWc) }}<span class="res-unit">kWc</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Tension système Usyst</span>
+          <span class="res-val">
+            <span class="usyst-badge" style="background:{% if calcul.Usyst<=24 %}rgba(245,158,11,.2);color:#fbbf24{% elif calcul.Usyst<=48 %}rgba(34,197,94,.2);color:#86efac{% else %}rgba(96,165,250,.2);color:#93c5fd{% endif %}">
+              {{ calcul.Usyst }} V
+            </span>
+          </span>
+        </div>
+
+        {% elif calcul.source_energie in ['groupe','groupe_electrogene'] %}
+        <div class="res-row">
+          <span class="res-lbl">Puissance groupe (Pm × 3)</span>
+          <span class="res-val hi">{{ calcul.Pgroupe }}<span class="res-unit">kW</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Consommation/jour</span>
+          <span class="res-val">{{ calcul.conso_jour }}<span class="res-unit">L/j</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Consommation/mois</span>
+          <span class="res-val">{{ calcul.conso_mois | int }}<span class="res-unit">L/mois</span></span>
+        </div>
+
+        {% else %}
+        <div class="res-row">
+          <span class="res-lbl">Puissance souscrite Ps</span>
+          <span class="res-val hi">{{ calcul.Ps }}<span class="res-unit">kW</span></span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Type réseau</span>
+          <span class="res-val" style="font-size:12px;">{{ calcul.type_reseau }}</span>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">Courant de ligne Ia</span>
+          <span class="res-val">{{ calcul.Ia }}<span class="res-unit">A</span></span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ══ SECTION : ÉQUIPEMENTS SÉLECTIONNÉS ══ -->
+    <div class="section-label">Équipements sélectionnés</div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">Configuration retenue</div>
+
+      <!-- Pompe -->
+      {% if equip.pompe %}
+      <div class="equip-block">
+        <div class="equip-block-title">Pompe</div>
+        <div class="equip-block-main">{{ equip.pompe.get('marque','') }} {{ equip.pompe.get('modele','') }}</div>
+        <div class="equip-block-specs">
+          <span class="spec-pill">Type <strong>{{ equip.pompe.get('type_pompe','') }}</strong></span>
+          <span class="spec-pill">Q max <strong>{{ equip.pompe.get('debit_max_m3h','—') }} m³/h</strong></span>
+          <span class="spec-pill">HMT <strong>{{ equip.pompe.get('HMT_max_m','—') }} m</strong></span>
+          <span class="spec-pill">P <strong>{{ equip.pompe.get('puissance_kW','—') }} kW</strong></span>
+          <span class="spec-pill">{{ equip.pompe.get('tension_V','') }}</span>
+          <span class="spec-pill">{{ equip.mode_alim or equip.pompe.get('type_alimentation','') }}</span>
+        </div>
+        {% if equip.pompe.get('prix') %}
+        <div class="config-tag">{{ equip.pompe.get('prix') | fcfa }} FCFA</div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Contrôleur -->
+      {% if equip.controleur %}
+      <div class="equip-block">
+        <div class="equip-block-title">
+          {% if equip.type_ctrl == 'MPPT' %}Régulateur MPPT
+          {% elif equip.type_ctrl == 'VFD' %}Variateur de fréquence (VFD)
+          {% else %}Contrôleur{% endif %}
+        </div>
+        <div class="equip-block-main">
+          {{ equip.controleur.get('marque','') }} {{ equip.controleur.get('modele','') }}
+        </div>
+        <div class="equip-block-specs">
+          {% if equip.type_ctrl == 'MPPT' %}
+          <span class="spec-pill">Courant max <strong>{{ equip.controleur.get('courant_max_A','—') }} A</strong></span>
+          <span class="spec-pill">{{ equip.controleur.get('tension_systeme','') }}</span>
+          <span class="spec-pill">Plage PV <strong>{{ equip.controleur.get('plage_tension_pv','') }}</strong></span>
+          {% else %}
+          <span class="spec-pill">P <strong>{{ equip.controleur.get('puissance_kW','—') }} kW</strong></span>
+          <span class="spec-pill">I sortie <strong>{{ equip.controleur.get('courant_sortie_A','—') }} A</strong></span>
+          <span class="spec-pill">{{ equip.controleur.get('type_sortie','') }}</span>
+          {% endif %}
+        </div>
+        {% if equip.controleur.get('prix') %}
+        <div class="config-tag">{{ equip.controleur.get('prix') | fcfa }} FCFA</div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Panneaux -->
+      {% if equip.panneau and calcul.source_energie in ['solaire','hybride_batteries'] %}
+      <div class="equip-block">
+        <div class="equip-block-title">Panneaux solaires</div>
+        <div class="equip-block-main">{{ equip.panneau.get('marque','') }} {{ equip.panneau.get('modele','') }}</div>
+        <div class="equip-block-specs">
+          <span class="spec-pill">{{ equip.panneau.get('type','') }}</span>
+          <span class="spec-pill">P <strong>{{ equip.panneau.get('puissance_W','—') }} Wc</strong></span>
+          <span class="spec-pill">Voc <strong>{{ equip.panneau.get('Voc_V','—') }} V</strong></span>
+          <span class="spec-pill">Isc <strong>{{ equip.panneau.get('Isc_A','—') }} A</strong></span>
+          <span class="spec-pill">Vmp <strong>{{ equip.panneau.get('Vmp_V','—') }} V</strong></span>
+          <span class="spec-pill">η <strong>{{ equip.panneau.get('rendement','—') }}</strong></span>
+        </div>
+        <div class="config-tag">
+          {{ equip.nbr_panneaux }} panneaux
+          — {{ equip.nbr_pv_serie }}S × {{ equip.nbr_pv_parallele }}P
+          {% if equip.panneau.get('prix') %}
+           — {{ (equip.panneau.get('prix') * equip.nbr_panneaux) | fcfa }} FCFA total
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Batterie -->
+      {% if equip.batterie and calcul.source_energie == 'hybride_batteries' %}
+      <div class="equip-block">
+        <div class="equip-block-title">Batteries</div>
+        <div class="equip-block-main">{{ equip.batterie.get('marque','') }} — {{ equip.batterie.get('technologie','') }}</div>
+        <div class="equip-block-specs">
+          <span class="spec-pill"><strong>{{ equip.batterie.get('capacite_Ah','—') }} Ah</strong></span>
+          <span class="spec-pill">{{ equip.batterie.get('tension_V','—') }} V</span>
+          <span class="spec-pill">DoD {{ ((equip.batterie.get('dod',0.5))*100)|int }}%</span>
+          <span class="spec-pill">{{ equip.jours_autonomie }} j autonomie</span>
+        </div>
+        <div class="config-tag">
+          {{ equip.nbat_tot }} batteries
+          — {{ equip.nbat_serie }}S × {{ equip.nbat_par }}P
+          — Ctot {{ equip.ctot | round(0) | int }} Ah
+          {% if equip.batterie.get('prix') %}
+           — {{ (equip.batterie.get('prix') * equip.nbat_tot) | fcfa }} FCFA total
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div><!-- /card équipements -->
+
+    <!-- ══ SECTION : CÂBLES ET PROTECTIONS ══ -->
+    {% if equip.cables_resultats %}
+    <div class="section-label">Câbles et protections</div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">Dimensionnement câbles</div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Tronçon</th><th>I (A)</th><th>L (m)</th>
+            <th>S calc.</th><th class="s-norm">S norm.</th><th>In (A)</th>
+            <th>Câble</th><th>Disjoncteur</th><th class="prix-col">Prix/m</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set isAC = calcul.source_energie in ['groupe','groupe_electrogene','sbee','reseau'] %}
+          {% for t in equip.cables_resultats %}
+          {% if not (isAC and t.get('type') == 'DC') %}
+          <tr>
+            <td>{{ t.get('troncon','') }}</td>
+            <td>{{ "%.1f"|format(t.get('I_A',0)|float) }}</td>
+            <td>{{ t.get('L_m',0) }}</td>
+            <td style="color:var(--text3);">{{ "%.2f"|format(t.get('S_calculee',0)|float) }} mm²</td>
+            <td class="s-norm">{{ t.get('S_normalisee','—') }} mm²</td>
+            <td>{{ t.get('In_normalisee','—') }}</td>
+            <td style="font-size:11px;">
+              {{ (t.get('cable') or {}).get('designation','—') }}
+            </td>
+            <td style="font-size:11px;">
+              {{ (t.get('disjoncteur') or {}).get('designation','—') }}
+              {% if (t.get('disjoncteur') or {}).get('calibre') %}
+              <br><span style="color:var(--text3);">{{ t.get('disjoncteur',{}).get('calibre','') }}</span>
+              {% endif %}
+            </td>
+            <td class="prix-col">{{ (t.get('cable') or {}).get('prix',0) | fcfa }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% if equip.parafoudres %}
+      <div style="margin-top:14px;font-size:12px;font-weight:600;color:var(--text2);">Parafoudres recommandés</div>
+      <div class="para-row">
+        {% for key, p in equip.parafoudres.items() if p %}
+        <div class="para-chip">
+          <div class="para-chip-title">{{ p.get('designation', 'Parafoudre '+key) }}</div>
+          <div class="para-chip-info">{{ p.get('calibre','') }} — {{ p.get('prix',0) | fcfa }} FCFA</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ══ SECTION : COÛT ESTIMATIF ══ -->
+    <div class="section-label">Coût estimatif détaillé</div>
+    <div class="card">
+      <div class="card-title">Devis estimatif — {{ calcul.source_energie | replace('_',' ') | title }}</div>
+      <table class="cost-tbl">
+        <thead>
+          <tr>
+            <th style="width:40%;">Désignation</th>
+            <th style="width:8%;text-align:center;">Qté</th>
+            <th style="width:22%;text-align:right;">Prix unitaire (FCFA)</th>
+            <th style="width:22%;text-align:right;">Total (FCFA)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Pompe -->
+          {% if equip.pompe %}
+          <tr>
+            <td class="td-label">
+              Pompe {{ equip.pompe.get('marque','') }} {{ equip.pompe.get('modele','') }}
+              <br><span style="font-size:11px;color:var(--text3);">{{ equip.pompe.get('type_pompe','') }} — {{ equip.pompe.get('puissance_kW','') }} kW — {{ equip.pompe.get('tension_V','') }}</span>
+            </td>
+            <td class="td-qty">1</td>
+            <td class="td-unit">{{ equip.pompe.get('prix',0) | fcfa }}</td>
+            <td class="td-total">{{ cout.C_pompe | fcfa }}</td>
+          </tr>
+          {% endif %}
+
+          <!-- Contrôleur -->
+          {% if equip.controleur %}
+          <tr>
+            <td class="td-label">
+              {% if equip.type_ctrl == 'MPPT' %}Régulateur MPPT
+              {% else %}Variateur VFD{% endif %}
+              {{ equip.controleur.get('marque','') }} {{ equip.controleur.get('modele','') }}
+            </td>
+            <td class="td-qty">1</td>
+            <td class="td-unit">{{ equip.controleur.get('prix',0) | fcfa }}</td>
+            <td class="td-total">{{ cout.C_controleur | fcfa }}</td>
+          </tr>
+          {% endif %}
+
+          <!-- Panneaux -->
+          {% if equip.panneau and calcul.source_energie in ['solaire','hybride_batteries'] %}
+          <tr>
+            <td class="td-label">
+              Panneau {{ equip.panneau.get('marque','') }} {{ equip.panneau.get('modele','') }}
+              <br><span style="font-size:11px;color:var(--text3);">{{ equip.panneau.get('puissance_W','') }} Wc — Configuration {{ equip.nbr_pv_serie }}S × {{ equip.nbr_pv_parallele }}P</span>
+            </td>
+            <td class="td-qty">{{ equip.nbr_panneaux }}</td>
+            <td class="td-unit">{{ equip.panneau.get('prix',0) | fcfa }}</td>
+            <td class="td-total">{{ cout.C_panneaux | fcfa }}</td>
+          </tr>
+          {% endif %}
+
+          <!-- Batteries -->
+          {% if equip.batterie and calcul.source_energie == 'hybride_batteries' %}
+          <tr>
+            <td class="td-label">
+              Batterie {{ equip.batterie.get('marque','') }} — {{ equip.batterie.get('technologie','') }}
+              <br><span style="font-size:11px;color:var(--text3);">{{ equip.batterie.get('capacite_Ah','') }} Ah / {{ equip.batterie.get('tension_V','') }}V — {{ equip.nbat_serie }}S × {{ equip.nbat_par }}P</span>
+            </td>
+            <td class="td-qty">{{ equip.nbat_tot }}</td>
+            <td class="td-unit">{{ equip.batterie.get('prix',0) | fcfa }}</td>
+            <td class="td-total">{{ cout.C_batteries | fcfa }}</td>
+          </tr>
+          {% endif %}
+
+          <!-- Câbles -->
+          {% for t in equip.cables_resultats if t.get('cable') and not (isAC and t.get('type') == 'DC') %}
+          {% set cab = t.get('cable', {}) %}
+          <tr>
+            <td class="td-label">
+              {{ cab.get('designation','Câble') }} — {{ t.get('S_normalisee','') }} mm²
+              <br><span style="font-size:11px;color:var(--text3);">Tronçon : {{ t.get('troncon','') }}</span>
+            </td>
+            <td class="td-qty">{{ t.get('L_m',0) }} m</td>
+            <td class="td-unit">{{ cab.get('prix',0) | fcfa }}</td>
+            <td class="td-total">{{ (cab.get('prix',0) * t.get('L_m',0)) | round | int | fcfa }}</td>
+          </tr>
+          {% endfor %}
+
+          <!-- Disjoncteurs -->
+          {% for t in equip.cables_resultats if t.get('disjoncteur') and not (isAC and t.get('type') == 'DC') %}
+          {% set dj = t.get('disjoncteur', {}) %}
+          <tr>
+            <td class="td-label">
+              {{ dj.get('designation','Disjoncteur') }}
+              <br><span style="font-size:11px;color:var(--text3);">Calibre {{ dj.get('calibre','') }} — {{ t.get('troncon','') }}</span>
+            </td>
+            <td class="td-qty">1</td>
+            <td class="td-unit">{{ dj.get('prix',0) | fcfa }}</td>
+            <td class="td-total">{{ dj.get('prix',0) | fcfa }}</td>
+          </tr>
+          {% endfor %}
+
+          <!-- Parafoudres -->
+          {% for key, p in equip.parafoudres.items() if p %}
+          <tr>
+            <td class="td-label">
+              {{ p.get('designation','Parafoudre') }}
+              <br><span style="font-size:11px;color:var(--text3);">{{ p.get('calibre','') }}</span>
+            </td>
+            <td class="td-qty">1</td>
+            <td class="td-unit">{{ p.get('prix',0) | fcfa }}</td>
+            <td class="td-total">{{ p.get('prix',0) | fcfa }}</td>
+          </tr>
+          {% endfor %}
+
+          <!-- Sous-total équipements -->
+          <tr class="subtotal">
+            <td class="td-label" colspan="3">Sous-total équipements</td>
+            <td class="td-total">{{ cout.C_equipements | fcfa }}</td>
+          </tr>
+
+          <tr class="cost-separator"><td colspan="4"></td></tr>
+
+          <!-- Main d'œuvre -->
+          <tr>
+            <td class="td-label">Main d'œuvre et installation (15%)</td>
+            <td class="td-qty" style="color:var(--text3);">15%</td>
+            <td class="td-unit" style="color:var(--text3);">du sous-total</td>
+            <td class="td-total">{{ cout.C_installation | fcfa }}</td>
+          </tr>
+
+          <!-- Divers -->
+          <tr>
+            <td class="td-label">Frais divers et imprévus (10%)</td>
+            <td class="td-qty" style="color:var(--text3);">10%</td>
+            <td class="td-unit" style="color:var(--text3);">du sous-total</td>
+            <td class="td-total">{{ cout.C_divers | fcfa }}</td>
+          </tr>
+
+          <!-- TOTAL -->
+          <tr class="total-row">
+            <td class="td-label" colspan="3">TOTAL ESTIMATIF</td>
+            <td class="td-total">{{ cout.C_total | fcfa }} FCFA</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
+        * Estimatif indicatif. Les prix peuvent varier selon les fournisseurs et les conditions du marché.
+        Main d'œuvre calculée à 15% et frais divers à 10% du coût des équipements.
+      </div>
+    </div><!-- /card coût -->
+
+    <!-- BOUTONS ACTIONS -->
+    <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;justify-content:space-between;">
+      <a href="/equipements" class="btn-sm btn-outline" style="padding:10px 22px;font-size:13px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Modifier les équipements
+      </a>
+      <a href="/dashboard" class="btn-sm btn-outline" style="padding:10px 22px;font-size:13px;margin-left:auto;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Retour au dashboard
+      </a>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /main-wrap -->
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL PDF
+════════════════════════════════════════════════════ -->
+<div id="modal-pdf" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;
+     display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+  <div style="background:#0f1912;border:1px solid rgba(255,255,255,.15);border-radius:16px;
+       padding:28px 28px 24px;width:420px;max-width:95vw;box-shadow:0 24px 60px rgba(0,0,0,.5);">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-size:16px;font-weight:700;color:#f0fdf4;display:flex;align-items:center;gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Télécharger le rapport PDF
+      </div>
+      <button onclick="fermerModalPDF()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+          border-radius:6px;color:rgba(255,255,255,.5);width:28px;height:28px;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    <!-- Champs -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.6);margin-bottom:5px;">Nom du projet</label>
+        <input id="pdf_nom_projet" type="text" placeholder="{{ calcul.get('data_brut',{}).get('nom_projet','Mon projet') or 'Mon projet' }}"
+          style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;
+                 padding:9px 12px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;"/>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.6);margin-bottom:5px;">Nom du client</label>
+        <input id="pdf_nom_client" type="text" placeholder="M. / Mme..."
+          style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;
+                 padding:9px 12px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;"/>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.6);margin-bottom:5px;">Réalisé par</label>
+        <input id="pdf_realise_par" type="text" placeholder="Nom du technicien..."
+          style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;
+                 padding:9px 12px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;"/>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.6);margin-bottom:5px;">Date</label>
+        <input id="pdf_date" type="date"
+          style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;
+                 padding:9px 12px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;"/>
+      </div>
+    </div>
+    <!-- Erreur -->
+    <div id="pdf-err" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(239,68,68,.1);
+         border:1px solid rgba(239,68,68,.25);border-radius:7px;color:#fca5a5;font-size:12px;"></div>
+    <!-- Boutons -->
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button onclick="fermerModalPDF()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);
+          color:rgba(255,255,255,.6);padding:9px 20px;border-radius:8px;font-size:13px;cursor:pointer;
+          font-family:'Plus Jakarta Sans',sans-serif;">Annuler</button>
+      <button id="pdf-btn-dl" onclick="genererPDF2()" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);
+          border:none;color:#000;padding:9px 22px;border-radius:8px;font-size:13px;font-weight:700;
+          cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Télécharger PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function ouvrirModalPDF(){
+  // Pré-remplir la date du jour
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('pdf_date').value = today;
+  var m = document.getElementById('modal-pdf');
+  m.style.display = 'flex';
+  document.getElementById('pdf_nom_client').focus();
+}
+function fermerModalPDF(){
+  document.getElementById('modal-pdf').style.display = 'none';
+  document.getElementById('pdf-err').style.display = 'none';
+}
+async function genererPDF2(){
+  var btn = document.getElementById('pdf-btn-dl');
+  var errEl = document.getElementById('pdf-err');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Génération…';
+  try{
+    var r = await fetch('/generer_pdf2',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        nom_projet:  document.getElementById('pdf_nom_projet').value  || 'Projet HydroPump',
+        nom_client:  document.getElementById('pdf_nom_client').value  || 'Non renseigné',
+        realise_par: document.getElementById('pdf_realise_par').value || 'Non renseigné',
+        date_projet: document.getElementById('pdf_date').value        || '',
+      })
+    });
+    if(!r.ok){
+      var d = await r.json().catch(()=>({}));
+      throw new Error(d.erreur || 'Erreur serveur '+r.status);
+    }
+    var blob = await r.blob();
+    var url  = window.URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href   = url;
+    a.download = 'rapport_hydropump.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    fermerModalPDF();
+  }catch(e){
+    errEl.textContent = 'Erreur : ' + e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger PDF';
+  }
+}
+// Fermer en cliquant hors du modal
+document.getElementById('modal-pdf').addEventListener('click',function(e){
+  if(e.target===this) fermerModalPDF();
+});
+</script>
+
+</body>
+</html>

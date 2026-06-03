@@ -70,7 +70,7 @@ def calculer_ET0(T_max, T_min, humidite, vent, rayonnement):
         ET0 en mm/jour
     """
 
-    # Température moyenne
+    # Température moyenne11
     T_moy = (T_max + T_min) / 2
 
     # Pression de vapeur saturante (kPa)

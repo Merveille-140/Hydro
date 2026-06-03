@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HydroPump — Dimensionnement</title>
+<link rel="stylesheet" href="/static/leaflet.css"/>
+<script src="/static/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --green-lite:#22c55e; --gold:#ca8a04; --gold-lite:#fbbf24;
+  --bg:#080e0a; --bg2:#0f1912; --bg3:#141f16;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
+  --text:#f0fdf4; --text2:rgba(240,253,244,0.55); --text3:rgba(240,253,244,0.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background-image:url('/static/images/solar_pump.jpeg');
+  background-size:cover; background-position:center; background-attachment:fixed;
+  color:white; min-height:100vh; overflow-x:hidden; font-size:14px; line-height:1.5;
+}
+body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.58);z-index:0;pointer-events:none;}
+
+/* THIN BAR */
+.thin-bar{
+  position:fixed; left:0; top:0; bottom:0; width:52px;
+  background:var(--bg3); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:space-between; padding:14px 0; z-index:150;
+}
+.menu-btn{
+  width:34px; height:34px; background:rgba(255,255,255,0.05);
+  border:1px solid var(--border2); border-radius:8px; color:var(--text2);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background .2s,color .2s;
+}
+.menu-btn:hover{background:rgba(255,255,255,0.18);color:var(--text);}
+.bar-avatar{
+  width:32px; height:32px; border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-lite));
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:700; color:#000; cursor:pointer; border:none;
+  box-shadow:0 2px 8px rgba(251,191,36,.3); transition:transform .2s;
+}
+.bar-avatar:hover{transform:scale(1.08);}
+
+/* PROJ SIDEBAR */
+.proj-sidebar{
+  position:fixed; left:52px; top:0; bottom:0; width:0;
+  background:var(--bg2); overflow:hidden; transition:width .25s ease;
+  z-index:99; border-right:1px solid var(--border); box-shadow:4px 0 24px rgba(0,0,0,.4);
+}
+.proj-sidebar.open{width:240px;}
+.proj-sidebar-content{min-width:240px; height:100%; display:flex; flex-direction:column;}
+.proj-sidebar-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 18px 14px; border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.proj-sidebar-title{font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.8px;}
+.proj-close-btn{
+  width:26px; height:26px; background:rgba(255,255,255,.04);
+  border:1px solid var(--border); border-radius:6px; color:var(--text3);
+  cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px;
+}
+.proj-list{flex:1; overflow-y:auto; padding:8px 0;}
+.proj-list::-webkit-scrollbar{width:3px;}
+.proj-list::-webkit-scrollbar-thumb{background:var(--border2); border-radius:2px;}
+.proj-item{padding:12px 18px; border-bottom:1px solid var(--border); transition:background .15s;}
+.proj-item:hover{background:rgba(255,255,255,.03);}
+.proj-name{font-size:13px; font-weight:600; color:var(--text); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.proj-meta{font-size:11px; color:var(--text3); margin-bottom:8px;}
+.proj-resume-btn{font-size:11px; font-weight:700; color:var(--green-lite); text-decoration:none;}
+.proj-no-items{padding:20px 18px; font-size:12px; color:var(--text3); line-height:1.6;}
+.proj-sidebar-footer{flex-shrink:0; padding:14px 18px 18px; border-top:1px solid var(--border);}
+.proj-user-row{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+.proj-user-avatar{
+  width:30px; height:30px; border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-lite));
+  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#000;
+}
+.proj-user-nom{font-size:13px; font-weight:600; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.proj-logout{
+  display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600;
+  color:#ef4444; text-decoration:none; padding:8px 10px; border-radius:8px;
+  background:rgba(239,68,68,.06); border:1px solid rgba(239,68,68,.18); transition:all .2s;
+}
+.proj-logout:hover{background:rgba(239,68,68,.12);}
+.proj-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:98;}
+.proj-overlay.visible{display:block;}
+
+/* MAIN */
+.main-wrap{margin-left:52px; position:relative; z-index:1; min-height:100vh;}
+.page-header{
+  background:rgba(0,0,0,.2); backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.1);
+  padding:0 24px; height:52px; display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:10;
+}
+.page-header-left{display:flex; align-items:center; gap:12px;}
+.page-title-sm{font-size:15px; font-weight:700; color:white;}
+.source-badge{
+  display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px;
+  font-size:12px; font-weight:600;
+  background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.3); color:#86efac;
+}
+.btn-modifier{
+  font-size:11px; color:var(--gold-lite); background:rgba(251,191,36,.1);
+  border:1px solid rgba(251,191,36,.25); padding:4px 12px; border-radius:6px;
+  cursor:pointer; text-decoration:none; transition:all .2s;
+}
+.btn-modifier:hover{background:rgba(251,191,36,.2);}
+
+.main-content{max-width:720px; margin:0 auto; padding:24px 28px 100px;}
+
+/* SECTION LABELS */
+.section-label{
+  display:flex; align-items:center; gap:10px;
+  font-size:11px; font-weight:700; color:var(--text3);
+  text-transform:uppercase; letter-spacing:1px;
+  margin:28px 0 12px; padding-left:2px;
+}
+.section-label::before{
+  content:attr(data-n); width:22px; height:22px; border-radius:50%;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:var(--text2);
+}
+.section-label:first-child{margin-top:8px;}
+
+/* CARDS */
+.card{
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+  border-radius:14px; padding:20px 22px; margin-bottom:12px; backdrop-filter:blur(8px);
+}
+.card-title{
+  font-size:15px; font-weight:600; color:#fff; margin-bottom:18px;
+  display:flex; align-items:center; gap:8px;
+}
+.card-title::before{content:''; width:3px; height:14px; background:#22c55e; border-radius:2px; flex-shrink:0;}
+
+/* FORMS */
+.form-group{margin-bottom:16px;}
+.form-label{display:block; font-size:13px; font-weight:500; color:rgba(255,255,255,.85); margin-bottom:7px;}
+.form-hint{font-size:11px; color:rgba(255,255,255,.35); margin-top:5px;}
+.form-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+input[type="text"],input[type="number"],select{
+  width:100%; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.2);
+  border-radius:9px; padding:10px 14px; color:white;
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:14px;
+  transition:border-color .2s; appearance:none; -webkit-appearance:none;
+}
+input[readonly]{background:rgba(255,255,255,.05); color:var(--gold-lite); cursor:default;}
+input::placeholder{color:rgba(255,255,255,.3);}
+input:focus,select:focus{outline:none; border-color:rgba(245,158,11,.5); box-shadow:0 0 0 3px rgba(245,158,11,.08);}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 12px center; padding-right:32px;
+}
+select option{background:#0f2a1a; color:#fff;}
+
+/* MAP */
+.search-wrapper{display:flex; gap:8px; margin-bottom:12px;}
+.search-wrapper input{flex:1;}
+.btn-search{
+  background:#1e3a5f; color:white; border:none; padding:9px 18px;
+  border-radius:10px; font-size:13px; font-weight:500; cursor:pointer;
+  white-space:nowrap; font-family:'Plus Jakarta Sans',sans-serif; transition:background .2s;
+  display:flex; align-items:center; gap:6px;
+}
+.btn-search:hover{background:var(--green-lite); color:#000;}
+#carte{width:100%; height:300px; border-radius:12px; border:1px solid var(--border2); overflow:hidden;}
+.coords-row{display:flex; gap:10px; margin:10px 0; flex-wrap:wrap;}
+.coord-chip{
+  background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.2);
+  border-radius:6px; padding:6px 12px; font-size:12px; color:rgba(255,255,255,.85);
+  display:flex; align-items:center; gap:6px;
+}
+.coord-chip strong{color:var(--gold-lite); font-weight:600;}
+
+/* CLIMATE */
+.climate-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:14px;}
+.climate-card{
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+  border-radius:10px; padding:14px 10px; text-align:center;
+}
+.climate-icon{font-size:20px; margin-bottom:6px;}
+.climate-value{font-size:20px; font-weight:700; color:#fbbf24; line-height:1; font-family:monospace;}
+.climate-label{font-size:11px; color:rgba(255,255,255,.7); margin-top:5px;}
+
+/* BADGES SESSION */
+.sess-badges{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; align-items:center;}
+.sess-badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 13px; border-radius:20px; font-size:12px; font-weight:600;
+}
+.sess-badge-source{background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.3); color:#86efac;}
+.sess-badge-usage{background:rgba(96,165,250,.10); border:1px solid rgba(96,165,250,.25); color:#bfdbfe;}
+
+/* ND / HMT INLINE DISPLAY */
+.calc-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 13px; border-radius:8px; margin:8px 0;
+  font-size:13px;
+}
+.calc-row-nd{background:rgba(96,165,250,.06); border:1px solid rgba(96,165,250,.18);}
+.calc-row-hmt{background:rgba(251,191,36,.06); border:1px solid rgba(251,191,36,.20); margin-top:10px;}
+.calc-lbl{color:var(--text2);}
+.calc-val{font-size:16px; font-weight:700; font-family:monospace;}
+.calc-row-nd  .calc-val{color:#93c5fd;}
+.calc-row-hmt .calc-val{color:#fbbf24;}
+
+/* SEPARATOR */
+.sep{height:1px; background:rgba(255,255,255,.08); margin:18px 0;}
+
+/* MESSAGES */
+.msg{border-radius:8px; padding:9px 13px; font-size:12px; margin-top:8px; display:flex; align-items:center; gap:7px; line-height:1.4;}
+.msg-success{background:rgba(34,197,94,.1); color:#86efac; border:1px solid rgba(34,197,94,.2);}
+.msg-error{background:rgba(239,68,68,.1); color:#fca5a5; border:1px solid rgba(239,68,68,.2);}
+.msg-info{background:rgba(96,165,250,.08); color:#bfdbfe; border:1px solid rgba(96,165,250,.15);}
+
+/* SPINNER */
+.spinner{width:15px; height:15px; border:2px solid rgba(34,197,94,.25); border-top-color:#86efac; border-radius:50%; animation:spin .8s linear infinite; flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* SUBMIT */
+.submit-bar{
+  position:fixed; bottom:0; left:52px; right:0;
+  background:rgba(8,14,10,.92); backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.1);
+  padding:14px 28px; display:flex; align-items:center; justify-content:space-between;
+  z-index:50;
+}
+.btn-lancer{
+  background:linear-gradient(135deg,#f59e0b,#fbbf24);
+  border:none; color:#000; padding:12px 32px;
+  border-radius:10px; font-size:14px; font-weight:800;
+  cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;
+  transition:opacity .2s; display:flex; align-items:center; gap:8px;
+}
+.btn-lancer:hover{opacity:.9;}
+.btn-lancer:disabled{opacity:.5; cursor:not-allowed;}
+.submit-hint{font-size:12px; color:var(--text2);}
+
+/* HIDDEN */
+.hidden{display:none !important;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .main-content{padding:14px 12px 90px;}
+  .card{padding:14px 12px;}
+  .form-row{grid-template-columns:1fr;}
+  .climate-grid{grid-template-columns:repeat(2,1fr);}
+  #carte{height:220px;}
+  .submit-bar{padding:12px 16px;}
+}
+@media(max-width:480px){
+  .main-content{padding:10px 8px 86px;}
+  .thin-bar{width:36px;}
+  .main-wrap{margin-left:36px;}
+  .submit-bar{left:36px;}
+  .climate-grid{grid-template-columns:1fr 1fr;}
+  .climate-value{font-size:16px;}
+}
+</style>
+<script>
+window.addEventListener('load',function(){
+  if(!sessionStorage.getItem('hydropump_actif')){
+    fetch('/verifier_session_active',{method:'POST',headers:{'Content-Type':'application/json'}})
+    .then(r=>r.json()).then(d=>{
+      if(!d.actif)window.location.href='/connexion';
+      else sessionStorage.setItem('hydropump_actif','true');
+    });
+  }
+});
+</script>
+</head>
+<body>
+
+<!-- ── THIN BAR ── -->
+<div class="thin-bar">
+  <button class="menu-btn" onclick="toggleProjSidebar()" title="Mes projets">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <button class="bar-avatar" onclick="toggleProjSidebar()">{{ user_nom[0]|upper if user_nom else 'U' }}</button>
+</div>
+
+<!-- ── PROJ SIDEBAR ── -->
+<div class="proj-sidebar" id="proj-sidebar">
+  <div class="proj-sidebar-content">
+    <div class="proj-sidebar-header">
+      <span class="proj-sidebar-title">Mes projets</span>
+      <button class="proj-close-btn" onclick="closeProjSidebar()">✕</button>
+    </div>
+    <div class="proj-list">
+      {% for projet in projets %}
+      <div class="proj-item">
+        <div class="proj-name">{{ projet.nom_projet }}</div>
+        <div class="proj-meta">{{ projet.source_energie or '—' }}{% if projet.date_modif %} · {{ projet.date_modif[:10] }}{% endif %}</div>
+        <a href="/dimensionnement2" class="proj-resume-btn">Reprendre →</a>
+      </div>
+      {% else %}
+      <p class="proj-no-items">Aucun projet sauvegardé.</p>
+      {% endfor %}
+    </div>
+    <div class="proj-sidebar-footer">
+      <div class="proj-user-row">
+        <div class="proj-user-avatar">{{ user_nom[0]|upper if user_nom else 'U' }}</div>
+        <span class="proj-user-nom">{{ user_nom }}</span>
+      </div>
+      <a href="/deconnexion" class="proj-logout">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Se déconnecter
+      </a>
+    </div>
+  </div>
+</div>
+<div class="proj-overlay" id="proj-overlay" onclick="closeProjSidebar()"></div>
+
+<!-- ── MAIN ── -->
+<div class="main-wrap">
+
+
+  <div class="main-content">
+
+    <!-- ══ CARD 1 : LOCALISATION ══ -->
+    <div class="section-label" data-n="1">Localisation &amp; Climatologie</div>
+
+    <div class="card">
+      <div class="card-title">Recherche du site</div>
+      <div class="search-wrapper">
+        <input type="text" id="inp-ville" placeholder="Ex : Cotonou, Parakou, Niamey…" onkeydown="if(event.key==='Enter')rechercherVille()"/>
+        <button class="btn-search" onclick="rechercherVille()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Rechercher
+        </button>
+      </div>
+      <div id="carte"></div>
+      <div class="coords-row">
+        <div class="coord-chip">📍 Latitude : <strong id="disp-lat">—</strong></div>
+        <div class="coord-chip">📍 Longitude : <strong id="disp-lon">—</strong></div>
+      </div>
+      <div id="msg-carte" class="msg msg-info" style="margin-top:8px;">
+        Cliquez sur la carte pour sélectionner votre site et récupérer les données climatiques NASA.
+      </div>
+    </div>
+
+    <div id="loading-climate" class="hidden">
+      <div class="msg msg-success"><div class="spinner"></div>Récupération données climatiques NASA POWER…</div>
+    </div>
+
+    <div id="card-climate" class="card hidden">
+      <div class="card-title" id="titre-climat">Données climatiques</div>
+      <div class="climate-grid">
+        <div class="climate-card">
+          <div class="climate-icon">☀️</div>
+          <div class="climate-value" id="cl-ir">—</div>
+          <div class="climate-label">Irradiation<br>kWh/m²/j</div>
+        </div>
+        <div class="climate-card">
+          <div class="climate-icon">💧</div>
+          <div class="climate-value" id="cl-et0">—</div>
+          <div class="climate-label">ET₀ moy.<br>mm/j</div>
+        </div>
+        <div class="climate-card">
+          <div class="climate-icon">📅</div>
+          <div class="climate-value" id="cl-mois" style="font-size:15px;">—</div>
+          <div class="climate-label">Mois<br>critique</div>
+        </div>
+        <div class="climate-card">
+          <div class="climate-icon">🌡️</div>
+          <div class="climate-value" id="cl-tmax">—</div>
+          <div class="climate-label">T° max<br>°C</div>
+        </div>
+        <div class="climate-card">
+          <div class="climate-icon">❄️</div>
+          <div class="climate-value" id="cl-tmin">—</div>
+          <div class="climate-label">T° min<br>°C</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CARD 2 : SAISIE ══ -->
+    <div class="section-label" data-n="2">Saisie du projet</div>
+
+    <div class="card">
+      <div class="card-title">Paramètres du dimensionnement</div>
+
+      <!-- Badges source + usage -->
+      <div class="sess-badges">
+        <span class="sess-badge sess-badge-source">
+          ⚡ {{ session.get('source_energie','') | replace('_',' ') | title }}
+        </span>
+        <span class="sess-badge sess-badge-usage">
+          💧 {{ session.get('usage_type','') | replace('_',' ') | title }}
+        </span>
+      </div>
+
+      <!-- === BLOC IRRIGATION === -->
+      <div id="bloc-irr" class="hidden">
+
+        <div class="form-row" style="margin-bottom:14px;">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Culture</label>
+            <select id="inp-culture" oninput="onCultureChange()">
+              <option value="tomate">Tomate</option>
+              <option value="piment">Piment</option>
+              <option value="riz">Riz</option>
+              <option value="autre">Autre culture</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0" id="grp-kc-manuel">
+            <label class="form-label">Kc (coefficient cultural)</label>
+            <input type="number" id="inp-kc-manuel" placeholder="ex: 0.85" min="0.1" max="2" step="0.01" value="0.85" oninput="recalculer()"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Superficie (ha)</label>
+          <input type="number" id="inp-superficie" placeholder="ex: 2.5" min="0.01" step="0.1" oninput="recalculer()"/>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="form-row" style="margin-bottom:10px;">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Profondeur aspiration (m)</label>
+            <input type="number" id="inp-ha" placeholder="0" min="0" step="0.5" value="0" oninput="recalculer()"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Hauteur de refoulement (m)</label>
+            <input type="number" id="inp-hr" placeholder="0" min="0" step="0.5" value="0" oninput="recalculer()"/>
+          </div>
+        </div>
+        <div class="calc-row calc-row-hmt">
+          <span class="calc-lbl">HMT</span>
+          <span class="calc-val" id="disp-hmt-irr">— m</span>
+        </div>
+
+        <div class="form-group" style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);margin-bottom:0;">
+          <label class="form-label">Durée de pompage (h/jour)</label>
+          <input type="number" id="inp-heures-irr" placeholder="ex: 6" min="0.5" max="24" step="0.5" value="6" oninput="recalculer()"/>
+        </div>
+
+      </div><!-- /bloc-irr -->
+
+      <!-- === BLOC CLASSIQUE (eau potable, élevage, autre) === -->
+      <div id="bloc-class" class="hidden">
+
+        <div class="form-group">
+          <label class="form-label">Besoin journalier (m³/jour)</label>
+          <input type="number" id="inp-besoin" placeholder="ex: 20" min="0.1" step="0.1" oninput="recalculer()"/>
+        </div>
+
+        <div class="sep"></div>
+
+        <!-- Ligne 1 : Ns | Rabattement -->
+        <div class="form-row" style="margin-bottom:10px;">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Niveau statique (m)</label>
+            <input type="number" id="inp-ns" placeholder="ex: 15" min="0" step="0.5" oninput="recalculer()"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Rabattement (m)</label>
+            <input type="number" id="inp-rabattement" placeholder="ex: 5" min="0" step="0.5" value="0" oninput="recalculer()"/>
+          </div>
+        </div>
+
+        <!-- Nd calculé — readonly pleine largeur -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label">Niveau dynamique (m)</label>
+          <div id="disp-nd" style="padding:10px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:9px;color:#f0b429;font-size:15px;font-weight:700;font-family:monospace;min-height:42px;display:flex;align-items:center;">—</div>
+        </div>
+
+        <!-- Ligne 2 : Hr | Heures -->
+        <div class="form-row" style="margin-bottom:10px;">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Hauteur de refoulement (m)</label>
+            <input type="number" id="inp-hr-c" placeholder="ex: 10" min="0" step="0.5" oninput="recalculer()"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Durée de pompage (h/jour)</label>
+            <input type="number" id="inp-heures" placeholder="ex: 6" min="0.5" max="24" step="0.5" value="6" oninput="recalculer()"/>
+          </div>
+        </div>
+
+        <!-- HMT calculée — readonly pleine largeur -->
+        <div class="form-group" style="margin:0">
+          <label class="form-label">HMT calculée (m)</label>
+          <div id="disp-hmt-class" style="padding:10px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:9px;color:#f0b429;font-size:15px;font-weight:700;font-family:monospace;min-height:42px;display:flex;align-items:center;">—</div>
+        </div>
+
+      </div><!-- /bloc-class -->
+
+    </div><!-- /card saisie -->
+
+    <!-- Message erreur validation -->
+    <div id="msg-err" class="msg msg-error hidden"></div>
+
+  </div><!-- /main-content -->
+</div><!-- /main-wrap -->
+
+<!-- ── SUBMIT BAR ── -->
+<div class="submit-bar">
+  <span class="submit-hint" id="submit-hint">Remplissez toutes les sections pour lancer le calcul.</span>
+  <button class="btn-lancer" id="btn-lancer" onclick="lancerCalcul()">
+    ⚡ Lancer le calcul
+  </button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONFIGURATION
+// ═══════════════════════════════════════════════════════════════
+const USAGE_TYPE = "{{ session.get('usage_type', '') }}";
+const SOURCE     = "{{ session.get('source_energie', '') }}";
+const NOM_PROJET = "{{ session.get('nom_projet','') or nom_projet or '' }}";
+const LS_KEY     = 'hp2_form_' + (NOM_PROJET || 'default');
+
+// Kc par culture
+const KC_MAP = { tomate:1.03, piment:1.04 };
+
+// Valeurs fixes (non exposées à l'utilisateur)
+const ETA_P   = 0.65;
+const ETA_M   = 0.90;
+const PR      = 0.75;
+const ETA_IRR = 0.90; // efficience irrigation (goutte à goutte)
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let lat = null, lon = null;
+let map = null, marker = null;
+let irradiation = 0, ET0_val = 0;
+
+// ═══════════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════════
+function toggleProjSidebar(){
+  document.getElementById('proj-sidebar').classList.toggle('open');
+  document.getElementById('proj-overlay').classList.toggle('visible');
+}
+function closeProjSidebar(){
+  document.getElementById('proj-sidebar').classList.remove('open');
+  document.getElementById('proj-overlay').classList.remove('visible');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════════════════════
+function initMap(){
+  map = L.map('carte').setView([12, 2.5], 5);
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap', maxZoom:19
+  }).addTo(map);
+
+  map.on('click', function(e){
+    lat = parseFloat(e.latlng.lat.toFixed(5));
+    lon = parseFloat(e.latlng.lng.toFixed(5));
+    if(marker) map.removeLayer(marker);
+    marker = L.marker([lat,lon]).addTo(map);
+    document.getElementById('disp-lat').textContent = lat;
+    document.getElementById('disp-lon').textContent = lon;
+    document.getElementById('msg-carte').classList.add('hidden');
+    fetchClimate();
+    saveForm();
+    // Reverse geocoding pour récupérer le nom du lieu
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lon)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var parts = d.display_name ? d.display_name.split(',') : [];
+      var ville = parts.length > 0 ? parts[0].trim() : 'Site';
+      var pays  = parts.length > 1 ? parts[parts.length-1].trim() : '';
+      var nom_lieu = pays ? ville + ', ' + pays : ville;
+      window._nom_lieu = nom_lieu;
+      var titreEl = document.getElementById('titre-climat');
+      if (titreEl && nom_lieu) titreEl.innerText = nom_lieu;
+    }).catch(function(){});
+  });
+}
+
+function rechercherVille(){
+  const q = document.getElementById('inp-ville').value.trim();
+  if(!q) return;
+  fetch('https://nominatim.openstreetmap.org/search?format=json&q='+encodeURIComponent(q))
+  .then(r=>r.json())
+  .then(data=>{
+    if(data && data.length > 0){
+      const r = data[0];
+      map.setView([r.lat, r.lon], 11);
+      if(marker) map.removeLayer(marker);
+      lat = parseFloat(parseFloat(r.lat).toFixed(5));
+      lon = parseFloat(parseFloat(r.lon).toFixed(5));
+      marker = L.marker([lat,lon]).addTo(map);
+      document.getElementById('disp-lat').textContent = lat;
+      document.getElementById('disp-lon').textContent = lon;
+      document.getElementById('msg-carte').classList.add('hidden');
+      // Stocker le nom du lieu depuis Nominatim
+      const parts = r.display_name ? r.display_name.split(',') : [];
+      const villeR = parts.length > 0 ? parts[0].trim() : q;
+      const paysR  = parts.length > 1 ? parts[parts.length-1].trim() : '';
+      var nom_lieu = villeR + (paysR ? ', ' + paysR : '');
+      window._nom_lieu = nom_lieu;
+      var titreEl = document.getElementById('titre-climat');
+      if (titreEl) titreEl.innerText = nom_lieu;
+      fetchClimate();
+    } else {
+      alert('Ville non trouvée. Essayez un autre nom.');
+    }
+  }).catch(()=>alert('Erreur de recherche réseau.'));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CLIMATE
+// ═══════════════════════════════════════════════════════════════
+function fetchClimate(){
+  document.getElementById('loading-climate').classList.remove('hidden');
+  document.getElementById('card-climate').classList.add('hidden');
+  fetch('/get_climate',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({lat,lon})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    document.getElementById('loading-climate').classList.add('hidden');
+    if(!d.succes){ alert('Erreur données NASA : '+(d.erreur||'')); return; }
+    irradiation = d.irradiation || 0;
+    ET0_val     = d.ET0_max    || 0;
+    document.getElementById('cl-ir').textContent   = irradiation.toFixed(2);
+    document.getElementById('cl-et0').textContent  = ET0_val.toFixed(2);
+    document.getElementById('cl-mois').textContent = d.mois_critique || '—';
+    document.getElementById('cl-tmax').textContent = (d.temperature_max||0).toFixed(1);
+    document.getElementById('cl-tmin').textContent = (d.temperature_min||0).toFixed(1);
+    document.getElementById('card-climate').classList.remove('hidden');
+    recalculer();
+    saveForm();
+  })
+  .catch(e=>{
+    document.getElementById('loading-climate').classList.add('hidden');
+    console.error('NASA error', e);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function v(id){ const el=document.getElementById(id); return el ? el.value : ''; }
+function n(id){ return parseFloat(v(id)) || 0; }
+function setText(id, txt){ const el=document.getElementById(id); if(el) el.textContent=txt; }
+
+// ═══════════════════════════════════════════════════════════════
+// CULTURE CHANGE
+// ═══════════════════════════════════════════════════════════════
+function onCultureChange(){
+  const isAutre = v('inp-culture') === 'autre';
+  const grpKc   = document.getElementById('grp-kc-manuel');
+  if(grpKc) grpKc.style.display = isAutre ? '' : 'none';
+  recalculer();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BESOIN BRUT
+// ═══════════════════════════════════════════════════════════════
+function getBesoinBrut(){
+  if(USAGE_TYPE === 'irrigation_agricole'){
+    const culture = v('inp-culture');
+    const sup_ha  = n('inp-superficie');
+    if(culture === 'riz') return 100 * sup_ha;
+    const kc        = culture === 'autre' ? n('inp-kc-manuel') : (KC_MAP[culture] || 1.0);
+    const etc       = ET0_val * kc;
+    const besoin_net = etc * 10 * sup_ha; // mm/j × 10 × ha = m³/j
+    return ETA_IRR > 0 ? besoin_net / ETA_IRR : 0;
+  }
+  return n('inp-besoin');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HMT
+// ═══════════════════════════════════════════════════════════════
+function getHMT(){
+  if(USAGE_TYPE === 'irrigation_agricole'){
+    const ha  = n('inp-ha');
+    const hr  = n('inp-hr');
+    const hmt = (ha + hr) * 1.10;
+    setText('disp-hmt-irr', hmt.toFixed(1) + ' m');
+    return hmt;
+  } else {
+    const ns  = n('inp-ns');
+    const rab = n('inp-rabattement');
+    const nd  = ns + rab;
+    const hr  = n('inp-hr-c');
+    const hmt = (nd + hr) * 1.10;
+    setText('disp-nd',        nd.toFixed(1)  + ' m');
+    setText('disp-hmt-class', hmt.toFixed(1) + ' m');
+    return hmt;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// USYST (utilisé dans le payload)
+// ═══════════════════════════════════════════════════════════════
+function getUsyst(Pm){
+  if(Pm <= 1.1)  return 12;
+  if(Pm <= 3.7)  return 24;
+  if(Pm <= 11)   return 48;
+  if(Pm <= 22)   return 96;
+  return 120;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RECALCULER — HMT en temps réel + hint bouton
+// ═══════════════════════════════════════════════════════════════
+function recalculer(){
+  const besoin = getBesoinBrut();
+  const HMT    = getHMT();
+  const heures = USAGE_TYPE === 'irrigation_agricole' ? n('inp-heures-irr') : n('inp-heures');
+
+  const ok = (lat !== null) && (besoin > 0) && (HMT > 0) && (heures > 0);
+  const hint = document.getElementById('submit-hint');
+  if(hint) hint.textContent = ok
+    ? 'Tout est prêt. Cliquez pour lancer le dimensionnement.'
+    : 'Remplissez toutes les sections pour lancer le calcul.';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOCALSTORAGE
+// ═══════════════════════════════════════════════════════════════
+const LS_FIELDS = [
+  'inp-ville','inp-heures','inp-heures-irr',
+  'inp-besoin','inp-ns','inp-rabattement','inp-hr-c',
+  'inp-superficie','inp-culture','inp-kc-manuel','inp-ha','inp-hr'
+];
+
+function saveForm(){
+  const data = { lat, lon };
+  LS_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) data[id] = el.value;
+  });
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); }catch(e){}
+}
+
+function restoreForm(){
+  let data;
+  try{ data = JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ return; }
+  if(!data) return;
+  if(data.lat && data.lon){
+    lat = data.lat; lon = data.lon;
+    document.getElementById('disp-lat').textContent = lat;
+    document.getElementById('disp-lon').textContent = lon;
+    document.getElementById('msg-carte').classList.add('hidden');
+    if(map){
+      map.setView([lat,lon], 11);
+      if(marker) map.removeLayer(marker);
+      marker = L.marker([lat,lon]).addTo(map);
+    }
+  }
+  LS_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if(el && data[id] !== undefined) el.value = data[id];
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUBMIT
+// ═══════════════════════════════════════════════════════════════
+function lancerCalcul(){
+  const msgEl = document.getElementById('msg-err');
+  const btn   = document.getElementById('btn-lancer');
+  const isIrr = USAGE_TYPE === 'irrigation_agricole';
+  const errs  = [];
+
+  if(lat === null || lon === null)
+    errs.push('Cliquez sur la carte pour sélectionner un site.');
+
+  const besoin = getBesoinBrut();
+  if(besoin <= 0)
+    errs.push('Renseignez le besoin en eau (valeur > 0).');
+
+  const HMT    = getHMT();
+  const heures = USAGE_TYPE === 'irrigation_agricole' ? n('inp-heures-irr') : n('inp-heures');
+  if(heures <= 0)
+    errs.push('Renseignez les heures de pompage par jour.');
+
+  if(isIrr){
+    if(n('inp-hr') <= 0) errs.push('Renseignez la hauteur de refoulement Hr.');
+  } else {
+    if(n('inp-ns') <= 0)    errs.push('Renseignez le niveau statique Ns (> 0).');
+    if(n('inp-hr-c') <= 0)  errs.push('Renseignez la hauteur de refoulement Hr.');
+  }
+
+  if(errs.length > 0){
+    msgEl.textContent = errs.join(' ');
+    msgEl.classList.remove('hidden');
+    msgEl.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  msgEl.classList.add('hidden');
+
+  const Q     = heures > 0 ? besoin / heures : 0;
+  const Ph    = 2.725 * Q * HMT / 1000;
+  const Pp    = ETA_P > 0 ? Ph / ETA_P : 0;
+  const Pm    = ETA_M > 0 ? Pp / ETA_M : 0;
+  const Eelec = Pm * heures;
+  const Pc    = (irradiation > 0 && PR > 0) ? Eelec / (irradiation * PR) : 0;
+  const Usyst = getUsyst(Pm);
+
+  const payload = {
+    lat, lon,
+    nom_lieu:       window._nom_lieu || '',
+    mode:           isIrr ? 'irrigation' : 'classique',
+    usage_type:     USAGE_TYPE,
+    source_energie: SOURCE,
+    besoin_journalier:    parseFloat(besoin.toFixed(4)),
+    culture:              isIrr ? v('inp-culture') : '',
+    superficie:           isIrr ? n('inp-superficie') : 0,
+    systeme_irrigation:   isIrr ? 'goutte_a_goutte' : '',
+    kc_manuel:            isIrr ? n('inp-kc-manuel') : 0,
+    profondeur_aspiration: isIrr ? n('inp-ha') : 0,
+    hauteur_refoulement:   isIrr ? n('inp-hr') : n('inp-hr-c'),
+    niveau_statique:       isIrr ? 0 : n('inp-ns'),
+    rabattement:           isIrr ? 0 : n('inp-rabattement'),
+    niveau_dynamique:      isIrr ? 0 : n('inp-ns') + n('inp-rabattement'),
+    hauteur_reservoir:     0,
+    heures_pompage:  heures,
+    eta_p:   ETA_P,
+    eta_m:   ETA_M,
+    Q:       parseFloat(Q.toFixed(4)),
+    HMT:     parseFloat(HMT.toFixed(2)),
+    Pm:      parseFloat(Pm.toFixed(4)),
+    Eelec:   parseFloat(Eelec.toFixed(4)),
+    Pc:      parseFloat(Pc.toFixed(4)),
+    Usyst,
+    irradiation, ET0: ET0_val, pr_ratio: PR,
+    type_systeme_hydraulique: isIrr ? 'irrigation' : 'stockage',
+    type_alimentation: 'bas',
+    longueur_canalisation: 0, diametre_tuyau: 63,
+    coeff_pertes_charge: 0.10, puissance_panneau_Wc: 300,
+  };
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="border-top-color:#000"></div> Calcul en cours…';
+
+  console.log('nom_lieu avant envoi:', window._nom_lieu);
+
+  fetch('/lancer_calcul', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(data.succes){
+      window.location.href = '/equipements';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '⚡ Lancer le calcul';
+      msgEl.textContent = 'Erreur : ' + (data.erreur || 'Calcul échoué.');
+      msgEl.classList.remove('hidden');
+    }
+  })
+  .catch(e => {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Lancer le calcul';
+    msgEl.textContent = 'Erreur réseau : ' + e.message;
+    msgEl.classList.remove('hidden');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function(){
+  if(!USAGE_TYPE || !SOURCE){
+    const err = document.getElementById('msg-err');
+    if(err){
+      err.innerHTML = 'Session expirée ou paramètres manquants. '
+        + '<a href="/usage" style="color:#86efac;font-weight:700;text-decoration:underline;">Recommencer depuis le début →</a>';
+      err.classList.remove('hidden');
+    }
+    return;
+  }
+
+  const isIrr = USAGE_TYPE === 'irrigation_agricole';
+  document.getElementById('bloc-irr').classList.toggle('hidden', !isIrr);
+  document.getElementById('bloc-class').classList.toggle('hidden', isIrr);
+
+  // Kc manuel caché par défaut pour irrigation (affiché seulement si culture=autre)
+  if(isIrr){
+    const grpKc = document.getElementById('grp-kc-manuel');
+    if(grpKc) grpKc.style.display = 'none';
+  }
+
+  initMap();
+  restoreForm();
+  recalculer();
+
+  document.querySelectorAll('input[type="number"], input[type="text"], select').forEach(el => {
+    if(el.id && el.id.startsWith('inp-')){
+      el.addEventListener('input',  () => { recalculer(); saveForm(); });
+      el.addEventListener('change', () => { recalculer(); saveForm(); });
+    }
+  });
+});
+</script>
+</body>
+</html>

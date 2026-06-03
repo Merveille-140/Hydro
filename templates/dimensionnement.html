@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HydroPump — Dimensionnement Pompage Solaire</title>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="/static/leaflet.css"/>
+    <script src="/static/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
 
     <style>
         :root {
@@ -1132,7 +1132,14 @@
 
             <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; margin-bottom:20px;">
                 <span style="font-size:13px; color:rgba(255,255,255,0.6);">Usage choisi :</span>
-                <span style="font-size:13px; font-weight:700; color:#fff;" id="badge-usage-label">—</span>
+                {% set usage_labels = {
+                    'irrigation_agricole': 'Irrigation agricole',
+                    'eau_potable_rural':   'Résidentiel',
+                    'eau_potable_village': 'Eau potable / village',
+                    'elevage_bovin':       'Élevage',
+                    'autre':               'Autre usage'
+                } %}
+                <span style="font-size:13px; font-weight:700; color:#fff;" id="badge-usage-label">{{ usage_labels.get(session.get('usage_type',''), session.get('usage_type','—')) or '—' }}</span>
             </div>
 
             <div id="form-irrigation">
@@ -1169,25 +1176,67 @@
                         <div class="form-group"><label class="form-label">Unité de superficie</label><select id="unite_superficie"><option value="ha">Hectares (ha)</option><option value="m2">Mètres carrés (m²)</option></select></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label class="form-label">Type de sol</label><select id="type_sol"><option value="sableux">Sableux — arrosage 1 j/j</option><option value="limoneux">Limoneux — arrosage 1 j/2j</option><option value="argileux">Argileux — arrosage 1 j/3j</option></select></div>
                         <div class="form-group"><label class="form-label">Sessions d'arrosage / jour</label><input type="number" id="sessions_arrosage" value="1" min="1" max="4"/><div class="form-hint">Nombre de fois que la pompe fonctionne par jour</div></div>
+                    </div>
+
+                    <!-- Résumé besoins irrigation en temps réel (dans la même card) -->
+                    <div id="preview_besoins_irr" style="display:none;">
+                        <div style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:16px 0;"></div>
+                        <div style="font-size:11px;font-weight:600;color:#f0b429;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">Besoins calculés</div>
+                        <div class="result-row" id="row_et0_irr"><span class="result-label" style="color:rgba(255,255,255,0.75);">ET0</span><span class="result-value" style="color:white;font-weight:600;"><span id="prev_et0_irr">—</span> <span class="result-unit">mm/j</span></span></div>
+                        <div class="result-row" id="row_kc"><span class="result-label" style="color:rgba(255,255,255,0.75);">Kc</span><span class="result-value" style="color:white;font-weight:600;"><span id="prev_kc">—</span></span></div>
+                        <div class="result-row" id="row_etc"><span class="result-label" style="color:rgba(255,255,255,0.75);">ETc</span><span class="result-value" style="color:white;font-weight:600;"><span id="prev_etc">—</span> <span class="result-unit">mm/j</span></span></div>
+                        <div class="result-row"><span class="result-label" style="color:rgba(255,255,255,0.75);">Superficie</span><span class="result-value" style="color:white;font-weight:600;"><span id="prev_sup_irr">—</span> <span class="result-unit">ha</span></span></div>
+                        <div class="result-row"><span class="result-label" style="color:rgba(255,255,255,0.75);">Besoin net</span><span class="result-value" style="color:white;font-weight:600;"><span id="prev_besoin_net_irr">—</span> <span class="result-unit">m³/j</span></span></div>
+                        <div class="result-row"><span class="result-label" style="color:rgba(255,255,255,0.75);">Efficience η</span><span class="result-value" style="color:white;font-weight:600;"><span id="prev_eta">—</span></span></div>
+                        <div class="result-row"><span class="result-label" style="color:rgba(255,255,255,0.75);">Besoin brut</span><span class="result-value" style="color:#f0b429;font-weight:700;font-size:16px;"><span id="prev_besoin_brut_irr">—</span> <span class="result-unit" style="font-size:12px;">m³/j</span></span></div>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-title">Canalisation</div>
-                    <div class="form-row-3">
-                        <div class="form-group"><label class="form-label">Longueur canalisation (m)</label><input type="number" id="longueur_canalisation" placeholder="Ex: 200" step="1" min="1"/></div>
-                        <div class="form-group"><label class="form-label">Diamètre tuyau (mm)</label><select id="diametre_tuyau"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
-                        <div class="form-group"><label class="form-label">Source d'eau</label><select id="source_eau_irr"><option value="puits">Puits</option><option value="forage">Forage</option><option value="riviere">Rivière / Lac</option><option value="reservoir">Réservoir</option></select></div>
-                    </div>
-                </div>
 
                 <div class="card">
                     <div class="card-title">Paramètres hydrauliques</div>
                     <div class="form-row">
-                        <div class="form-group"><label class="form-label">Profondeur d'aspiration (m)</label><input type="number" id="profondeur_aspiration" placeholder="Ex: 15" step="0.5" min="0"/><div class="form-hint">Distance verticale jusqu'à la surface de l'eau</div></div>
-                        <div class="form-group"><label class="form-label">Hauteur de refoulement (m)</label><input type="number" id="hauteur_refoulement" placeholder="Ex: 5" step="0.5" min="0"/><div class="form-hint">Hauteur jusqu'au point de distribution</div></div>
+                        <div class="form-group"><label class="form-label">Profondeur d'aspiration (m)</label><input type="number" id="profondeur_aspiration" placeholder="Ex: 15" step="0.5" min="0" oninput="majHMTirr();calculerPuissances();"/><div class="form-hint">Distance verticale jusqu'à la surface de l'eau</div></div>
+                        <div class="form-group"><label class="form-label">Hauteur de refoulement (m)</label><input type="number" id="hauteur_refoulement" placeholder="Ex: 5" step="0.5" min="0" oninput="majHMTirr();calculerPuissances();localStorage.setItem('hp_hr',this.value);"/><div class="form-hint">Hauteur jusqu'au point de distribution</div></div>
+                    </div>
+                    <div style="margin-top:14px;">
+                        <label style="font-size:13px;color:#a0b0a0;display:block;margin-bottom:6px;">HMT calculée (m)</label>
+                        <input type="text" id="affich-hmt-irr" value="—" readonly style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#f0b429;font-size:15px;font-weight:500;padding:10px 14px;cursor:default;">
+                        <div class="form-hint">Hgeo + 10% pertes de charge (Hgeo = profondeur aspiration + hauteur refoulement)</div>
+                    </div>
+                </div>
+
+                <div class="card" id="card-puissances-irr" style="display:none;">
+                    <div class="card-title">⚡ Puissances</div>
+                    <div class="form-row" style="margin-bottom:14px;">
+                        <div class="form-group">
+                            <label class="form-label">Rendement pompe η<sub>p</sub></label>
+                            <input type="number" id="eta_p_irr" value="0.65" min="0.55" max="0.70" step="0.01" oninput="calculerPuissancesIrr()"/>
+                            <div class="form-hint">Entre 0.55 et 0.70</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Rendement moteur η<sub>m</sub></label>
+                            <input type="number" id="eta_m_irr" value="0.90" min="0.85" max="0.95" step="0.01" oninput="calculerPuissancesIrr()"/>
+                            <div class="form-hint">Entre 0.85 et 0.95</div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                        <div class="form-group">
+                            <label class="form-label">Ph (kW)</label>
+                            <input type="text" id="affich-ph-irr" readonly value="—" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#22c55e;font-size:14px;font-weight:500;padding:9px 12px;cursor:default;"/>
+                            <div class="form-hint">2.725 × Q × HMT / 1000</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pp (kW)</label>
+                            <input type="text" id="affich-pp-irr" readonly value="—" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#22c55e;font-size:14px;font-weight:500;padding:9px 12px;cursor:default;"/>
+                            <div class="form-hint">Ph / η<sub>p</sub></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pm (kW)</label>
+                            <input type="text" id="affich-pm-irr" readonly value="—" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#f0b429;font-size:14px;font-weight:500;padding:9px 12px;cursor:default;"/>
+                            <div class="form-hint">Pp / η<sub>m</sub></div>
+                        </div>
                     </div>
                 </div>
 
@@ -1224,6 +1273,14 @@
                                 <div class="pompe-carac-desc" id="carac_description_irr"></div>
                             </div>
                             <div id="msg_compatibilite_pompe_irr" style="margin-top:10px;"></div>
+                            <div id="div_choix_alimentation_irr" style="display:none;margin-top:14px;padding:12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;">
+                                <div style="font-size:12px;font-weight:600;color:#fbbf24;margin-bottom:10px;">⚡ Cette pompe accepte plusieurs modes — choisissez le mode d'alimentation :</div>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <label class="option-radio opt-dc-label"><input type="radio" name="mode_alimentation" value="dc" onchange="majModeAlimentation()"/> DC direct — pas de VFD</label>
+                                    <label class="option-radio opt-mono-label"><input type="radio" name="mode_alimentation" value="ac_mono" onchange="majModeAlimentation()"/> AC monophasé — 220V (avec VFD)</label>
+                                    <label class="option-radio opt-tri-label"><input type="radio" name="mode_alimentation" value="ac_tri" onchange="majModeAlimentation()"/> AC triphasé — 380V (avec VFD)</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="pompe_manuel_irr" class="hidden" style="margin-top:14px;">
@@ -1275,34 +1332,27 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" id="label_beneficiaires">Nombre de bénéficiaires</label>
-                            <input type="number" id="nb_beneficiaires" placeholder="Ex: 500" min="1" onchange="calculerBesoinAuto()"/>
+                            <input type="number" id="nb_beneficiaires" placeholder="Ex: 500" min="1" onchange="calculerBesoinAuto()" oninput="localStorage.setItem('hp_nb_benef',this.value)"/>
                             <div class="form-hint" id="hint_beneficiaires">Nombre de personnes desservies</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Besoin journalier total (m³/jour)</label>
-                            <input type="number" id="besoin_journalier" oninput="calculerDepuisBesoin()" placeholder="" step="0.1" min="0.1"/>
+                            <input type="number" id="besoin_journalier" oninput="calculerDepuisBesoin();calculerPuissances();localStorage.setItem('hp_besoin',this.value);" placeholder="" step="0.1" min="0.1"/>
                             <div class="form-hint">Saisissez directement ou calculé automatiquement depuis le nombre de bénéficiaires</div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Coefficient de majoration (%)</label>
-                        <input type="number" id="coeff_fuite_besoin" value="10" min="10" max="20" step="1" oninput="calculerBesoinAuto()"/>
-                        <div class="form-hint">Entre 10% et 20% — pertes, fuites et imprévus</div>
-                    </div>
+                    <input type="hidden" id="coeff_fuite_besoin" value="0"/>
                     <div id="msg_besoin_auto"></div>
                 </div>
 
-                <div class="card">
-                    <div class="card-title">Type de système hydraulique</div>
-                    <div class="form-group"><label class="form-label">Source d'eau</label><select id="type_systeme_hydraulique" onchange="afficherParamsSysteme()"><option value="forage_reservoir">Forage → Réservoir</option><option value="lac_reservoir">Lac / Rivière → Réservoir</option></select></div>
-                </div>
+                <input type="hidden" id="type_systeme_hydraulique" value="forage_reservoir"/>
 
                 <div id="params-forage">
                     <div class="card">
                         <div class="card-title">Caractéristiques du forage</div>
                         <div class="form-row">
                             <div class="form-group"><label class="form-label">Niveau statique (m)</label><input type="number" id="niveau_statique" placeholder="Ex: 20" step="0.5" min="0" onchange="calculerRabattement()"/><div class="form-hint">Profondeur de l'eau au repos</div></div>
-                            <div class="form-group"><label class="form-label">Niveau dynamique (m)</label><input type="number" id="niveau_dynamique" placeholder="Ex: 25" step="0.5" min="0" onchange="calculerRabattement()"/><div class="form-hint">Profondeur de l'eau pendant le pompage</div></div>
+                            <div class="form-group"><label class="form-label">Niveau dynamique (m)</label><input type="number" id="niveau_dynamique" placeholder="Ex: 25" step="0.5" min="0" onchange="calculerRabattement()" oninput="majHMT();localStorage.setItem('hp_nd',this.value);"/><div class="form-hint">Profondeur de l'eau pendant le pompage</div></div>
                         </div>
                         <div class="form-row">
                             <div class="form-group"><label class="form-label">Rabattement (m)</label><input type="number" id="rabattement" placeholder="" readonly style="color:white;font-weight:600;"/><div class="form-hint">= Niveau dynamique − Niveau statique</div></div>
@@ -1322,17 +1372,21 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Hauteur (m)</label>
-                                <input type="number" id="hauteur_reservoir_f" placeholder="" step="0.1"/>
+                                <input type="number" id="hauteur_reservoir_f" placeholder="" step="0.1" oninput="majHMT()"/>
                             </div>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-title">Paramètres hydrauliques</div>
-                        <div class="form-row">
-                            <div class="form-group"><label class="form-label">Longueur du tuyau (m)</label><input type="number" id="longueur_tuyau_f" placeholder="Ex: 150" step="1"/></div>
-                            <div class="form-group"><label class="form-label">Diamètre du tuyau (mm)</label><select id="diametre_tuyau_f"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
+                        <div class="form-group">
+                            <label class="form-label">Hauteur de refoulement Hr (m)</label>
+                            <input type="number" id="hauteur_refoulement_c" placeholder="Ex: 5" min="0" step="0.1" oninput="majHMT();localStorage.setItem('hp_hr',this.value);"/>
+                            <small style="color:rgba(255,255,255,0.35);font-size:11px;">Distance du sol jusqu'au point de livraison</small>
                         </div>
-                        <div class="form-group"><label class="form-label">Type d'alimentation du réservoir</label><select id="type_alimentation_f"><option value="bas">Par le bas</option><option value="haut">Par le haut</option></select></div>
+                        <div style="margin-top:14px;">
+                            <label style="font-size:13px;color:#a0b0a0;display:block;margin-bottom:6px;">HMT calculée (m)</label>
+                            <input type="text" id="affich-hmt" value="—" readonly style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#f0b429;font-size:15px;font-weight:500;padding:10px 14px;cursor:default;">
+                        </div>
                     </div>
                 </div>
 
@@ -1341,7 +1395,7 @@
                         <div class="card-title">Caractéristiques du lac / rivière</div>
                         <div class="form-row">
                             <div class="form-group"><label class="form-label">Niveau de l'eau / sol (m)</label><input type="number" id="niveau_eau_lac" placeholder="Ex: -2" step="0.5" onchange="calculerNiveauPompeLac()"/><div class="form-hint">Négatif si l'eau est en dessous du sol</div></div>
-                            <div class="form-group"><label class="form-label">Hauteur d'aspiration (m)</label><input type="number" id="hauteur_aspiration_lac" placeholder="Max 5m" step="0.5" min="0" max="5" onchange="calculerNiveauPompeLac()"/><div id="msg_aspiration_lac"></div></div>
+                            <div class="form-group"><label class="form-label">Hauteur d'aspiration (m)</label><input type="number" id="hauteur_aspiration_lac" placeholder="Max 5m" step="0.5" min="0" max="5" onchange="calculerNiveauPompeLac()" oninput="majHMT()"/><div id="msg_aspiration_lac"></div></div>
                         </div>
                     </div>
                     <div class="card">
@@ -1357,17 +1411,54 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Hauteur (m)</label>
-                                <input type="number" id="hauteur_reservoir_l" placeholder="" step="0.1"/>
+                                <input type="number" id="hauteur_reservoir_l" placeholder="" step="0.1" oninput="majHMT()"/>
                             </div>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-title">Paramètres hydrauliques</div>
                         <div class="form-row">
-                            <div class="form-group"><label class="form-label">Longueur du tuyau (m)</label><input type="number" id="longueur_tuyau_l" placeholder="Ex: 100" step="1"/></div>
+                            <div class="form-group"><label class="form-label">Longueur du tuyau (m)</label><input type="number" id="longueur_tuyau_l" placeholder="Ex: 100" step="1" oninput="majHMT()"/></div>
                             <div class="form-group"><label class="form-label">Diamètre du tuyau (mm)</label><select id="diametre_tuyau_l"><option value="25">25 mm</option><option value="32">32 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="63">63 mm</option><option value="75">75 mm</option><option value="90">90 mm</option><option value="110">110 mm</option></select></div>
                         </div>
                         <div class="form-group"><label class="form-label">Type d'alimentation du réservoir</label><select id="type_alimentation_l"><option value="bas">Par le bas</option><option value="haut">Par le haut</option></select></div>
+                        <div style="margin-top:14px;">
+                            <label style="font-size:13px;color:#a0b0a0;display:block;margin-bottom:6px;">HMT calculée (m)</label>
+                            <input type="text" id="affich-hmt-lac" value="—" readonly style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#f0b429;font-size:15px;font-weight:500;padding:10px 14px;cursor:default;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="section-puissances">
+                    <div class="card-title">⚡ Puissances</div>
+                    <div class="form-row" style="margin-bottom:14px;">
+                        <div class="form-group">
+                            <label class="form-label">Rendement pompe η<sub>p</sub></label>
+                            <input type="number" id="eta_p" value="0.65" min="0.55" max="0.70" step="0.01" oninput="calculerPuissances();localStorage.setItem('hp_eta_p',this.value);"/>
+                            <div class="form-hint">Entre 0.55 et 0.70</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Rendement moteur η<sub>m</sub></label>
+                            <input type="number" id="eta_m" value="0.90" min="0.85" max="0.95" step="0.01" oninput="calculerPuissances();localStorage.setItem('hp_eta_m',this.value);"/>
+                            <div class="form-hint">Entre 0.85 et 0.95</div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                        <div class="form-group">
+                            <label class="form-label">Ph (kW)</label>
+                            <input type="text" id="affich-ph" readonly value="—" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#22c55e;font-size:14px;font-weight:500;padding:9px 12px;cursor:default;"/>
+                            <div class="form-hint">2.725 × Q × HMT / 1000</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pp (kW)</label>
+                            <input type="text" id="affich-pp" readonly value="—" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#22c55e;font-size:14px;font-weight:500;padding:9px 12px;cursor:default;"/>
+                            <div class="form-hint">Ph / η<sub>p</sub></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pm (kW)</label>
+                            <input type="text" id="affich-pm" readonly value="—" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#f0b429;font-size:14px;font-weight:500;padding:9px 12px;cursor:default;"/>
+                            <div class="form-hint">Pp / η<sub>m</sub></div>
+                        </div>
                     </div>
                 </div>
 
@@ -1401,6 +1492,14 @@
                                 <div class="pompe-carac-desc" id="carac_description"></div>
                             </div>
                             <div id="msg_compatibilite_pompe" style="margin-top:10px;"></div>
+                            <div id="div_choix_alimentation" style="display:none;margin-top:14px;padding:12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;">
+                                <div style="font-size:12px;font-weight:600;color:#fbbf24;margin-bottom:10px;">⚡ Cette pompe accepte plusieurs modes — choisissez le mode d'alimentation :</div>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <label class="option-radio opt-dc-label"><input type="radio" name="mode_alimentation" value="dc" onchange="majModeAlimentation()"/> DC direct — pas de VFD</label>
+                                    <label class="option-radio opt-mono-label"><input type="radio" name="mode_alimentation" value="ac_mono" onchange="majModeAlimentation()"/> AC monophasé — 220V (avec VFD)</label>
+                                    <label class="option-radio opt-tri-label"><input type="radio" name="mode_alimentation" value="ac_tri" onchange="majModeAlimentation()"/> AC triphasé — 380V (avec VFD)</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="pompe_manuel_cl" class="hidden" style="margin-top:14px;">
@@ -1440,41 +1539,75 @@
     </div>
     <div class="app-layout">
         <div class="main-content">
-            <h2 class="page-title">Source d'énergie</h2>
-            <p class="page-sub">Choisissez votre source d'énergie et vos équipements</p>
+            <h2 class="page-title">Énergie &amp; Équipements</h2>
+            <p class="page-sub">Configurez les paramètres énergétiques de votre installation</p>
             <div class="card">
                 <div class="card-title">Source d'énergie</div>
                 <input type="hidden" id="source_energie" value="{{ session.get('source_energie', 'solaire') }}"/>
-                <p>Source : <strong style="color:#fbbf24;">{{ session.get('source_energie','solaire')|replace('_',' ')|title }}</strong></p>
-                <!-- Heures de pompage -->
-                <div class="form-group">
-                    <label class="form-label">Heures de pompage / jour</label>
-                    <input type="number" id="heures_pompage" value="6" step="0.5" min="1" max="16"/>
-                    <div id="heures_recommandees" class="msg msg-green" style="margin-top:8px;">Pour le solaire : entre 4h et 8h recommandées</div>
-                </div>
-                <!-- Jours d'autonomie (visible si hybride_batteries) -->
-                <div id="batteries_div" class="hidden">
-                    <div class="form-group">
-                        <label class="form-label">Jours d'autonomie</label>
-                        <input type="number" id="jours_autonomie" value="2" min="1" max="5" oninput="mettreAJourPreviewPV()"/>
+                {% set labels = {'solaire':'Pompage solaire au fil du soleil','hybride_batteries':'Solaire avec batteries','groupe':'Groupe électrogène','hybride_groupe':'Solaire + groupe électrogène','reseau':'Réseau électrique (SBEE)'} %}
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);border-left:3px solid #f0b429;border-radius:10px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0b429" stroke-width="1.5" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    <div>
+                        <div style="font-size:11px;color:#4a6a8a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Source sélectionnée</div>
+                        <div style="font-size:15px;font-weight:600;color:#e0f0ff;">{{ labels.get(session.get('source_energie','solaire'), session.get('source_energie','Solaire')) }}</div>
                     </div>
-                    <input type="hidden" id="dod" value="0.70"/>
+                    <button onclick="sauvegarderEtModifier()" style="margin-left:auto;font-size:12px;color:#4a6a8a;background:none;border:0.5px solid #1a2a40;border-radius:6px;padding:5px 10px;cursor:pointer;transition:color 0.15s;">Modifier →</button>
+                </div>
+                <!-- Heures de pompage -->
+                <div class="form-group" id="div-heures-pompage">
+                    <label class="form-label">Heures de pompage / jour</label>
+                    <input type="number" id="heures_pompage" value="6" step="0.5" oninput="calculerPuissances();calculerPuissancesIrr();localStorage.setItem('hp_heures',this.value);"/>
+                </div>
+                <!-- Solaire avec batteries — configuration complète -->
+                <div id="batteries_div" class="hidden">
+                    <!-- 2. Jours d'autonomie -->
+                    <div class="form-group" style="margin-top:12px;">
+                        <label class="form-label">Jours d'autonomie</label>
+                        <input type="number" id="jours_autonomie" value="2" min="1" max="5" oninput="localStorage.setItem('hp_jours',this.value);"/>
+                    </div>
+                    <!-- 3. Choix batterie -->
+                    <div class="form-row" style="margin-top:10px;">
+                        <div class="form-group">
+                            <label class="form-label">Marque batterie</label>
+                            <select id="marque_bat_inline" onchange="chargerModelesBatteriesInline()">
+                                <option value="">— Choisissez une marque —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Modèle</label>
+                            <select id="modele_bat_inline" onchange="selectionnerBatterieInline()" disabled>
+                                <option value="">— Choisissez d'abord une marque —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Type + DoD affiché après sélection -->
+                    <div id="bat-inline-info" style="display:none;margin-top:8px;padding:10px 14px;background:rgba(96,165,250,0.08);border:0.5px solid #1a2a40;border-left:2px solid #60a5fa;border-radius:8px;">
+                        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+                            <div><span style="color:#4a6a8a;font-size:11px;text-transform:uppercase;">Type</span><div style="color:#e0f0ff;font-size:14px;font-weight:600;" id="bat-type-inline">—</div></div>
+                            <div><span style="color:#4a6a8a;font-size:11px;text-transform:uppercase;">DoD</span><div style="color:#f0b429;font-size:14px;font-weight:600;"><span id="bat-dod-inline">—</span> %</div></div>
+                            <div><span style="color:#4a6a8a;font-size:11px;text-transform:uppercase;">Capacité</span><div style="color:#e0f0ff;font-size:14px;font-weight:600;"><span id="bat-cap-inline">—</span> Ah</div></div>
+                            <div><span style="color:#4a6a8a;font-size:11px;text-transform:uppercase;">Tension</span><div style="color:#e0f0ff;font-size:14px;font-weight:600;"><span id="bat-tens-inline">—</span> V</div></div>
+                        </div>
+                    </div>
+                    <!-- DoD caché, mis à jour dynamiquement -->
+                    <input type="hidden" id="dod" value="0.50"/>
+                    <input type="hidden" id="bat_type_selected" value="GEL"/>
                 </div>
                 <!-- Pr hidden + preview (visible si source PV) -->
                 <div id="pv_params_div" class="hidden">
                     <div id="div_pr_ratio" class="hidden">
                         <div class="form-group">
                             <label class="form-label">Ratio de performance Pr</label>
-                            <input type="number" id="pr_ratio" value="0.75" min="0.60" max="0.80" step="0.01" oninput="mettreAJourPreviewPV()"/>
+                            <input type="number" id="pr_ratio" value="0.75" min="0.60" max="0.80" step="0.01"/>
                             <div class="form-hint">Entre 0.60 et 0.80 — rendement global du système PV (défaut : 0.75)</div>
                         </div>
                     </div>
-                    <div id="preview_pv" class="hidden" style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.18); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
-                        <div style="font-size:11px; font-weight:600; color:var(--gray-500); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">Estimation préliminaire</div>
-                        <div class="result-row"><span class="result-label">Énergie journalière</span><span class="result-value"><span id="prev_eelec">—</span> <span class="result-unit">kWh/j</span></span></div>
-                        <div class="result-row"><span class="result-label">Puissance crête</span><span class="result-value"><span id="prev_pc">—</span> <span class="result-unit">kWc</span></span></div>
-                        <div class="result-row"><span class="result-label">⚡ Tension système</span><span id="prev_usyst_badge" style="font-size:13px;">—</span></div>
-                        <div class="result-row" id="prev_bat_row" style="display:none;"><span class="result-label">Capacité totale batteries</span><span class="result-value"><span id="prev_cap_ah">—</span> <span class="result-unit">Ah</span></span></div>
+                    <div id="preview_pv" style="margin-top:12px;padding:12px;background:rgba(0,0,0,0.18);border-radius:8px;border:1px solid rgba(255,255,255,0.08);">
+                        <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Tension système</div>
+                        <div class="result-row">
+                            <span class="result-label">⚡ Usyst</span>
+                            <span id="prev_usyst_badge">—</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1525,36 +1658,8 @@
                     </div>
                 </div>
 
-                <div id="div_choix_batteries" class="hidden">
-                    <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Batterie</p>
-                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
-                        <label class="option-radio"><input type="radio" name="choix_batterie" value="base" onchange="afficherChoixEquipement('batterie','base')"/> Choisir dans la base de données</label>
-                        <label class="option-radio"><input type="radio" name="choix_batterie" value="manuel" onchange="afficherChoixEquipement('batterie','manuel')"/> Saisir manuellement mes caractéristiques</label>
-                    </div>
-                    <div id="batterie_bd" class="hidden">
-                        <div class="form-group">
-                            <label class="form-label">Marque</label>
-                            <select id="marque_batterie" onchange="chargerModelesBatteries()">
-                                <option value="">— Choisissez une marque —</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="batterie_manuel" class="hidden">
-                        <div class="pompe-carac-box">
-                            <div class="pompe-carac-title">Saisie manuelle — Batterie</div>
-                            <div class="form-row">
-                                <div class="form-group"><label class="form-label">Marque</label><input type="text" id="man_bat_marque" placeholder="Ex: Trojan"/></div>
-                                <div class="form-group"><label class="form-label">Type</label><select id="man_bat_type"><option value="GEL">GEL</option><option value="Plomb-acide">Plomb-acide</option><option value="Lithium">Lithium</option></select></div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group"><label class="form-label">Capacité (Ah)</label><input type="number" id="man_bat_capacite" placeholder="Ex: 200" step="10"/></div>
-                                <div class="form-group"><label class="form-label">Tension (V)</label><input type="number" id="man_bat_tension" placeholder="Ex: 12" step="12"/></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div id="msg_onduleur_avert"></div>
-                <div id="div_choix_onduleur" class="hidden">
+                <div id="div_choix_onduleur" class="hidden" style="display:none !important">
                     <p style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;">Onduleur</p>
                     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
                         <label class="option-radio"><input type="radio" name="choix_onduleur" value="base" onchange="afficherChoixEquipement('onduleur','base')"/> Choisir dans la base de données</label>
@@ -1613,9 +1718,97 @@
                 </div>
             </div>
 
+            <div class="card" id="card-vfd" style="display:none">
+                <div class="card-title">Variateur de fréquence (VFD)</div>
+                <div style="margin-bottom:14px;padding:12px;background:rgba(0,0,0,0.18);border-radius:8px;border:1px solid rgba(255,255,255,0.08);">
+                    <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:8px;text-transform:uppercase;">Paramètres calculés</div>
+                    <div class="result-row"><span class="result-label">Puissance VFD</span><span class="result-value"><span id="vfd_puissance">—</span><span class="result-unit">kW</span></span></div>
+                    <div class="result-row"><span class="result-label">Tension entrée DC</span><span class="result-value"><span id="vfd_tension_entree">—</span><span class="result-unit">V</span></span></div>
+                    <div class="result-row"><span class="result-label">Tension sortie AC</span><span class="result-value"><span id="vfd_tension_sortie">—</span></span></div>
+                    <div class="result-row"><span class="result-label">Courant sortie Ivar</span><span class="result-value"><span id="vfd_ivar">—</span><span class="result-unit">A</span></span></div>
+                    <div class="result-row"><span class="result-label">Type réseau</span><span class="result-value"><span id="vfd_type_reseau">—</span></span></div>
+                </div>
+                <div style="padding:12px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.15);border-radius:8px;font-size:12px;color:rgba(255,255,255,0.5);text-align:center;">
+                    🔧 Sélection du VFD dans la base de données — disponible prochainement
+                </div>
+            </div>
+
+            <!-- Card câbles et protections -->
+            <div class="card" id="card-cables" style="display:none">
+                <div class="card-title">Section de câble et protection</div>
+
+                <!-- Matériau conducteur -->
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label class="form-label">Matériau conducteur</label>
+                    <select id="materiau_conducteur" onchange="calculerCablesProtections()">
+                        <option value="cuivre">Cuivre (Ro = 0.0172 Ω·mm²/m)</option>
+                        <option value="aluminium">Aluminium (Ro = 0.028 Ω·mm²/m)</option>
+                    </select>
+                </div>
+
+                <!-- Longueurs câbles PV / hybride_batteries -->
+                <div id="cables_pv_div" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">L PV → VFD/régulateur (m)</label>
+                            <input type="number" id="L_pv_reg" placeholder="Ex: 20" min="0" step="1" oninput="calculerCablesProtections()"/>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" id="label_L_vfd_pompe">L VFD → Pompe (m)</label>
+                            <input type="number" id="L_vfd_pompe" placeholder="Ex: 30" min="0" step="1" oninput="calculerCablesProtections()"/>
+                        </div>
+                    </div>
+                    <div id="cables_bat_div" style="display:none;" class="form-group">
+                        <label class="form-label">L Régulateur → Batteries (m)</label>
+                        <input type="number" id="L_reg_bat" placeholder="Ex: 5" min="0" step="1" oninput="calculerCablesProtections()"/>
+                    </div>
+                </div>
+
+                <!-- Longueur câble AC (groupe/SBEE/réseau) -->
+                <div id="cables_ac_div" style="display:none;" class="form-group">
+                    <label class="form-label">L Source → Pompe (m)</label>
+                    <input type="number" id="L_ac_pompe" placeholder="Ex: 30" min="0" step="1" oninput="calculerCablesProtections()"/>
+                </div>
+
+                <!-- Résultats -->
+                <div id="cables_resultats" style="margin-top:14px;display:none;">
+                    <!-- Tableau tronçons -->
+                    <div style="background:rgba(0,0,0,0.18);border-radius:8px;border:1px solid rgba(255,255,255,0.08);padding:12px;margin-bottom:10px;">
+                        <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">Tronçons</div>
+                        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;margin-bottom:6px;">
+                            <span style="font-size:10px;color:#4a6a8a;font-weight:600;">Tronçon</span>
+                            <span style="font-size:10px;color:#4a6a8a;font-weight:600;text-align:center;">S (mm²)</span>
+                            <span style="font-size:10px;color:#4a6a8a;font-weight:600;text-align:center;">In (A)</span>
+                            <span style="font-size:10px;color:#4a6a8a;font-weight:600;text-align:center;">Ue (V)</span>
+                        </div>
+                        <div id="cables_troncons"></div>
+                    </div>
+                    <!-- Parafoudres -->
+                    <div style="background:rgba(0,0,0,0.18);border-radius:8px;border:1px solid rgba(255,255,255,0.08);padding:12px;">
+                        <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Parafoudres</div>
+                        <div id="cables_parafoudres"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-sbee" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+                <div style="background:rgba(8,13,20,0.60);border:0.5px solid #1a2a40;border-left:2px solid #f0b429;border-radius:8px;padding:14px 16px;">
+                    <div style="color:#4a6a8a;font-size:11px;text-transform:uppercase;margin-bottom:4px;">Puissance souscrite</div>
+                    <div style="color:#3a5070;font-size:10px;margin-bottom:6px;">Ps = Pm × 1.2</div>
+                    <input type="text" id="affich-ps" readonly value="—" style="background:none;border:none;color:#f0b429;font-size:22px;font-weight:500;width:100%;outline:none;">
+                    <div style="color:#4a6a8a;font-size:12px;">kW</div>
+                </div>
+                <div style="background:rgba(8,13,20,0.60);border:0.5px solid #1a2a40;border-left:2px solid #60a5fa;border-radius:8px;padding:14px 16px;">
+                    <div style="color:#4a6a8a;font-size:11px;text-transform:uppercase;margin-bottom:4px;">Type de réseau</div>
+                    <div style="color:#3a5070;font-size:10px;margin-bottom:6px;">Pm ≤ 3kW → Mono / Pm > 3kW → Tri</div>
+                    <div id="affich-reseau" style="color:#60a5fa;font-size:18px;font-weight:500;">—</div>
+                    <div id="affich-tension" style="color:#4a6a8a;font-size:12px;margin-top:4px;">—</div>
+                </div>
+            </div>
+
             <div class="nav-buttons">
                 <button class="btn-back" onclick="allerVers('besoins')">← Retour</button>
-                <button class="btn-calculate" onclick="calculer()">⚡ Calculer le dimensionnement</button>
+                <button class="btn-calculate" onclick="calculer()">⚡ Afficher le résultat</button>
             </div>
         </div>
     </div>
@@ -1664,6 +1857,8 @@
                         <div class="result-row"><span class="result-label">Puissance pompe Pp</span><span class="result-value"><span id="res_Pp">—</span><span class="result-unit">kW</span></span></div>
                         <div class="result-row"><span class="result-label">Puissance moteur Pm</span><span class="result-value highlight"><span id="res_Pm">—</span><span class="result-unit">kW</span></span></div>
                         <div class="result-row"><span class="result-label">Puissance commerciale</span><span class="result-value"><span id="res_Pm_commercial">—</span><span class="result-unit">kW</span></span></div>
+                        <div class="result-row hidden" id="row_Ia"><span class="result-label">Courant d'alimentation Ia</span><span class="result-value"><span id="res_Ia">—</span><span class="result-unit">A</span></span></div>
+                        <div class="result-row hidden" id="row_type_alim"><span class="result-label">Type alimentation</span><span class="result-value"><span id="res_type_alim">—</span></span></div>
                     </div>
                     <div class="result-card">
                         <div class="result-card-title">Énergie</div>
@@ -1671,6 +1866,9 @@
                             <div class="result-row"><span class="result-label">Énergie / jour</span><span class="result-value"><span id="res_energie_jour">—</span><span class="result-unit">kWh</span></span></div>
                             <div class="result-row"><span class="result-label">Puissance crête</span><span class="result-value"><span id="res_puissance_crete">—</span><span class="result-unit">kWc</span></span></div>
                             <div class="result-row"><span class="result-label">Nombre de panneaux (<span id="res_label_panneau">—</span>)</span><span class="result-value highlight"><span id="res_nb_panneaux">—</span><span class="result-unit">panneaux</span></span></div>
+                            <span id="res_nbr_panneaux" style="display:none">—</span>
+                            <div class="result-row"><span class="result-label">Panneaux en série</span><span class="result-value"><span id="res_pv_serie">—</span></span></div>
+                            <div class="result-row"><span class="result-label">Panneaux en parallèle</span><span class="result-value"><span id="res_pv_parallele">—</span></span></div>
                         </div>
                         <div id="res_energie_groupe" class="hidden">
                             <div class="result-row"><span class="result-label">Puissance groupe</span><span class="result-value"><span id="res_puissance_groupe">—</span><span class="result-unit">kW</span></span></div>
@@ -1678,9 +1876,18 @@
                             <div class="result-row"><span class="result-label">Consommation / mois</span><span class="result-value"><span id="res_conso_mois">—</span><span class="result-unit">L</span></span></div>
                         </div>
                         <div id="res_energie_batteries" class="hidden">
-                            <div class="result-row"><span class="result-label">Énergie à stocker</span><span class="result-value"><span id="res_energie_stockage">—</span><span class="result-unit">kWh</span></span></div>
+                            <span id="res_nb_batteries" style="display:none">—</span>
+                            <span id="res_ctot" style="display:none">—</span>
+                            <span id="res_energie_stockage" style="display:none">—</span>
                             <div class="result-row"><span class="result-label">Capacité totale</span><span class="result-value"><span id="res_capacite_totale">—</span><span class="result-unit">Ah</span></span></div>
-                            <div class="result-row"><span class="result-label">Nombre de batteries</span><span class="result-value highlight"><span id="res_nb_batteries">—</span></span></div>
+                            <div class="result-row"><span class="result-label">Batteries en série</span><span class="result-value"><span id="res_nbat_serie">—</span></span></div>
+                            <div class="result-row"><span class="result-label">Batteries en parallèle</span><span class="result-value"><span id="res_nbat_parallele">—</span></span></div>
+                            <div class="result-row"><span class="result-label">Total batteries</span><span class="result-value highlight"><span id="res_nbat_tot">—</span></span></div>
+                        </div>
+                        <div id="res_energie_sbee" class="hidden">
+                            <div class="result-row"><span class="result-label">Puissance souscrite SBEE</span><span class="result-value highlight"><span id="res_ps_sbee">—</span><span class="result-unit">kW</span></span></div>
+                            <div class="result-row"><span class="result-label">Type réseau</span><span class="result-value"><span id="res_type_reseau">—</span></span></div>
+                            <div class="result-row"><span class="result-label">Tension</span><span class="result-value"><span id="res_tension_reseau">—</span></span></div>
                         </div>
                     </div>
                 </div>
@@ -1719,20 +1926,99 @@
 </div>
 
 <script>
+// Vider si nouveau projet
+if (window.location.search.includes('nouveau=1')) {
+    ['hp_nb_benef','hp_besoin','hp_nd','hp_hr','hp_hmt',
+     'hp_eta_p','hp_eta_m','hp_heures','hp_jours','hp_etape','hp_snapshot']
+        .forEach(function(k) { localStorage.removeItem(k); });
+    window.history.replaceState({}, '', window.location.pathname);
+}
+
+// Restaurer snapshot après changement de source (Modifier →)
+if (window.location.search.includes('restore=1')) {
+    var _snap = localStorage.getItem('hp_snapshot');
+    if (_snap) {
+        try {
+            var _data = JSON.parse(_snap);
+            Object.keys(_data).forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el && el.type !== 'hidden' && el.type !== 'submit') {
+                    el.value = _data[id];
+                }
+            });
+        } catch(e) {}
+        localStorage.removeItem('hp_snapshot');
+    }
+    window.history.replaceState({}, '', window.location.pathname);
+    setTimeout(function() { allerVers('energie'); }, 150);
+}
+
+function sauvegarderEtModifier() {
+    var snapshot = {};
+    document.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(el) {
+        if (el.id && el.type !== 'hidden' && el.type !== 'submit' && el.type !== 'radio' && el.type !== 'checkbox') {
+            snapshot[el.id] = el.value;
+        }
+    });
+    localStorage.setItem('hp_snapshot', JSON.stringify(snapshot));
+    window.location.href = '/choix_systeme?from=dimensionnement';
+}
+
+// ── Persistance formulaire par projet ──────────────────────────
+var HP_FORM_KEY = 'hydropump_form_{{ session.get("nom_projet", "default") }}';
+
+function saveFormData() {
+    var data = {};
+    document.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(el) {
+        if (el.id && el.type !== 'hidden' && el.type !== 'submit'
+                  && el.type !== 'radio'  && el.type !== 'checkbox') {
+            if (el.id === 'heures_pompage' || el.id === 'jours_autonomie') return;
+            data[el.id] = el.value;
+        }
+    });
+    localStorage.setItem(HP_FORM_KEY, JSON.stringify(data));
+}
+
+function restoreFormData() {
+    var saved = localStorage.getItem(HP_FORM_KEY);
+    if (!saved) return;
+    try {
+        var data = JSON.parse(saved);
+        Object.keys(data).forEach(function(id) {
+            if (id === 'heures_pompage' || id === 'jours_autonomie') return;
+            var el = document.getElementById(id);
+            if (el && el.type !== 'hidden' && el.type !== 'submit') {
+                el.value = data[id];
+            }
+        });
+        // Relancer les calculs après restauration
+        if (typeof majHMT             === 'function') majHMT();
+        if (typeof majHMTirr          === 'function') majHMTirr();
+        if (typeof calculerPuissances === 'function') calculerPuissances();
+        if (typeof calculerBesoinAuto === 'function') calculerBesoinAuto();
+    } catch(e) {}
+}
+
 function allerVers(page) {
     document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
     document.getElementById('page-' + page).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    localStorage.setItem('hp_etape', page);
     if (page === 'localisation') { setTimeout(function() { carte.invalidateSize(); }, 300); }
     if (page === 'energie') {
         setTimeout(function() {
             afficherHeuresPompage();
             mettreAJourEquipements();
-            mettreAJourPreviewPV();
         }, 200);
     }
 }
 
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 var carte = L.map('carte', { zoomControl: true, preferCanvas: true }).setView([9.3077, 2.3158], 6);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(carte);
 setTimeout(function() { carte.invalidateSize(); }, 500);
@@ -1840,12 +2126,11 @@ window.addEventListener('DOMContentLoaded', function() {
         nbEl.setAttribute('max', '5000');
         nbEl.setAttribute('min', '50');
         nbEl.setAttribute('placeholder', 'Ex: 500');
-        if (hintEl) { hintEl.innerText = 'Entre 50 et 5000 personnes'; }
     } else {
         nbEl.setAttribute('max', '50');
         nbEl.setAttribute('min', '1');
         nbEl.setAttribute('placeholder', 'Ex: 10');
-        if (hintEl) { hintEl.innerText = 'Maximum 50 personnes — usage domestique'; }
+        if (hintEl) { hintEl.innerText = ''; }
     }
   }
   var sourceEnergie = "{{ session.get('source_energie', 'solaire') }}";
@@ -1861,6 +2146,70 @@ window.addEventListener('DOMContentLoaded', function() {
   };
   var labelEl = document.getElementById('badge-usage-label');
   if (labelEl) labelEl.innerText = LABELS_USAGE[usageType] || usageType;
+
+  // Restauration localStorage (clés préfixées hp_)
+  var CHAMPS_LS = [
+      { ls: 'hp_nb_benef', id: 'nb_beneficiaires' },
+      { ls: 'hp_besoin',   id: 'besoin_journalier' },
+      { ls: 'hp_nd',       id: 'niveau_dynamique' },
+      { ls: 'hp_hr',       id: 'hauteur_refoulement_c' },
+      { ls: 'hp_eta_p',    id: 'eta_p',            def: '0.65' },
+      { ls: 'hp_eta_m',    id: 'eta_m',            def: '0.90' },
+      { ls: 'hp_heures',   id: 'heures_pompage',   def: '6' },
+      { ls: 'hp_jours',    id: 'jours_autonomie',  def: '2' },
+  ];
+  CHAMPS_LS.forEach(function(c) {
+      var v = localStorage.getItem(c.ls);
+      var el = document.getElementById(c.id);
+      if (el) el.value = (v !== null) ? v : (c.def || '');
+  });
+
+  var etapeSaved = localStorage.getItem('hp_etape');
+  if (etapeSaved && document.getElementById('page-' + etapeSaved)) {
+      allerVers(etapeSaved);
+  }
+
+  var source = "{{ session.get('source_energie', '') }}";
+  console.log('source:', source);
+  console.log('section-sbee:', document.getElementById('section-sbee'));
+
+  if (source === 'sbee' || source === 'reseau' || source === 'groupe_electrogene') {
+    var cardEq = document.getElementById('card-equipements');
+    if (cardEq) cardEq.style.display = 'none';
+  }
+
+  var secSbee = document.getElementById('section-sbee');
+  if (secSbee) secSbee.style.display = source === 'sbee' ? 'grid' : 'none';
+
+  if (source === 'sbee') {
+    var heuresDiv = document.getElementById('div-heures-pompage');
+    if (heuresDiv) heuresDiv.style.display = 'none';
+  }
+
+  var sourceSession = "{{ session.get('source_energie', '') }}";
+  if (sourceSession) {
+    var radio = document.querySelector(
+      'input[name="source_energie"][value="' + sourceSession + '"]'
+    );
+    if (radio) {
+      radio.checked = true;
+      radio.dispatchEvent(new Event('change'));
+    }
+    if (typeof choisirSource === 'function') {
+      choisirSource(sourceSession);
+    }
+    if (typeof afficherHeuresPompage === 'function') {
+      afficherHeuresPompage();
+    }
+    if (typeof mettreAJourEquipements === 'function') {
+      mettreAJourEquipements();
+    }
+  }
+
+  // Restauration complète après tout le setup
+  restoreFormData();
+  mettreAJourVFD();
+  mettreAJourCables();
 });
 
 var SYSTEME_RECOMMANDE = {
@@ -1876,6 +2225,11 @@ function afficherKcManuel() {
     var culture = document.getElementById('culture').value;
     var divKc   = document.getElementById('kc_manuel_div');
     var msgDiv  = document.getElementById('message_irrigation');
+    if (culture === 'riz') {
+        divKc.classList.add('hidden');
+        msgDiv.innerHTML = '';
+        return;
+    }
     if (culture === 'autre') {
         divKc.classList.remove('hidden');
         msgDiv.innerHTML = '<div class="msg msg-warning">⚠️ Choisissez le système d\'irrigation adapté.</div>';
@@ -1894,6 +2248,7 @@ function verifierSysteme() {
     var systeme = document.getElementById('systeme_irrigation').value;
     var msgDiv  = document.getElementById('message_irrigation');
     var rec     = SYSTEME_RECOMMANDE[culture];
+    if (culture === 'riz') { msgDiv.innerHTML = ''; return; }
     if (culture === 'autre' || !rec) { return; }
     if (systeme === rec) {
         msgDiv.innerHTML = '<div class="msg msg-success">✅ Système optimal pour cette culture !</div>';
@@ -1929,22 +2284,17 @@ function mettreAJourLabelBeneficiaires() {
 function calculerBesoinAuto() {
     var nb    = parseFloat(document.getElementById('nb_beneficiaires').value) || 0;
     var conso = parseFloat((document.getElementById('consommation_unitaire') || {}).value) || 10;
-    var pct   = parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10;
-    var coeff = 1 + (pct / 100);
     var msgDiv = document.getElementById('msg_besoin_auto');
 
     if (!nb || nb <= 0) return;
 
-    var besoin_net  = (conso * nb) / 1000;
-    var besoin_brut = besoin_net * coeff;
+    var besoin_net = (conso * nb) / 1000;
 
-    document.getElementById('besoin_journalier').value = besoin_brut.toFixed(2);
+    document.getElementById('besoin_journalier').value = besoin_net.toFixed(2);
 
     msgDiv.innerHTML =
         '<div class="msg msg-success">✅ '
-        + 'Besoin net : <strong>' + besoin_net.toFixed(2) + ' m³/jour</strong>'
-        + ' → après majoration ' + pct + '% : '
-        + '<strong>' + besoin_brut.toFixed(2) + ' m³/jour</strong></div>';
+        + 'Besoin net : <strong>' + besoin_net.toFixed(2) + ' m³/jour</strong></div>';
 
     var usage = document.getElementById('type_usage').value;
     if (usage === 'eau_potable_village' && nb < 50) {
@@ -1958,22 +2308,18 @@ function calculerBesoinAuto() {
 function calculerDepuisBesoin() {
     var besoin = parseFloat(document.getElementById('besoin_journalier').value) || 0;
     var conso  = parseFloat((document.getElementById('consommation_unitaire') || {}).value) || 10;
-    var pct    = parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10;
-    var coeff  = 1 + (pct / 100);
     var msgDiv = document.getElementById('msg_besoin_auto');
 
     if (!besoin || besoin <= 0) return;
 
-    var besoin_net = besoin / coeff;
-    var nb = Math.round((besoin_net * 1000) / conso);
+    var nb = Math.round((besoin * 1000) / conso);
 
     document.getElementById('nb_beneficiaires').value = nb;
 
     msgDiv.innerHTML =
         '<div class="msg msg-info">ℹ️ '
         + nb + ' personnes estimées '
-        + '— Besoin net : <strong>' + besoin_net.toFixed(2) + ' m³/jour</strong>'
-        + ' → Besoin brut : <strong>' + besoin + ' m³/jour</strong></div>';
+        + '— Besoin net : <strong>' + besoin.toFixed(2) + ' m³/jour</strong></div>';
 
     var usage = document.getElementById('type_usage').value;
     if (usage === 'eau_potable_village' && nb < 50) {
@@ -2018,6 +2364,394 @@ function calculerRabattement() {
     var ns = parseFloat(document.getElementById('niveau_statique').value);
     var nd = parseFloat(document.getElementById('niveau_dynamique').value);
     if (ns && nd && nd >= ns) { document.getElementById('rabattement').value = (nd - ns).toFixed(2); }
+    majHMT();
+}
+
+function majHMT() {
+    var Nd   = parseFloat(document.getElementById('niveau_dynamique').value)      || 0;
+    var Hr   = parseFloat(document.getElementById('hauteur_refoulement_c').value) || 0;
+    var Hgeo = Nd + Hr;
+    var Pc   = 0.10 * Hgeo;
+    var HMT  = Hgeo + Pc;
+    var el = document.getElementById('affich-hmt');
+    if (el) el.value = HMT.toFixed(1);
+    console.log('HMT calculée:', HMT);
+    calculerPuissances();
+}
+
+function majHMTirr() {
+    var Ha   = parseFloat(document.getElementById('profondeur_aspiration').value) || 0;
+    var Hr   = parseFloat(document.getElementById('hauteur_refoulement').value)   || 0;
+    var Hgeo = Ha + Hr;
+    var HMT  = Hgeo + Hgeo * 0.10;
+    var el   = document.getElementById('affich-hmt-irr');
+    if (el) el.value = HMT > 0 ? HMT.toFixed(1) : '—';
+    calculerPuissancesIrr();
+}
+
+function calculerPuissancesIrr() {
+    var HMT = parseFloat(document.getElementById('affich-hmt-irr')?.value) || 0;
+    var besoin_brut = parseFloat(document.getElementById('prev_besoin_brut_irr')?.innerText) || 0;
+    var heures = parseFloat(document.getElementById('heures_pompage')?.value) || 1;
+    var Q = besoin_brut / heures;
+    var eta_p = parseFloat(document.getElementById('eta_p_irr')?.value) || 0.65;
+    var eta_m = parseFloat(document.getElementById('eta_m_irr')?.value) || 0.90;
+    var card = document.getElementById('card-puissances-irr');
+
+    if (Q <= 0 || HMT <= 0) {
+        document.getElementById('affich-ph-irr').value = '—';
+        document.getElementById('affich-pp-irr').value = '—';
+        document.getElementById('affich-pm-irr').value = '—';
+        if (card) card.style.display = 'none';
+        return;
+    }
+
+    var Ph = (2.725 * Q * HMT) / 1000;
+    var Pp = Ph / eta_p;
+    var Pm = Pp / eta_m;
+
+    document.getElementById('affich-ph-irr').value = Ph.toFixed(3);
+    document.getElementById('affich-pp-irr').value = Pp.toFixed(3);
+    document.getElementById('affich-pm-irr').value = Pm.toFixed(3);
+    if (card) card.style.display = '';
+}
+
+function calculerPuissances() {
+    var besoin = parseFloat(document.getElementById('besoin_journalier').value) || 0;
+    var heures = parseFloat(document.getElementById('heures_pompage').value)    || 6;
+    var Q   = besoin / heures;
+    var HMT = parseFloat((document.getElementById('affich-hmt') || {}).value)   || 0;
+    var eta_p = parseFloat(document.getElementById('eta_p').value) || 0.65;
+    var eta_m = parseFloat(document.getElementById('eta_m').value) || 0.90;
+
+    var Ph = (2.725 * Q * HMT) / 1000;
+    var Pp = Ph / eta_p;
+    var Pm = Pp / eta_m;
+
+    var elPh = document.getElementById('affich-ph');
+    var elPp = document.getElementById('affich-pp');
+    var elPm = document.getElementById('affich-pm');
+    if (elPh) elPh.value = Ph > 0 ? Ph.toFixed(3) : '—';
+    if (elPp) elPp.value = Pp > 0 ? Pp.toFixed(3) : '—';
+    if (elPm) elPm.value = Pm > 0 ? Pm.toFixed(3) : '—';
+
+    var Ps = Pm * 1.2;
+    var psEl  = document.getElementById('affich-ps');
+    var resEl = document.getElementById('affich-reseau');
+    var tenEl = document.getElementById('affich-tension');
+    if (psEl)  psEl.value       = Pm > 0 ? Ps.toFixed(2) : '—';
+    if (resEl) resEl.textContent = Pm > 0 ? (Pm <= 3 ? 'Monophasé' : 'Triphasé') : '—';
+    if (tenEl) tenEl.textContent = Pm > 0 ? (Pm <= 3 ? '1 × 220V — 50Hz' : '3 × 380V — 50Hz') : '—';
+    calculerUsyst();
+}
+
+function calculerUsyst() {
+    var source = document.getElementById('source_energie').value;
+    var hasPV  = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
+    var preview = document.getElementById('preview_pv');
+    var badge   = document.getElementById('prev_usyst_badge');
+    if (!preview || !badge) return;
+    if (!hasPV) { preview.style.display = 'none'; return; }
+    preview.style.display = 'block';
+    var Pm   = parseFloat(document.getElementById('affich-pm')?.value) || 0;
+    if (Pm <= 0) { badge.innerHTML = '—'; return; }
+    var Pc_W = Pm * 1250;
+    var U, bgColor;
+    if      (Pc_W <= 500)  { U = 12; bgColor = 'rgba(34,197,94,0.25)';  }
+    else if (Pc_W <= 1500) { U = 24; bgColor = 'rgba(34,197,94,0.25)';  }
+    else if (Pc_W <= 5000) { U = 48; bgColor = 'rgba(251,191,36,0.25)'; }
+    else                   { U = 96; bgColor = 'rgba(239,68,68,0.25)';  }
+    badge.innerHTML = '<span style="padding:3px 10px;border-radius:4px;background:' + bgColor + ';font-weight:600;color:white;">' + U + ' V</span>';
+}
+
+function calculerVFD() {
+    var Pm = parseFloat(document.getElementById('affich-pm')?.value) || 0;
+    if (Pm <= 0) { document.getElementById('card-vfd').style.display = 'none'; return; }
+    var badgeEl  = document.getElementById('prev_usyst_badge');
+    var Usyst    = parseInt(badgeEl ? badgeEl.innerText : '12') || 12;
+    var cos_phi  = 0.8;
+    var eta_m    = parseFloat(document.getElementById('eta_m')?.value) || 0.90;
+    var P_VFD    = Pm * 1.25;
+    var mode     = window._modeAlimentation || (Pm > 3 ? 'ac_tri' : 'ac_mono');
+    var isTriphase = (mode === 'ac_tri');
+    var Ivar, tension_sortie, type_reseau;
+    if (isTriphase) {
+        Ivar           = Pm / (Math.sqrt(3) * 0.380 * cos_phi * eta_m);
+        tension_sortie = '3 × 380V — 50Hz';
+        type_reseau    = 'Triphasé';
+    } else {
+        Ivar           = Pm / (0.220 * cos_phi * eta_m);
+        tension_sortie = '1 × 220V — 50Hz';
+        type_reseau    = 'Monophasé';
+    }
+    document.getElementById('vfd_puissance').innerText     = P_VFD.toFixed(3);
+    document.getElementById('vfd_tension_entree').innerText = Usyst;
+    document.getElementById('vfd_tension_sortie').innerText = tension_sortie;
+    document.getElementById('vfd_ivar').innerText           = Ivar.toFixed(2);
+    document.getElementById('vfd_type_reseau').innerText    = type_reseau;
+}
+
+function mettreAJourVFD() {
+    var source = document.getElementById('source_energie').value;
+    var hasPV  = (source === 'solaire' || source === 'hybride_batteries');
+    var tension_pompe = '';
+    var caracTension = document.getElementById('carac_tension') || document.getElementById('carac_tension_irr');
+    if (caracTension) tension_pompe = caracTension.innerText.toUpperCase();
+    var isAC = tension_pompe.includes('220') || tension_pompe.includes('230') ||
+               tension_pompe.includes('380') || tension_pompe.includes('AC');
+    var card = document.getElementById('card-vfd');
+    if (!card) return;
+    if (source === 'groupe' || source === 'sbee' || source === 'reseau') {
+        card.style.display = 'none';
+        return;
+    }
+    card.style.display = (hasPV && isAC) ? 'block' : 'none';
+    if (hasPV && isAC) calculerVFD();
+}
+
+function mettreAJourCables() {
+    var source  = document.getElementById('source_energie').value;
+    var hasPV   = (source === 'solaire' || source === 'hybride_batteries');
+    var hasAC   = (source === 'groupe' || source === 'groupe_electrogene' || source === 'sbee' || source === 'reseau');
+    var card    = document.getElementById('card-cables');
+    if (!card) return;
+    card.style.display = (hasPV || hasAC) ? 'block' : 'none';
+    var pvDiv   = document.getElementById('cables_pv_div');
+    var acDiv   = document.getElementById('cables_ac_div');
+    var batDiv  = document.getElementById('cables_bat_div');
+    if (pvDiv)  pvDiv.style.display  = hasPV ? 'block' : 'none';
+    if (acDiv)  acDiv.style.display  = hasAC ? 'block' : 'none';
+    if (batDiv) batDiv.style.display = (source === 'hybride_batteries') ? 'block' : 'none';
+    calculerCablesProtections();
+}
+
+function calculerCablesProtections() {
+    var source  = document.getElementById('source_energie').value;
+    var hasPV   = (source === 'solaire' || source === 'hybride_batteries');
+    var hasAC   = (source === 'groupe' || source === 'groupe_electrogene' || source === 'sbee' || source === 'reseau');
+    var resDiv  = document.getElementById('cables_resultats');
+    var tronDiv = document.getElementById('cables_troncons');
+    var parDiv  = document.getElementById('cables_parafoudres');
+    if (!resDiv || !tronDiv || !parDiv) return;
+
+    // Détection type pompe
+    var mode = window._modeAlimentation;
+    var tension_pompe = (document.getElementById('carac_tension') || document.getElementById('carac_tension_irr') || {}).innerText || '';
+    var t = tension_pompe.toUpperCase();
+    var isPompeDC = (mode === 'dc') || (t.includes('DC') && !t.includes('AC') && !t.includes('220') && !t.includes('380'));
+    var isPompeAC = !isPompeDC;
+
+    // Variables communes
+    var materiau = (document.getElementById('materiau_conducteur') || {}).value || 'cuivre';
+    var Ro       = materiau === 'cuivre' ? 0.0172 : 0.028;
+    var cos_phi  = 0.8;
+    var Usyst    = parseInt((document.getElementById('prev_usyst_badge') || {}).innerText) || 12;
+    var Isc      = parseFloat((document.getElementById('pan_isc') || {}).innerText) || 0;
+    var Voc      = parseFloat((document.getElementById('pan_voc') || {}).innerText) || 0;
+    var Pu       = parseFloat((document.getElementById('pan_puissance') || {}).innerText) || 0;
+    var Pm       = parseFloat(document.getElementById('affich-pm')?.value) || 0;
+    var Ivar     = parseFloat(document.getElementById('vfd_ivar')?.innerText) || 0;
+    var Ia       = parseFloat(document.getElementById('res_Ia')?.innerText) || 0;
+
+    // Essayer d'abord depuis les résultats
+    var Nbr_pan = parseInt(document.getElementById('res_nbr_panneaux')?.innerText) ||
+                  parseInt(document.getElementById('res_nb_panneaux')?.innerText) || 0;
+
+    // Si toujours 0, calculer depuis Pu, Pm, Ir, Pr
+    if (Nbr_pan <= 0 && Pu > 0) {
+        var Pm_val = parseFloat(document.getElementById('affich-pm')?.value) || 0;
+        var eta_p  = parseFloat(document.getElementById('eta_p')?.value ||
+                     document.getElementById('eta_p_irr')?.value) || 0.65;
+        var eta_m  = parseFloat(document.getElementById('eta_m')?.value ||
+                     document.getElementById('eta_m_irr')?.value) || 0.90;
+        var Ir     = parseFloat(document.getElementById('irradiation')?.innerText) || 0;
+        var Pr     = parseFloat(document.getElementById('pr_ratio')?.value) || 0.75;
+        var Rmp    = eta_p * eta_m;
+        var HMT_val = parseFloat(
+                      document.getElementById('affich-hmt')?.value ||
+                      document.getElementById('affich-hmt-irr')?.value
+                      ) || 0;
+        var besoin = parseFloat(document.getElementById('besoin_journalier')?.value) || 0;
+        var heures = parseFloat(document.getElementById('heures_pompage')?.value) || 1;
+        var Q_val  = besoin / heures;
+
+        if (Q_val > 0 && HMT_val > 0 && Ir > 0) {
+            var Eelec = (2.725 * Q_val * HMT_val) / (Rmp * 1000);
+            var Pc_kWc = Eelec / (Ir * Pr);
+            Nbr_pan = Math.ceil(Pc_kWc * 1000 / Pu);
+        }
+    }
+
+    // Recalculer Nbr_ser et Nbr_par depuis Nbr_pan
+    var Nbr_ser = parseInt(document.getElementById('res_pv_serie')?.innerText) ||
+                  Math.round(Usyst / (Voc || 1)) || 1;
+    var Nbr_par = parseInt(document.getElementById('res_pv_parallele')?.innerText) ||
+                  (Nbr_ser > 0 ? Math.ceil(Nbr_pan / Nbr_ser) : 1);
+
+    // Recalculer Ireg
+    var Ireg = (Pu > 0 && Nbr_pan > 0) ? (Pu * Nbr_pan) / Usyst : 0;
+    var U_ac     = Pm <= 3 ? 220 : 380;
+    var Voc_tot  = Voc * Nbr_ser;
+    var isTriphase = (U_ac === 380);
+
+    // Longueurs
+    var L1 = parseFloat((document.getElementById('L_pv_reg')  || {}).value) || 0;
+    var L2 = parseFloat((document.getElementById('L_reg_bat') || {}).value) || 0;
+    var L3 = parseFloat((document.getElementById('L_vfd_pompe') || {}).value) || 0;
+    var L4 = parseFloat((document.getElementById('L_ac_pompe') || {}).value) || 0;
+
+    console.log('[Cables] FONCTION APPELÉE');
+    console.log('[Cables] source=', source, 'isPompeDC=', isPompeDC);
+    console.log('[Cables] Pu=', Pu, 'Nbr_pan=', Nbr_pan, 'Usyst=', Usyst, 'Isc=', Isc, 'Voc=', Voc, 'Ivar=', Ivar);
+    console.log('[Cables] Nbr_pan calculé=', Nbr_pan, 'Nbr_ser=', Nbr_ser, 'Nbr_par=', Nbr_par, 'Ireg=', Ireg);
+
+    // Helpers
+    var SECTIONS = [1.5, 2.5, 4, 6, 8, 10, 16, 25, 32, 35, 50, 70, 95, 120];
+    var CALIBRES = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+    function sN(s) { return SECTIONS.find(function(x) { return x >= s; }) || SECTIONS[SECTIONS.length - 1]; }
+    function cN(i) { return CALIBRES.find(function(x) { return x >= i; }) || CALIBRES[CALIBRES.length - 1]; }
+    function ligneT(label, S, In, Ue) {
+        var sVal  = S  > 0 ? S  + ' mm²' : '—';
+        var inVal = In > 0 ? In + ' A'   : '—';
+        var ueVal = Ue > 0 ? Ue + ' V'   : '—';
+        return '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;padding:5px 0;border-top:1px solid rgba(255,255,255,0.05);">'
+            + '<span style="font-size:12px;color:rgba(255,255,255,0.8);">' + label + '</span>'
+            + '<span style="font-size:12px;font-weight:600;color:#f0b429;text-align:center;">' + sVal + '</span>'
+            + '<span style="font-size:12px;color:#e0f0ff;text-align:center;">' + inVal + '</span>'
+            + '<span style="font-size:12px;color:#e0f0ff;text-align:center;">' + ueVal + '</span>'
+            + '</div>';
+    }
+    function lignePar(label, U) {
+        return '<div class="result-row"><span class="result-label">' + label + '</span>'
+            + '<span class="result-value" style="color:#f0b429;font-weight:600;">Upar ≥ ' + U.toFixed(0) + ' V</span></div>';
+    }
+
+    // Labels dynamiques
+    var lblPv  = document.getElementById('L_pv_reg')?.closest('.form-group')?.querySelector('label');
+    var lblVfd = document.getElementById('label_L_vfd_pompe');
+    if (hasPV) {
+        if (isPompeDC) {
+            if (lblPv)  lblPv.textContent  = 'L PV → Régulateur (m)';
+            if (lblVfd) lblVfd.textContent = 'L Régulateur → Pompe (m)';
+        } else {
+            if (source === 'hybride_batteries') {
+                if (lblPv) lblPv.textContent = 'L PV → Régulateur (m)';
+            } else {
+                if (lblPv) lblPv.textContent = 'L PV → VFD (m)';
+            }
+            if (lblVfd) lblVfd.textContent = 'L VFD → Pompe (m)';
+        }
+    }
+
+    // Construction des tronçons
+    var tHtml = '', pHtml = '';
+
+    if (hasPV && isPompeDC) {
+        // CAS 1 — Solaire + Pompe DC
+        if (L1 > 0 && Isc > 0 && Voc > 0) {
+            var I1  = Isc * Nbr_par;
+            var U1  = Voc * Nbr_ser;
+            var S1  = sN((2 * Ro * L1 * I1) / (0.025 * U1));
+            var In1 = Math.round(1.4 * I1 * 10) / 10 + '–' + Math.round(2 * I1 * 10) / 10;
+            tHtml += ligneT('PV → Régulateur', S1, In1, Math.round(U1));
+        }
+        if (L3 > 0 && Ireg > 0) {
+            var S3  = sN((2 * Ro * L3 * Ireg) / (0.025 * Usyst));
+            var In3 = cN(1.1 * Ireg);
+            var Ue3 = Math.round(1.2 * Usyst);
+            console.log('[Cables Reg->Pompe]', 'Pu=', Pu, 'Nbr_pan=', Nbr_pan, 'Usyst=', Usyst, 'Ireg=', Ireg, 'L=', L3, 'S=', S3, 'In=', In3);
+            tHtml += ligneT('Régul → Pompe', S3, In3, Ue3);
+        }
+        if (source === 'hybride_batteries' && L2 > 0 && Ireg > 0) {
+            var S2  = sN((2 * Ro * L2 * Ireg) / (0.025 * Usyst));
+            var In2 = cN(1.1 * Ireg);
+            var Ue2 = Math.round(1.2 * Usyst);
+            tHtml += ligneT('Régul → Batteries', S2, In2, Ue2);
+        }
+    } else if (hasPV && isPompeAC) {
+        // CAS 2 — Solaire + Pompe AC
+        if (source === 'solaire') {
+            if (L1 > 0 && Isc > 0 && Voc > 0) {
+                var I1  = Isc * Nbr_par;
+                var U1  = Voc * Nbr_ser;
+                var S1  = sN((2 * Ro * L1 * I1) / (0.025 * U1));
+                var In1 = Math.round(1.4 * I1 * 10) / 10 + '–' + Math.round(2 * I1 * 10) / 10;
+                tHtml += ligneT('PV → VFD', S1, In1, Math.round(U1));
+            }
+            if (L3 > 0 && Ivar > 0) {
+                var S3raw = isTriphase
+                    ? (Math.sqrt(3) * L3 * Ivar * cos_phi) / (0.03 * 380)
+                    : (2 * Ro * L3 * Ivar) / (0.03 * 220);
+                var S3  = sN(S3raw);
+                var In3 = cN(1.1 * Ivar);
+                var Ue3 = Math.round(1.2 * Usyst);
+                tHtml += ligneT('VFD → Pompe', S3, In3, Ue3);
+            }
+        } else if (source === 'hybride_batteries') {
+            if (L1 > 0 && Isc > 0 && Voc > 0) {
+                var I1  = Isc * Nbr_par;
+                var U1  = Voc * Nbr_ser;
+                var S1  = sN((2 * Ro * L1 * I1) / (0.025 * U1));
+                var In1 = Math.round(1.4 * I1 * 10) / 10 + '–' + Math.round(2 * I1 * 10) / 10;
+                tHtml += ligneT('PV → Régulateur', S1, In1, Math.round(U1));
+            }
+            if (L2 > 0 && Ireg > 0) {
+                var S2  = sN((2 * Ro * L2 * Ireg) / (0.025 * Usyst));
+                var In2 = cN(1.1 * Ireg);
+                var Ue2 = Math.round(1.2 * Usyst);
+                tHtml += ligneT('Régul → Batteries', S2, In2, Ue2);
+            }
+            if (L3 > 0 && Ivar > 0) {
+                var S3raw = isTriphase
+                    ? (Math.sqrt(3) * L3 * Ivar * cos_phi) / (0.03 * 380)
+                    : (2 * Ro * L3 * Ivar) / (0.03 * 220);
+                var S3  = sN(S3raw);
+                var In3 = cN(1.1 * Ivar);
+                var Ue3 = Math.round(1.2 * Usyst);
+                tHtml += ligneT('VFD → Pompe', S3, In3, Ue3);
+            }
+        }
+    }
+
+    if (hasPV) {
+        // Parafoudre DC toujours pour source PV
+        if (Voc_tot > 0)
+            pHtml += lignePar('Parafoudre DC', 1.2 * Voc_tot);
+        // Parafoudre AC seulement si pompe AC
+        if (isPompeAC)
+            pHtml += lignePar('Parafoudre AC', 1.1 * U_ac);
+    }
+
+    // Ce bloc doit être au niveau racine de la fonction
+    if (source === 'groupe' || source === 'groupe_electrogene' || source === 'sbee' || source === 'reseau') {
+        var Pm_ac = parseFloat(document.getElementById('affich-pm')?.value) || 0;
+        var eta_m_ac = parseFloat(document.getElementById('eta_m')?.value) || 0.90;
+        var cos_phi = 0.8;
+        var U_ac = Pm_ac <= 3 ? 220 : 380;
+        var Ia_calc = Pm_ac > 0 ?
+            (Pm_ac <= 3 ?
+                Pm_ac / (0.220 * cos_phi * eta_m_ac) :
+                Pm_ac / (Math.sqrt(3) * 0.380 * cos_phi * eta_m_ac)
+            ) : 0;
+        var Ia = Ia_calc;
+
+        console.log('[Cables AC] Pm=', Pm_ac, 'Ia=', Ia, 'U_ac=', U_ac);
+
+        var L4 = parseFloat(document.getElementById('L_ac_pompe')?.value) || 0;
+        if (L4 > 0 && Ia > 0) {
+            var S4raw = Pm_ac <= 3
+                ? (2 * Ro * L4 * Ia) / (0.03 * U_ac)
+                : (Math.sqrt(3) * L4 * Ia * cos_phi) / (0.03 * U_ac);
+            var S4  = sN(S4raw);
+            var In4 = cN(1.25 * Ia);
+            tHtml += ligneT('Source → Pompe', S4, In4, U_ac);
+        }
+        pHtml += lignePar('Parafoudre AC', 1.1 * U_ac);
+    }
+
+    tronDiv.innerHTML = tHtml || '<div style="font-size:12px;color:#4a6a8a;padding:4px 0;">Saisissez les longueurs de câble ci-dessus.</div>';
+    parDiv.innerHTML  = pHtml;
+    resDiv.style.display = 'block';
 }
 
 function calculerNiveauPompeLac() {
@@ -2094,11 +2828,12 @@ function chargerModeles() {
         var nd     = parseFloat(document.getElementById('niveau_dynamique').value)    || 0;
         var hr     = parseFloat(document.getElementById('hauteur_reservoir_f').value) || 0;
         var besoin = parseFloat(document.getElementById('besoin_journalier').value)   || 0;
-        var coeff  = 1 + (parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10) / 100;
-        q_min   = (besoin * coeff) / 6;
+        q_min   = besoin / 6;
         hmt_min = nd + hr + 5;
     }
-    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, q_min:q_min, hmt_min:hmt_min}) })
+    var source = document.getElementById('source_energie').value;
+    var alimentation_filtre = (source === 'groupe' || source === 'reseau' || source === 'sbee') ? 'AC' : null;
+    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, q_min:q_min, hmt_min:hmt_min, alimentation_filtre:alimentation_filtre}) })
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.succes && data.modeles.length > 0) {
@@ -2109,6 +2844,85 @@ function chargerModeles() {
             select.disabled = true;
         }
     });
+}
+
+function _appliquerChoixAlimentation(p, divId) {
+    var div = document.getElementById(divId);
+    if (!div) return;
+    var tension   = (p.tension_V || '').toString().toUpperCase();
+    var isDC      = tension.includes('DC');
+    var isAC      = tension.includes('AC') || tension.includes('220') || tension.includes('230') || tension.includes('380');
+    var isDCAC    = isDC && isAC;
+    var isMono    = tension.includes('220') || tension.includes('230');
+    var isTri     = tension.includes('380') || tension.includes('3X') || tension.includes('TRI');
+    var isMonoTri = isMono && isTri;
+
+    if (isDCAC || isMonoTri) {
+        div.style.display = 'block';
+        var labels = div.querySelectorAll('label');
+        labels.forEach(function(lbl) {
+            var val = lbl.querySelector('input') ? lbl.querySelector('input').value : '';
+            var show = (val === 'dc'      && isDCAC)
+                    || (val === 'ac_mono' && (isMono || isDCAC))
+                    || (val === 'ac_tri'  && (isTri  || isMonoTri));
+            lbl.style.display = show ? '' : 'none';
+        });
+        div.querySelectorAll('input[name="mode_alimentation"]').forEach(function(r) { r.checked = false; });
+        window._modeAlimentation = null;
+    } else {
+        div.style.display = 'none';
+        if (isDC && !isAC) window._modeAlimentation = 'dc';
+        else if (isMono && !isTri) window._modeAlimentation = 'ac_mono';
+        else if (isTri  && !isMono) window._modeAlimentation = 'ac_tri';
+        else window._modeAlimentation = null;
+    }
+}
+
+function majModeAlimentation() {
+    var radio = document.querySelector('input[name="mode_alimentation"]:checked');
+    if (!radio) return;
+    window._modeAlimentation = radio.value;
+    var source = document.getElementById('source_energie').value;
+    var hasPV  = (source === 'solaire' || source === 'hybride_batteries');
+    var needVFD = hasPV && (radio.value === 'ac_mono' || radio.value === 'ac_tri');
+    var cardVFD = document.getElementById('card-vfd');
+    if (cardVFD) cardVFD.style.display = needVFD ? 'block' : 'none';
+    if (needVFD) calculerVFD();
+    var Pm = parseFloat(document.getElementById('affich-pm').value) || 0;
+    if (Pm > 0) {
+        var msgId = modeActuel === 'irrigation' ? 'msg_compatibilite_pompe_irr' : 'msg_compatibilite_pompe';
+        var t = { tension_V: radio.value === 'ac_tri' ? '380' : radio.value === 'ac_mono' ? '220' : 'DC' };
+        verifierCompatibiliteMonoTri(t, msgId);
+    }
+}
+
+function verifierCompatibiliteMonoTri(p, msgDivId) {
+    var msgDiv = document.getElementById(msgDivId);
+    if (!msgDiv) return;
+    var Pm = parseFloat(document.getElementById('affich-pm').value) || 0;
+    if (Pm <= 0) { msgDiv.innerHTML = ''; return; }
+    var tension     = (p.tension_V || '').toString().toUpperCase();
+    var isDC        = tension.includes('DC') && !tension.includes('AC');
+    var isTriphase  = tension.includes('380') || tension.includes('3X') || tension.includes('TRI');
+    var isMonophase = tension.includes('220') || tension.includes('230') || tension.includes('MONO');
+    // Si mode choisi explicitement, l'utiliser
+    var mode = window._modeAlimentation;
+    if (mode === 'dc') { msgDiv.innerHTML = ''; return; }
+    if (mode === 'ac_mono') { isMonophase = true; isTriphase = false; isDC = false; }
+    if (mode === 'ac_tri')  { isTriphase  = true; isMonophase = false; isDC = false; }
+    if (isDC) { msgDiv.innerHTML = ''; return; }
+    var needTri  = Pm > 3;
+    var needMono = Pm <= 3;
+    if (needTri && isMonophase && !isTriphase) {
+        msgDiv.innerHTML = '<div class="msg msg-warning">⚠️ Attention — Pm = ' + Pm.toFixed(2) + ' kW nécessite une pompe triphasée 380V. Veuillez rechoisir une pompe adaptée.</div>';
+    } else if (needMono && isTriphase && !isMonophase) {
+        msgDiv.innerHTML = '<div class="msg msg-warning">⚠️ Attention — Pm = ' + Pm.toFixed(2) + ' kW nécessite une pompe monophasée 220V. Veuillez rechoisir une pompe adaptée.</div>';
+    } else if (isTriphase || isMonophase) {
+        var reseau = needTri ? 'triphasé' : 'monophasé';
+        msgDiv.innerHTML = '<div class="msg msg-success">✅ Pompe compatible — Pm = ' + Pm.toFixed(2) + ' kW / réseau ' + reseau + '.</div>';
+    } else {
+        msgDiv.innerHTML = '';
+    }
 }
 
 function chargerCaracteristiques() {
@@ -2151,6 +2965,17 @@ function chargerCaracteristiques() {
                 if (divOnd) divOnd.classList.add('hidden');
                 if (msgOnd) msgOnd.innerHTML = '';
             }
+            _appliquerChoixAlimentation(p, 'div_choix_alimentation');
+            if (source === 'groupe' || source === 'sbee' || source === 'reseau') {
+                var divChoix = document.getElementById('div_choix_alimentation');
+                var divChoixIrr = document.getElementById('div_choix_alimentation_irr');
+                if (divChoix) divChoix.style.display = 'none';
+                if (divChoixIrr) divChoixIrr.style.display = 'none';
+                window._modeAlimentation = 'ac_mono';
+            }
+            verifierCompatibiliteMonoTri(p, 'msg_compatibilite_pompe');
+            mettreAJourVFD();
+            mettreAJourCables();
         }
     });
 }
@@ -2167,7 +2992,9 @@ function chargerModelesIrr() {
     var href   = parseFloat(document.getElementById('hauteur_refoulement').value)   || 0;
     var besoin = parseFloat(document.getElementById('besoin_journalier').value)     || 0;
     if (besoin > 0) { q_min = besoin / 6; hmt_min = hasp + href + 5; }
-    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, q_min:q_min, hmt_min:hmt_min}) })
+    var source = document.getElementById('source_energie').value;
+    var alimentation_filtre = (source === 'groupe' || source === 'reseau' || source === 'sbee') ? 'AC' : null;
+    fetch('/get_modeles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, q_min:q_min, hmt_min:hmt_min, alimentation_filtre:alimentation_filtre}) })
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.succes && data.modeles.length > 0) {
@@ -2219,6 +3046,17 @@ function chargerCaracteristiquesIrr() {
                 if (divOnd) divOnd.classList.add('hidden');
                 if (msgOnd) msgOnd.innerHTML = '';
             }
+            _appliquerChoixAlimentation(p, 'div_choix_alimentation_irr');
+            if (source === 'groupe' || source === 'sbee' || source === 'reseau') {
+                var divChoix = document.getElementById('div_choix_alimentation');
+                var divChoixIrr = document.getElementById('div_choix_alimentation_irr');
+                if (divChoix) divChoix.style.display = 'none';
+                if (divChoixIrr) divChoixIrr.style.display = 'none';
+                window._modeAlimentation = 'ac_mono';
+            }
+            verifierCompatibiliteMonoTri(p, 'msg_compatibilite_pompe_irr');
+            mettreAJourVFD();
+            mettreAJourCables();
         }
     });
 }
@@ -2241,10 +3079,6 @@ function chargerModelesPanneaux() {
     select.disabled  = true; divC.classList.add('hidden');
     if (!marque) { return; }
     var pc_min = 0;
-    var prev_pc = document.getElementById('prev_pc');
-    if (prev_pc && prev_pc.innerText !== '—') {
-        pc_min = parseFloat(prev_pc.innerText) || 0;
-    }
     fetch('/get_modeles_panneaux', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({marque:marque, pc_min:pc_min}) })
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -2285,21 +3119,104 @@ function mettreAJourDoD() {
     if (typeBat.includes('lithium')) dod = 0.80;
     if (typeBat.includes('plomb'))   dod = 0.50;
     document.getElementById('dod').value = dod;
-    mettreAJourPreviewPV();
 }
 
 function chargerMarquesBatteries() {
     fetch('/get_marques_batteries').then(function(r) { return r.json(); }).then(function(data) {
-        if (data.succes) {
-            var select = document.getElementById('marque_batterie');
-            select.innerHTML = '<option value="">— Choisissez une marque —</option>';
-            data.marques.forEach(function(m) { select.innerHTML += '<option value="' + m + '">' + m + '</option>'; });
-        }
+        if (!data.succes) return;
+        var opts = '<option value="">— Choisissez une marque —</option>'
+            + data.marques.map(function(m) { return '<option value="' + m + '">' + m + '</option>'; }).join('');
+        var inlineSel = document.getElementById('marque_bat_inline');
+        if (inlineSel) inlineSel.innerHTML = opts;
     });
 }
 
+function chargerModelesBatteriesInline() {
+    var marque = document.getElementById('marque_bat_inline').value;
+    var sel = document.getElementById('modele_bat_inline');
+    var info = document.getElementById('bat-inline-info');
+    sel.innerHTML = '<option value="">— Choisissez un modèle —</option>';
+    sel.disabled = true;
+    if (info) info.style.display = 'none';
+    if (!marque) return;
+    fetch('/get_batteries?marque=' + encodeURIComponent(marque))
+        .then(function(r) { return r.json(); })
+        .then(function(rows) {
+            if (rows && rows.length > 0) {
+                rows.forEach(function(b) {
+                    var label = b.technologie + ' — ' + b.capacite_Ah + ' Ah — ' + b.tension_V + ' V';
+                    sel.innerHTML += '<option value="' + b.id + '">' + label + '</option>';
+                });
+                sel._batteries = rows;
+                sel.disabled = false;
+            } else {
+                sel.innerHTML = '<option value="">— Aucun modèle —</option>';
+            }
+        });
+}
+
+function selectionnerBatterieInline() {
+    var sel  = document.getElementById('modele_bat_inline');
+    var id   = parseInt(sel.value);
+    var info = document.getElementById('bat-inline-info');
+    if (!id || !sel._batteries) { if (info) info.style.display = 'none'; return; }
+    var bat = sel._batteries.find(function(b) { return b.id === id; });
+    if (!bat) { if (info) info.style.display = 'none'; return; }
+
+    var typeBat = bat.technologie || 'GEL';
+    var isLithium = typeBat.toLowerCase().includes('lithium');
+    var dod = isLithium ? 0.8 : 0.5;
+
+    // Mettre à jour les champs cachés pour le payload
+    document.getElementById('dod').value = dod;
+    document.getElementById('bat_type_selected').value = typeBat;
+
+    // Afficher les infos
+    document.getElementById('bat-type-inline').innerText = typeBat;
+    document.getElementById('bat-dod-inline').innerText  = Math.round(dod * 100);
+    document.getElementById('bat-cap-inline').innerText  = bat.capacite_Ah;
+    document.getElementById('bat-tens-inline').innerText = bat.tension_V;
+    if (info) info.style.display = 'block';
+
+}
+
 function chargerModelesBatteries() {
-    // modele_batterie supprimé — fonction désactivée
+    var marque = document.getElementById('marque_batterie').value;
+    var sel = document.getElementById('modele_batterie');
+    var div = document.getElementById('caract-batterie');
+    sel.innerHTML = '<option value="">— Choisissez un modèle —</option>';
+    sel.disabled = true;
+    if (div) div.style.display = 'none';
+    if (!marque) return;
+    fetch('/get_batteries?marque=' + encodeURIComponent(marque))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data && data.length > 0) {
+                data.forEach(function(b) {
+                    var label = b.technologie + ' — ' + b.capacite_Ah + 'Ah — ' + b.tension_V + 'V';
+                    sel.innerHTML += '<option value="' + b.id + '">' + label + '</option>';
+                });
+                sel._batteries = data;
+                sel.disabled = false;
+            } else {
+                sel.innerHTML = '<option value="">— Aucun modèle disponible —</option>';
+            }
+        });
+}
+
+function chargerCaracteristiquesBatterie() {
+    var sel = document.getElementById('modele_batterie');
+    var id  = parseInt(sel.value);
+    var div = document.getElementById('caract-batterie');
+    if (!div) return;
+    if (!id || !sel._batteries) { div.style.display = 'none'; return; }
+    var bat = sel._batteries.find(function(b) { return b.id === id; });
+    if (!bat) { div.style.display = 'none'; return; }
+    document.getElementById('ubat-val').innerText   = bat.tension_V;
+    document.getElementById('cbat-val').innerText   = bat.capacite_Ah;
+    document.getElementById('type-bat-val').innerText = bat.technologie;
+    document.getElementById('dod-bat-val').innerText  = Math.round((bat.dod || 0) * 100);
+    div.style.display = 'block';
 }
 
 function afficherCaracBatterie() {
@@ -2380,104 +3297,23 @@ function chargerModelesOnduleurs() {
     });
 }
 
-function mettreAJourPreviewPV() {
-    var source = document.getElementById('source_energie').value;
-    var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
-    var preview = document.getElementById('preview_pv');
-    if (!hasPV || !preview) return;
-
-    var Q = 0, HMT = 0;
-    if (modeActuel === 'irrigation') {
-        var hasp = parseFloat(document.getElementById('profondeur_aspiration').value) || 0;
-        var href  = parseFloat(document.getElementById('hauteur_refoulement').value)  || 0;
-        var superficie_ha = convertirSuperficie() || 0;
-        var ET0 = parseFloat(document.getElementById('ET0_max').innerText) || 0;
-        var culture = document.getElementById('culture').value;
-        var KC_MAP = {'tomate':1.03,'piment':1.04,'riz':1.20,'autre':parseFloat((document.getElementById('kc_manuel')||{}).value)||1.0};
-        var Kc = KC_MAP[culture] || 1.0;
-        Q   = (ET0 * Kc * superficie_ha * 10) / 1000;
-        HMT = hasp + href + 5;
-    } else {
-        Q = parseFloat(document.getElementById('besoin_journalier').value) || 0;
-        var type_sys = document.getElementById('type_systeme_hydraulique') ?
-                       document.getElementById('type_systeme_hydraulique').value : 'forage_reservoir';
-        if (type_sys === 'forage_reservoir') {
-            var nd = parseFloat(document.getElementById('niveau_dynamique').value)    || 0;
-            var hr = parseFloat(document.getElementById('hauteur_reservoir_f').value) || 0;
-            HMT = nd + hr + 5;
-        } else {
-            var ha2 = parseFloat(document.getElementById('hauteur_aspiration_lac').value) || 0;
-            var hr2 = parseFloat(document.getElementById('hauteur_reservoir_l').value)    || 0;
-            HMT = ha2 + hr2 + 5;
-        }
-    }
-
-    var Ir = window._ir_nasa || parseFloat(document.getElementById('irradiation').innerText) || 0;
-    var Pr  = parseFloat(document.getElementById('pr_ratio').value) || 0.75;
-    var Rmp = 0.54;
-
-    if (Q <= 0 && modeActuel !== 'irrigation') {
-        var nb    = parseFloat(document.getElementById('nb_beneficiaires').value) || 0;
-        var conso = parseFloat((document.getElementById('consommation_unitaire') || {}).value) || 10;
-        if (nb > 0) Q = (conso * nb) / 1000;
-    }
-
-    console.log('[Preview PV] Q=', Q, 'HMT=', HMT, 'Ir=', Ir,
-                'Pr=', Pr, 'mode=', modeActuel);
-
-    if (Q <= 0 || HMT <= 0 || Ir <= 0) {
-        preview.classList.add('hidden');
-        return;
-    }
-    if (!document.getElementById('prev_eelec')) {
-        preview.innerHTML = '<div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Estimation préliminaire</div>'
-            + '<div class="result-row"><span class="result-label">Énergie journalière</span><span class="result-value"><span id="prev_eelec">—</span> <span class="result-unit">kWh/j</span></span></div>'
-            + '<div class="result-row"><span class="result-label">Puissance crête</span><span class="result-value"><span id="prev_pc">—</span> <span class="result-unit">kWc</span></span></div>'
-            + '<div class="result-row"><span class="result-label">⚡ Tension système</span><span id="prev_usyst_badge">—</span></div>'
-            + '<div class="result-row" id="prev_bat_row" style="display:none;"><span class="result-label">Capacité totale batteries</span><span class="result-value"><span id="prev_cap_ah">—</span> <span class="result-unit">Ah</span></span></div>';
-    }
-
-    var Eelec = (2.725 * Q * HMT) / (Rmp * 1000);
-    var Pc    = Eelec / (Ir * Pr);
-
-    var U, bgColor, msg = '';
-    if      (Pc <= 0.5) { U = 12; bgColor = 'rgba(34,197,94,0.25)';  }
-    else if (Pc <= 1.5) { U = 24; bgColor = 'rgba(34,197,94,0.25)';  }
-    else if (Pc <= 5.0) { U = 48; bgColor = 'rgba(251,191,36,0.25)'; }
-    else                { U = 96; bgColor = 'rgba(239,68,68,0.25)';
-                          msg = ' — Grand système, vérifier configuration'; }
-
-    document.getElementById('prev_eelec').innerText = Eelec.toFixed(2);
-    document.getElementById('prev_pc').innerText    = Pc.toFixed(3);
-    document.getElementById('prev_usyst_badge').innerHTML =
-        '<span style="padding:3px 10px;border-radius:4px;background:' + bgColor +
-        ';font-weight:600;color:white;">' + U + ' V</span>' +
-        (msg ? '<span style="font-size:11px;color:#f87171;margin-left:6px;">' + msg + '</span>' : '');
-
-    var batRow = document.getElementById('prev_bat_row');
-    if (source === 'hybride_batteries' && batRow) {
-        var J   = parseInt(document.getElementById('jours_autonomie').value) || 2;
-        var DoD = parseFloat(document.getElementById('dod').value) || 0.70;
-        var CAh = Math.ceil((Eelec * 1000 * J) / (U * DoD));
-        document.getElementById('prev_cap_ah').innerText = CAh;
-        batRow.style.display = '';
-    } else if (batRow) {
-        batRow.style.display = 'none';
-    }
-
-    preview.classList.remove('hidden');
-}
 
 function mettreAJourEquipements() {
     var source = document.getElementById('source_energie').value;
     var hasPV  = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
     var hasBat = (source === 'hybride_batteries');
-    document.getElementById('div_choix_panneaux').classList.toggle('hidden', !hasPV);
-    document.getElementById('div_choix_batteries').classList.toggle('hidden', !hasBat);
+    var elPanneaux = document.getElementById('div_choix_panneaux');
+    if (elPanneaux) elPanneaux.classList.toggle('hidden', !hasPV);
+    var elBat = document.getElementById('div_choix_batteries');
+    if (elBat) elBat.classList.toggle('hidden', !hasBat);
     var cardEq = document.getElementById('card-equipements');
     if (cardEq) cardEq.classList.toggle('hidden', !hasPV);
     var divPr = document.getElementById('div_pr_ratio');
     if (divPr) divPr.classList.toggle('hidden', !hasPV);
+    var lblVfd = document.getElementById('label_L_vfd_pompe');
+    if (lblVfd) lblVfd.textContent = (source === 'solaire') ? 'L Régulateur → Pompe (m)' : 'L VFD → Pompe (m)';
+    mettreAJourVFD();
+    mettreAJourCables();
 }
 
 var PLAGES_HEURES = {
@@ -2488,19 +3324,20 @@ var PLAGES_HEURES = {
     'reseau':            {min:4,  max:16, defaut:8,  msg:'Réseau électrique : durée selon disponibilité'},
 };
 
+
 function afficherHeuresPompage() {
     var source = document.getElementById('source_energie').value;
     var hasPV = (source === 'solaire' || source === 'hybride_groupe' || source === 'hybride_batteries');
     var plage = PLAGES_HEURES[source] || PLAGES_HEURES['reseau'];
-    document.getElementById('heures_pompage').value = plage.defaut;
-    document.getElementById('heures_pompage').min   = plage.min;
-    document.getElementById('heures_pompage').max   = plage.max;
-    document.getElementById('heures_recommandees').innerText = plage.msg;
+    document.getElementById('heures_pompage').min = '';
+    document.getElementById('heures_pompage').max = '';
     document.getElementById('pv_params_div').classList.toggle('hidden', !hasPV);
     document.getElementById('batteries_div').classList.toggle('hidden', source !== 'hybride_batteries');
     var divPr = document.getElementById('div_pr_ratio');
     if (divPr) divPr.classList.toggle('hidden', !hasPV);
-    mettreAJourPreviewPV();
+    calculerUsyst();
+    mettreAJourVFD();
+    mettreAJourCables();
 }
 
 function getMarquePompe() {
@@ -2551,6 +3388,63 @@ function getModeleBatterie() {
     }
     return select && select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
 }
+function calculerAfficherBesoinsIrr() {
+    var preview = document.getElementById('preview_besoins_irr');
+    if (!preview) return;
+
+    var culture      = document.getElementById('culture').value;
+    var systeme      = document.getElementById('systeme_irrigation').value;
+    var superficie_ha = convertirSuperficie() || 0;
+
+    if (superficie_ha <= 0) { preview.style.display = 'none'; return; }
+    preview.style.display = 'block';
+
+    var ETA = { 'goutte_a_goutte': 0.90, 'aspersion': 0.75, 'gravitaire': 0.55 };
+    var eta = ETA[systeme] || 0.75;
+    var rowET0 = document.getElementById('row_et0_irr');
+    var rowKc  = document.getElementById('row_kc');
+    var rowETc = document.getElementById('row_etc');
+    var besoin_net, besoin_brut;
+
+    if (culture === 'riz') {
+        besoin_net  = 100 * superficie_ha;
+        besoin_brut = besoin_net / eta;
+        if (rowET0) rowET0.style.display = 'none';
+        if (rowKc)  rowKc.style.display  = 'none';
+        if (rowETc) rowETc.style.display = 'none';
+    } else {
+        if (rowET0) rowET0.style.display = '';
+        if (rowKc)  rowKc.style.display  = '';
+        if (rowETc) rowETc.style.display = '';
+        var ET0 = parseFloat(document.getElementById('ET0_max').innerText) || 0;
+        if (!ET0) {
+            document.getElementById('prev_et0_irr').innerText       = '—';
+            document.getElementById('prev_kc').innerText            = '—';
+            document.getElementById('prev_etc').innerText           = '—';
+            document.getElementById('prev_sup_irr').innerText       = superficie_ha.toFixed(2);
+            document.getElementById('prev_besoin_net_irr').innerText = 'Localisez d\'abord votre site';
+            document.getElementById('prev_eta').innerText           = (eta * 100).toFixed(0) + ' %';
+            document.getElementById('prev_besoin_brut_irr').innerText = '—';
+            return;
+        }
+        var KC_MAP = { 'tomate': 1.03, 'piment': 1.04 };
+        var Kc  = KC_MAP[culture] || parseFloat((document.getElementById('kc_manuel') || {}).value) || 1.0;
+        var ETc = ET0 * Kc;
+        besoin_net  = ETc * superficie_ha * 10;
+        besoin_brut = besoin_net / eta;
+        document.getElementById('prev_et0_irr').innerText = ET0.toFixed(2);
+        document.getElementById('prev_kc').innerText      = Kc.toFixed(2);
+        document.getElementById('prev_etc').innerText     = ETc.toFixed(2);
+    }
+
+    document.getElementById('prev_sup_irr').innerText        = superficie_ha.toFixed(2);
+    document.getElementById('prev_besoin_net_irr').innerText = besoin_net.toFixed(2);
+    document.getElementById('prev_eta').innerText            = (eta * 100).toFixed(0) + ' %';
+    document.getElementById('prev_besoin_brut_irr').innerText = besoin_brut.toFixed(2);
+    majHMTirr();
+    calculerPuissancesIrr();
+}
+
 function convertirSuperficie() {
     var s     = parseFloat(document.getElementById('superficie').value);
     var unite = document.getElementById('unite_superficie').value;
@@ -2572,9 +3466,7 @@ function calculer() {
     if (hasPV) {
         if (!getMarquePanneau()) { alert('Veuillez choisir un panneau solaire !'); allerVers('energie'); return; }
     }
-    if (source_energie === 'hybride_batteries') {
-        if (!getMarqueBatterie()) { alert('Veuillez choisir une batterie !'); allerVers('energie'); return; }
-    }
+    // Validation batterie supprimée — choix géré dans batteries_div
     allerVers('resultats');
     document.getElementById('loading-calcul').classList.remove('hidden');
     document.getElementById('resultats-content').classList.add('hidden');
@@ -2594,34 +3486,76 @@ function calculer() {
         realise_par:       '',
         date_projet:       '',
         marque_pompe:      getMarquePompe(), modele_pompe: getModelePompe(),
-        lat: lat_choisie, lon: lon_choisie
+        lat: lat_choisie, lon: lon_choisie,
+        puissance_panneau_Wc: (function() {
+            var r = document.querySelector('input[name="choix_panneau"]:checked');
+            if (r && r.value === 'manuel') return parseFloat(document.getElementById('man_pan_puissance').value) || 300;
+            var el = document.getElementById('pan_puissance');
+            return el ? parseFloat(el.innerText) || 300 : 300;
+        })(),
+        vmp_panneau: (function() {
+            var r = document.querySelector('input[name="choix_panneau"]:checked');
+            if (r && r.value === 'manuel') return parseFloat(document.getElementById('man_pan_tension').value) || 36;
+            var el = document.getElementById('pan_vmp');
+            return el ? parseFloat(el.innerText) || 36 : 36;
+        })(),
+        type_batterie: (function() {
+            var inline = document.getElementById('bat_type_selected');
+            if (inline && inline.value) return inline.value;
+            var r = document.querySelector('input[name="choix_batterie"]:checked');
+            if (r && r.value === 'manuel') return document.getElementById('man_bat_type').value || 'GEL';
+            return 'GEL';
+        })(),
+        tension_bat_V: (function() {
+            var sel = document.getElementById('modele_bat_inline');
+            if (sel && sel._batteries && sel.value) {
+                var bat = sel._batteries.find(function(b) { return b.id === parseInt(sel.value); });
+                if (bat) return bat.tension_V;
+            }
+            var r = document.querySelector('input[name="choix_batterie"]:checked');
+            if (r && r.value === 'manuel') return parseFloat(document.getElementById('man_bat_tension').value) || 24;
+            return 24;
+        })(),
+        capacite_bat_Ah: (function() {
+            var sel = document.getElementById('modele_bat_inline');
+            if (sel && sel._batteries && sel.value) {
+                var bat = sel._batteries.find(function(b) { return b.id === parseInt(sel.value); });
+                if (bat) return bat.capacite_Ah;
+            }
+            var r = document.querySelector('input[name="choix_batterie"]:checked');
+            if (r && r.value === 'manuel') return parseFloat(document.getElementById('man_bat_capacite').value) || 200;
+            return 200;
+        })()
     };
     if (modeActuel === 'irrigation') {
         var culture = document.getElementById('culture').value;
         payload.culture = culture; payload.superficie = convertirSuperficie();
         payload.systeme_irrigation = document.getElementById('systeme_irrigation').value;
-        payload.type_sol = document.getElementById('type_sol').value;
+        payload.type_sol = 'limoneux';
         payload.sessions_arrosage = parseInt(document.getElementById('sessions_arrosage').value);
-        payload.longueur_canalisation = parseFloat(document.getElementById('longueur_canalisation').value) || 0;
-        payload.diametre_tuyau = parseFloat(document.getElementById('diametre_tuyau').value);
+        payload.longueur_canalisation = 0;
+        payload.diametre_tuyau = 63;
         payload.profondeur_aspiration = parseFloat(document.getElementById('profondeur_aspiration').value);
         payload.hauteur_refoulement = parseFloat(document.getElementById('hauteur_refoulement').value);
         payload.kc_manuel = culture === 'autre' ? parseFloat(document.getElementById('kc_manuel').value) : null;
+        payload.eta_p = parseFloat(document.getElementById('eta_p_irr')?.value) || 0.65;
+        payload.eta_m = parseFloat(document.getElementById('eta_m_irr')?.value) || 0.90;
     } else {
         var type_sys = document.getElementById('type_systeme_hydraulique').value;
         payload.culture = 'classique';
         payload.besoin_journalier = parseFloat(document.getElementById('besoin_journalier').value);
         payload.consommation_unitaire = (function(){ var el = document.getElementById('consommation_unitaire'); return el ? parseFloat(el.value) || 10 : 10; })();
         payload.type_usage = document.getElementById('type_usage').value;
-        payload.coeff_fuite = 1 + (parseFloat(document.getElementById('coeff_fuite_besoin').value) || 10) / 100;
+        payload.coeff_fuite = 1.0;
         payload.systeme_irrigation = 'gravitaire'; payload.type_sol = 'limoneux';
         payload.type_systeme_hydraulique = type_sys;
         if (type_sys === 'forage_reservoir') {
             payload.niveau_dynamique = parseFloat(document.getElementById('niveau_dynamique').value) || 0;
+            payload.hauteur_refoulement = parseFloat(document.getElementById('hauteur_refoulement_c').value) || 0;
             payload.hauteur_reservoir = parseFloat(document.getElementById('hauteur_reservoir_f').value) || 0;
-            payload.longueur_canalisation = parseFloat(document.getElementById('longueur_tuyau_f').value) || 0;
-            payload.diametre_tuyau = parseFloat(document.getElementById('diametre_tuyau_f').value) || 63;
-            payload.type_alimentation = document.getElementById('type_alimentation_f').value;
+            payload.longueur_canalisation = 0;
+            payload.diametre_tuyau = 63;
+            payload.type_alimentation = 'bas';
         } else {
             payload.niveau_eau_lac = parseFloat(document.getElementById('niveau_eau_lac').value) || 0;
             payload.hauteur_aspiration = parseFloat(document.getElementById('hauteur_aspiration_lac').value) || 0;
@@ -2635,7 +3569,12 @@ function calculer() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         document.getElementById('loading-calcul').classList.add('hidden');
-        if (data.succes) { afficherResultats(data); document.getElementById('resultats-content').classList.remove('hidden'); }
+        if (data.succes) {
+            afficherResultats(data);
+            document.getElementById('resultats-content').classList.remove('hidden');
+            if (data.projet_id) window._projetId = data.projet_id;
+            localStorage.removeItem(HP_FORM_KEY);
+        }
         else { alert('Erreur de calcul : ' + data.erreur); allerVers('energie'); }
     })
     .catch(function(err) {
@@ -2658,9 +3597,17 @@ function afficherResultats(data) {
         var _el = document.getElementById('res_Pp'); if (_el) _el.innerText = data.pompe.Pp_kW;
         var _el = document.getElementById('res_Pm'); if (_el) _el.innerText = data.pompe.Pm_kW;
         var _el = document.getElementById('res_Pm_commercial'); if (_el) _el.innerText = data.pompe.Pm_commercial_kW;
+        var showIa = (s === 'groupe' || s === 'sbee' || s === 'reseau');
+        document.getElementById('row_Ia').classList.toggle('hidden', !showIa);
+        document.getElementById('row_type_alim').classList.toggle('hidden', !showIa);
+        if (showIa) {
+            var _el = document.getElementById('res_Ia');       if (_el) _el.innerText = data.pompe.Ia_A;
+            var _el = document.getElementById('res_type_alim'); if (_el) _el.innerText = data.pompe.type_alimentation;
+        }
         document.getElementById('res_energie_solaire').classList.add('hidden');
         document.getElementById('res_energie_groupe').classList.add('hidden');
         document.getElementById('res_energie_batteries').classList.add('hidden');
+        document.getElementById('res_energie_sbee').classList.add('hidden');
         var s = data.source_energie;
         if (s === 'solaire' || s === 'hybride_groupe' || s === 'hybride_batteries') {
             document.getElementById('res_energie_solaire').classList.remove('hidden');
@@ -2669,6 +3616,9 @@ function afficherResultats(data) {
             var _el = document.getElementById('res_puissance_crete'); if (_el) _el.innerText = sol.puissance_crete_kWp;
             var _el = document.getElementById('res_nb_panneaux'); if (_el) _el.innerText = sol.nb_panneaux_300Wc;
             var _el = document.getElementById('res_courant_pv'); if (_el) _el.innerText = sol.courant_A;
+            var _el = document.getElementById('res_nbr_panneaux'); if (_el) _el.innerText = data.nbr_panneaux || '—';
+            var _el = document.getElementById('res_pv_serie'); if (_el) _el.innerText = data.nbr_pv_serie || '—';
+            var _el = document.getElementById('res_pv_parallele'); if (_el) _el.innerText = data.nbr_pv_parallele || '—';
             var selectPan = document.getElementById('modele_panneau');
             var radioPan  = document.querySelector('input[name="choix_panneau"]:checked');
             var puissancePan = '—';
@@ -2689,11 +3639,23 @@ function afficherResultats(data) {
             var _el = document.getElementById('res_conso_jour'); if (_el) _el.innerText = grp.consommation_jour_litres;
             var _el = document.getElementById('res_conso_mois'); if (_el) _el.innerText = grp.consommation_mois_litres;
         }
+        if (s === 'sbee' || s === 'reseau') {
+            document.getElementById('res_energie_sbee').classList.remove('hidden');
+            var Pm = parseFloat(data.pompe.Pm_kW) || 0;
+            var Ps = Pm * 1.2;
+            var _el = document.getElementById('res_ps_sbee');       if (_el) _el.innerText = Ps.toFixed(3);
+            var _el = document.getElementById('res_type_reseau');   if (_el) _el.innerText = Pm <= 3 ? 'Monophasé' : 'Triphasé';
+            var _el = document.getElementById('res_tension_reseau'); if (_el) _el.innerText = Pm <= 3 ? '1 × 220V — 50Hz' : '3 × 380V — 50Hz';
+        }
         if (s === 'hybride_batteries') {
             document.getElementById('res_energie_batteries').classList.remove('hidden');
             var _el = document.getElementById('res_energie_stockage'); if (_el) _el.innerText = data.energie.energie_stockage_kWh;
             var _el = document.getElementById('res_capacite_totale'); if (_el) _el.innerText = data.energie.capacite_totale_Ah;
             var _el = document.getElementById('res_nb_batteries'); if (_el) _el.innerText = data.energie.nb_batteries;
+            var _el = document.getElementById('res_ctot'); if (_el) _el.innerText = data.ctot || '—';
+            var _el = document.getElementById('res_nbat_serie'); if (_el) _el.innerText = data.nbat_serie || '—';
+            var _el = document.getElementById('res_nbat_parallele'); if (_el) _el.innerText = data.nbr_bat_parallele || '—';
+            var _el = document.getElementById('res_nbat_tot'); if (_el) _el.innerText = data.nbat_tot || '—';
         }
         window._lastCout = data.cout || null;
         if (data.cout) {
@@ -2721,29 +3683,31 @@ function afficherResultats(data) {
             rows += ligne(marque_pompe + (modele_pompe ? ' ' + modele_pompe : ''),
                           '1', fmt(data.cout.C_pompe), fmt(data.cout.C_pompe));
 
-            // Équipements énergétiques
-            rows += sect('Équipements énergétiques');
+            // Équipements énergétiques (masqué pour SBEE/réseau)
+            if (s !== 'sbee' && s !== 'reseau') {
+                rows += sect('Équipements énergétiques');
 
-            var nb_pan = parseInt((document.getElementById('res_nb_panneaux') || {}).innerText) || 0;
-            if (nb_pan > 0 && data.cout.C_panneaux > 0) {
-                var pu_pan = Math.round(data.cout.C_panneaux / nb_pan);
-                var label_pan = (getMarquePanneau() || 'Panneau solaire')
-                              + (getModelePanneau() ? ' ' + getModelePanneau() : '');
-                rows += ligne(label_pan, nb_pan, fmt(pu_pan), fmt(data.cout.C_panneaux));
-            }
+                var nb_pan = parseInt((document.getElementById('res_nb_panneaux') || {}).innerText) || 0;
+                if (nb_pan > 0 && data.cout.C_panneaux > 0) {
+                    var pu_pan = Math.round(data.cout.C_panneaux / nb_pan);
+                    var label_pan = (getMarquePanneau() || 'Panneau solaire')
+                                  + (getModelePanneau() ? ' ' + getModelePanneau() : '');
+                    rows += ligne(label_pan, nb_pan, fmt(pu_pan), fmt(data.cout.C_panneaux));
+                }
 
-            var nb_bat = parseInt((document.getElementById('res_nb_batteries') || {}).innerText) || 0;
-            if (nb_bat > 0 && data.cout.C_batteries > 0) {
-                var pu_bat = Math.round(data.cout.C_batteries / nb_bat);
-                rows += ligne('Batterie ' + (getMarqueBatterie() || ''), nb_bat, fmt(pu_bat), fmt(data.cout.C_batteries));
-            }
+                var nb_bat = parseInt((document.getElementById('res_nb_batteries') || {}).innerText) || 0;
+                if (nb_bat > 0 && data.cout.C_batteries > 0) {
+                    var pu_bat = Math.round(data.cout.C_batteries / nb_bat);
+                    rows += ligne('Batterie ' + (getMarqueBatterie() || ''), nb_bat, fmt(pu_bat), fmt(data.cout.C_batteries));
+                }
 
-            if (data.cout.C_onduleur > 0) {
-                rows += ligne('Onduleur', '1', fmt(data.cout.C_onduleur), fmt(data.cout.C_onduleur));
-            }
+                if (data.cout.C_onduleur > 0) {
+                    rows += ligne('Onduleur', '1', fmt(data.cout.C_onduleur), fmt(data.cout.C_onduleur));
+                }
 
-            if (data.cout.C_groupe > 0) {
-                rows += ligne('Groupe électrogène', '1', fmt(data.cout.C_groupe), fmt(data.cout.C_groupe));
+                if (data.cout.C_groupe > 0) {
+                    rows += ligne('Groupe électrogène', '1', fmt(data.cout.C_groupe), fmt(data.cout.C_groupe));
+                }
             }
 
             // Frais annexes
@@ -2760,7 +3724,6 @@ function afficherResultats(data) {
 
             tbody.innerHTML = rows;
         }
-        mettreAJourPreviewPV();
         afficherEquipements(data);
     } catch(e) {
         console.error('Erreur afficherResultats:', e.message, e.stack);
@@ -2961,15 +3924,65 @@ setTimeout(function() {
      'profondeur_aspiration','hauteur_refoulement',
      'superficie','heures_pompage'].forEach(function(id) {
         var el = document.getElementById(id);
-        if (el) el.addEventListener('input', mettreAJourPreviewPV);
+        if (el) el.addEventListener('input', calculerAfficherBesoinsIrr);
     });
     ['pr_ratio','type_systeme_hydraulique'].forEach(function(id) {
         var el = document.getElementById(id);
-        if (el) el.addEventListener('change', mettreAJourPreviewPV);
+        if (el) el.addEventListener('change', calculerAfficherBesoinsIrr);
     });
     var manBatType = document.getElementById('man_bat_type');
     if (manBatType) manBatType.addEventListener('change', mettreAJourDoD);
+
+    // Autosave sur toute modification de champ
+    document.addEventListener('input',  function(e) { if (e.target.id) saveFormData(); }, { passive: true });
+    document.addEventListener('change', function(e) { if (e.target.id) saveFormData(); }, { passive: true });
+
+    // Besoins irrigation en temps réel
+    ['culture','systeme_irrigation','superficie','unite_superficie','kc_manuel','sessions_arrosage'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input',  calculerAfficherBesoinsIrr);
+        if (el) el.addEventListener('change', calculerAfficherBesoinsIrr);
+    });
+    // Déclencher aussi quand ET0_max change (résultat du clic NASA)
+    var et0El = document.getElementById('ET0_max');
+    if (et0El) {
+        new MutationObserver(calculerAfficherBesoinsIrr).observe(et0El, { childList: true, characterData: true, subtree: true });
+    }
+    calculerAfficherBesoinsIrr();
+
+    var elL2 = document.getElementById('L_reg_pompe') || document.getElementById('L_vfd_pompe');
+    if (elL2) {
+        elL2.addEventListener('input', calculerCablesProtections);
+        console.log('[Cables] listener L2 attaché');
+    }
 }, 1000);
+
+// Sauvegarde automatique toutes les 30 secondes
+window._projetId = null;
+window._modeAlimentation = null;
+setInterval(function() {
+    if (!window._projetId) return;
+    var val = function(id) {
+        var el = document.getElementById(id);
+        return el ? (el.value || el.innerText || null) : null;
+    };
+    fetch('/sauvegarder_progression', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            projet_id:          window._projetId,
+            nb_beneficiaires:   val('nb_beneficiaires'),
+            besoin_journalier:  val('besoin_journalier'),
+            niveau_dynamique:   val('niveau_dynamique'),
+            hauteur_refoulement: val('hauteur_refoulement_c') || val('hauteur_refoulement'),
+            hmt:                val('affich-hmt'),
+            eta_p:              val('eta_p'),
+            eta_m:              val('eta_m'),
+            heures_pompage:     val('heures_pompage'),
+            jours_autonomie:    val('jours_autonomie')
+        })
+    });
+}, 30000);
 
 document.addEventListener('keydown', function(e) {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;

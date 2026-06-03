@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HydroPump — Équipements</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --green-lite:#22c55e; --gold:#ca8a04; --gold-lite:#fbbf24;
+  --bg:#080e0a; --bg2:#0f1912; --bg3:#141f16;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
+  --text:#f0fdf4; --text2:rgba(240,253,244,0.55); --text3:rgba(240,253,244,0.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background-image:url('/static/images/solar_pump.jpeg');
+  background-size:cover;background-position:center;background-attachment:fixed;
+  color:white;min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.5;
+}
+body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.62);z-index:0;pointer-events:none;}
+
+.thin-bar{position:fixed;left:0;top:0;bottom:0;width:52px;background:var(--bg3);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  align-items:center;justify-content:space-between;padding:14px 0;z-index:150;}
+.menu-btn{width:34px;height:34px;background:rgba(255,255,255,.05);
+  border:1px solid var(--border2);border-radius:8px;color:var(--text2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.menu-btn:hover{background:rgba(255,255,255,.18);color:var(--text);}
+.bar-avatar{width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-lite));
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+  color:#000;cursor:pointer;border:none;box-shadow:0 2px 8px rgba(251,191,36,.3);transition:transform .2s;}
+.bar-avatar:hover{transform:scale(1.08);}
+
+.proj-sidebar{position:fixed;left:52px;top:0;bottom:0;width:0;background:var(--bg2);
+  overflow:hidden;transition:width .25s ease;z-index:99;
+  border-right:1px solid var(--border);box-shadow:4px 0 24px rgba(0,0,0,.4);}
+.proj-sidebar.open{width:240px;}
+.proj-sidebar-content{min-width:240px;height:100%;display:flex;flex-direction:column;}
+.proj-sidebar-header{display:flex;align-items:center;justify-content:space-between;
+  padding:18px 18px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.proj-sidebar-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;}
+.proj-close-btn{width:26px;height:26px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:6px;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.proj-list{flex:1;overflow-y:auto;padding:8px 0;}
+.proj-list::-webkit-scrollbar{width:3px;}
+.proj-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.proj-item{padding:12px 18px;border-bottom:1px solid var(--border);transition:background .15s;}
+.proj-item:hover{background:rgba(255,255,255,.03);}
+.proj-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.proj-meta{font-size:11px;color:var(--text3);margin-bottom:8px;}
+.proj-resume-btn{font-size:11px;font-weight:700;color:var(--green-lite);text-decoration:none;}
+.proj-no-items{padding:20px 18px;font-size:12px;color:var(--text3);line-height:1.6;}
+.proj-sidebar-footer{flex-shrink:0;padding:14px 18px 18px;border-top:1px solid var(--border);}
+.proj-user-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.proj-user-avatar{width:30px;height:30px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-lite));
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;}
+.proj-user-nom{font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.proj-logout{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;
+  color:#ef4444;text-decoration:none;padding:8px 10px;border-radius:8px;
+  background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);transition:all .2s;}
+.proj-logout:hover{background:rgba(239,68,68,.12);}
+.proj-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:98;}
+.proj-overlay.visible{display:block;}
+
+.main-wrap{margin-left:52px;position:relative;z-index:1;min-height:100vh;}
+.main-content{max-width:900px;margin:0 auto;padding:24px 28px 100px;}
+
+.section-label{display:flex;align-items:center;gap:10px;
+  font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;
+  margin:28px 0 12px;padding-left:2px;}
+.section-label::before{content:attr(data-n);width:22px;height:22px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2);}
+.section-label.done::before{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:#86efac;}
+
+.card{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:14px;padding:20px 22px;margin-bottom:12px;backdrop-filter:blur(8px);}
+.card-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';width:3px;height:14px;background:#22c55e;border-radius:2px;flex-shrink:0;}
+
+/* RESULT ROWS */
+.result-row{display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;}
+.result-row:last-child{border-bottom:none;}
+.result-label{color:var(--text2);}
+.result-value{font-weight:600;color:white;font-family:monospace;font-size:14px;text-align:right;}
+.result-value.highlight{color:#fbbf24;font-size:15px;}
+.result-unit{font-size:11px;color:var(--text3);margin-left:3px;font-weight:400;font-family:'Plus Jakarta Sans',sans-serif;}
+
+/* RECAP GRID (kept for CSS compat) */
+.recap-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.recap-item{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px 14px;text-align:center;}
+.recap-label{font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+.recap-value{font-size:17px;font-weight:700;color:#fbbf24;font-family:monospace;}
+.recap-unit{font-size:11px;color:var(--text3);margin-left:2px;font-weight:400;}
+.recap-item.hi{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);}
+.recap-item.hi .recap-value{color:#86efac;}
+
+/* FORMS */
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:13px;font-weight:500;color:rgba(255,255,255,.85);margin-bottom:7px;}
+.form-hint{font-size:11px;color:rgba(255,255,255,.35);margin-top:5px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+input[type="text"],input[type="number"],select{
+  width:100%;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.2);
+  border-radius:9px;padding:10px 14px;color:white;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;
+  transition:border-color .2s;appearance:none;-webkit-appearance:none;}
+input::placeholder{color:rgba(255,255,255,.3);}
+input:focus,select:focus{outline:none;border-color:rgba(245,158,11,.5);box-shadow:0 0 0 3px rgba(245,158,11,.08);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+select option{background:#0f2a1a;color:#fff;}
+
+/* LOADING */
+.loading-msg{display:flex;align-items:center;gap:12px;padding:16px;
+  background:rgba(34,197,94,.08);border-radius:8px;font-size:13px;color:#86efac;}
+
+/* EQUIP LIST */
+.equip-list{display:flex;flex-direction:column;gap:10px;}
+.equip-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;padding:14px 16px;cursor:pointer;position:relative;transition:all .2s;
+  display:flex;justify-content:space-between;align-items:center;}
+.equip-card:hover{background:rgba(255,255,255,.10);}
+.equip-card.selected{background:rgba(245,158,11,.15);border-color:#f0b429;}
+.equip-selected-tag{display:none;font-size:10px;font-weight:700;color:#f0b429;margin-bottom:4px;}
+.equip-card.selected .equip-selected-tag{display:block;}
+.equip-left{}
+.equip-marque{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
+.equip-modele{font-size:14px;font-weight:700;color:white;margin:2px 0 6px;}
+.equip-specs{display:flex;flex-wrap:wrap;gap:5px;}
+.spec-chip{font-size:11px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 8px;color:var(--text2);}
+.equip-right{text-align:right;}
+.equip-config{font-size:13px;font-weight:700;color:#fbbf24;}
+.equip-prix{font-size:12px;color:var(--text3);margin-top:2px;}
+
+/* CABLES TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:rgba(255,255,255,.05);color:var(--text3);padding:8px 10px;
+  text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;
+  border-bottom:1px solid rgba(255,255,255,.1);}
+.tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text);}
+.tbl tr:last-child td{border-bottom:none;}
+.s-calc{color:var(--text3);}
+.s-norm{color:#fbbf24;font-weight:700;}
+.prix-col{text-align:right;color:#fbbf24;font-weight:600;}
+
+/* PARA CHIPS */
+.para-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.para-chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:8px 14px;font-size:12px;}
+
+/* MSG */
+.msg{border-radius:8px;padding:9px 13px;font-size:12px;margin-top:8px;display:flex;align-items:center;gap:7px;line-height:1.4;}
+.msg-error{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.2);}
+.msg-warn{background:rgba(249,115,22,.1);color:#fed7aa;border:1px solid rgba(249,115,22,.2);}
+
+/* SUBMIT BAR (CSS compat) */
+.submit-bar{position:fixed;bottom:0;left:52px;right:0;background:rgba(8,14,10,.92);
+  backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.1);
+  padding:14px 28px;display:flex;align-items:center;justify-content:space-between;z-index:50;}
+.submit-status{font-size:12px;color:var(--text2);}
+.submit-status span{color:#86efac;font-weight:600;}
+.btn-final{background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;color:#000;
+  padding:12px 32px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s;display:flex;align-items:center;gap:8px;}
+.btn-final:hover{opacity:.9;}
+.btn-final:disabled{opacity:.35;cursor:not-allowed;}
+
+/* BTN CABLES */
+.btn-calc-cables{background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);
+  color:#bfdbfe;padding:9px 22px;border-radius:9px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s;margin-top:12px;}
+.btn-calc-cables:hover{background:rgba(96,165,250,.25);}
+
+/* NAV BUTTONS */
+.nav-buttons{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;align-items:center;}
+.btn-back{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);
+  color:rgba(255,255,255,0.7);padding:10px 24px;border-radius:9px;font-size:13px;
+  font-weight:500;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+.btn-back:hover{background:rgba(255,255,255,0.12);}
+.btn-calculate{background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;color:#000;
+  padding:12px 32px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s;display:flex;align-items:center;gap:8px;}
+.btn-calculate:hover{opacity:.9;}
+.btn-calculate:disabled{opacity:.35;cursor:not-allowed;}
+
+/* SECTION HIDDEN */
+.sec-hidden{display:none;}
+
+/* SPINNER */
+.spinner{width:15px;height:15px;border:2px solid rgba(34,197,94,.25);border-top-color:#86efac;
+  border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:768px){
+  .main-content{padding:14px 12px 90px;}
+  .card{padding:14px 12px;}
+  .form-row,.form-row-3{grid-template-columns:1fr;}
+  .recap-grid{grid-template-columns:repeat(3,1fr);}
+}
+@media(max-width:480px){
+  .thin-bar{width:36px;}.main-wrap{margin-left:36px;}
+  .recap-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+<script>
+window.addEventListener('load',function(){
+  if(!sessionStorage.getItem('hydropump_actif')){
+    fetch('/verifier_session_active',{method:'POST',headers:{'Content-Type':'application/json'}})
+    .then(r=>r.json()).then(d=>{
+      if(!d.actif)window.location.href='/connexion';
+      else sessionStorage.setItem('hydropump_actif','true');
+    });
+  }
+});
+</script>
+</head>
+<body>
+
+<!-- THIN BAR -->
+<div class="thin-bar">
+  <button class="menu-btn" onclick="toggleProjSidebar()" title="Mes projets">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <button class="bar-avatar" onclick="toggleProjSidebar()">{{ user_nom[0]|upper if user_nom else 'U' }}</button>
+</div>
+
+<!-- PROJ SIDEBAR -->
+<div class="proj-sidebar" id="proj-sidebar">
+  <div class="proj-sidebar-content">
+    <div class="proj-sidebar-header">
+      <span class="proj-sidebar-title">Mes projets</span>
+      <button class="proj-close-btn" onclick="closeProjSidebar()">✕</button>
+    </div>
+    <div class="proj-list">
+      {% for projet in projets %}
+      <div class="proj-item">
+        <div class="proj-name">{{ projet.nom_projet }}</div>
+        <div class="proj-meta">{{ projet.source_energie or '—' }}{% if projet.date_modif %} · {{ projet.date_modif[:10] }}{% endif %}</div>
+        <a href="/dimensionnement2" class="proj-resume-btn">Reprendre →</a>
+      </div>
+      {% else %}
+      <p class="proj-no-items">Aucun projet sauvegardé.</p>
+      {% endfor %}
+    </div>
+    <div class="proj-sidebar-footer">
+      <div class="proj-user-row">
+        <div class="proj-user-avatar">{{ user_nom[0]|upper if user_nom else 'U' }}</div>
+        <span class="proj-user-nom">{{ user_nom }}</span>
+      </div>
+      <a href="/deconnexion" class="proj-logout">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Se déconnecter
+      </a>
+    </div>
+  </div>
+</div>
+<div class="proj-overlay" id="proj-overlay" onclick="closeProjSidebar()"></div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <div class="main-content">
+
+    <div id="msg-err" class="msg msg-error" style="display:none;margin-bottom:12px;"></div>
+
+    <!-- ══ RÉCAP RÉSULTATS ══ -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title">
+        {{ calcul.data_brut.nom_lieu if calcul.data_brut and calcul.data_brut.get('nom_lieu') else 'Localisation' }}
+      </div>
+
+      <div class="result-row">
+        <span class="result-label">Débit</span>
+        <span class="result-value">{{ calcul.Q }}<span class="result-unit">m³/h</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Hauteur géométrique</span>
+        <span class="result-value">{{ calcul.Hgeo }}<span class="result-unit">m</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Pertes de charge</span>
+        <span class="result-value">{{ calcul.Pc_pertes }}<span class="result-unit">m</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">HMT totale</span>
+        <span class="result-value highlight">{{ calcul.HMT }}<span class="result-unit">m</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Puissance hydraulique</span>
+        <span class="result-value">{{ "%.4f"|format(calcul.Ph) }}<span class="result-unit">kW</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Puissance pompe</span>
+        <span class="result-value">{{ "%.4f"|format(calcul.Pp) }}<span class="result-unit">kW</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Puissance moteur</span>
+        <span class="result-value highlight">{{ "%.4f"|format(calcul.Pm) }}<span class="result-unit">kW</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Puissance commerciale</span>
+        <span class="result-value">{{ calcul.Pm_commercial }}<span class="result-unit">kW</span></span>
+      </div>
+
+      {% if calcul.source_energie in ['solaire','hybride_batteries'] %}
+      <div class="result-row">
+        <span class="result-label">Énergie électrique</span>
+        <span class="result-value">{{ "%.4f"|format(calcul.Eelec) }}<span class="result-unit">kWh/j</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Puissance crête</span>
+        <span class="result-value">{{ "%.4f"|format(calcul.Pc_kWc) }}<span class="result-unit">kWc</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Tension système</span>
+        <span class="result-value">
+          <span style="padding:3px 10px;border-radius:4px;background:rgba(34,197,94,0.25);font-weight:600;color:white;">{{ calcul.Usyst }} V</span>
+        </span>
+      </div>
+      {% endif %}
+
+      {% if calcul.source_energie in ['groupe','groupe_electrogene'] %}
+      <div class="result-row">
+        <span class="result-label">Puissance groupe</span>
+        <span class="result-value">{{ calcul.Pgroupe }}<span class="result-unit">kW</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Consommation / jour</span>
+        <span class="result-value">{{ calcul.conso_jour }}<span class="result-unit">L</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Consommation / mois</span>
+        <span class="result-value">{{ calcul.conso_mois | int }}<span class="result-unit">L</span></span>
+      </div>
+      {% endif %}
+
+      {% if calcul.source_energie in ['sbee','reseau'] %}
+      <div class="result-row">
+        <span class="result-label">Puissance souscrite Ps</span>
+        <span class="result-value">{{ calcul.Ps }}<span class="result-unit">kW</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Type réseau</span>
+        <span class="result-value">{{ calcul.type_reseau }}</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Courant Ia</span>
+        <span class="result-value">{{ calcul.Ia }}<span class="result-unit">A</span></span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ══ SECTION 1 — POMPES ══ -->
+    <div class="section-label" id="lbl-pompes" data-n="1">Pack pompe + contrôleur</div>
+    <div class="card" id="sec-pompes">
+      <div class="card-title">Choisissez un pack pompe + contrôleur</div>
+      <div id="loading-pompes" style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(34,197,94,0.1);border-radius:8px;color:#86efac;">
+        <div class="spinner"></div>Chargement des pompes compatibles...
+      </div>
+      <div id="table-pompes" style="display:none;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="background:rgba(255,255,255,0.06);">
+              <th style="padding:10px 12px;text-align:left;color:rgba(255,255,255,0.5);font-weight:500;"></th>
+              <th style="padding:10px 12px;text-align:left;color:rgba(255,255,255,0.5);font-weight:500;">Pompe</th>
+              <th style="padding:10px 12px;text-align:center;color:rgba(255,255,255,0.5);font-weight:500;">Q max</th>
+              <th style="padding:10px 12px;text-align:center;color:rgba(255,255,255,0.5);font-weight:500;">HMT max</th>
+              <th style="padding:10px 12px;text-align:center;color:rgba(255,255,255,0.5);font-weight:500;">Puissance</th>
+              <th style="padding:10px 12px;text-align:left;color:rgba(255,255,255,0.5);font-weight:500;">Contrôleur</th>
+              <th style="padding:10px 12px;text-align:center;color:rgba(255,255,255,0.5);font-weight:500;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pompes"></tbody>
+        </table>
+        <div id="msg-no-pompes" style="display:none;padding:20px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px;">
+          Aucune pompe compatible trouvée.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SECTION 2 — PANNEAUX ══ -->
+    <div class="section-label" id="lbl-panneaux" data-n="2" style="display:none;">Panneau solaire</div>
+    <div class="card sec-hidden" id="sec-panneaux">
+      <div id="loading-panneaux" class="loading-msg" style="display:none;">
+        <div class="spinner"></div>Chargement des panneaux compatibles…
+      </div>
+      <div class="card-title">Choisissez un panneau solaire</div>
+      <div id="panneaux-list"></div>
+    </div>
+
+    <!-- ══ SECTION 3 — BATTERIES ══ -->
+    <div class="section-label" id="lbl-batteries" data-n="3" style="display:none;">Batterie de stockage</div>
+    <div class="card sec-hidden" id="sec-batteries">
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">Jours d'autonomie</label>
+        <input type="number" id="inp-jours" value="2" min="1" max="5" step="1" style="max-width:140px;" oninput="onJoursChange()"/>
+        <div class="form-hint">Nombre de jours de stockage sans soleil (1–5)</div>
+      </div>
+      <div id="loading-batteries" class="loading-msg" style="display:none;">
+        <div class="spinner"></div>Chargement des batteries compatibles…
+      </div>
+      <div class="card-title">Choisissez une batterie de stockage</div>
+      <div id="batteries-list"></div>
+    </div>
+
+    <!-- ══ SECTION 4 — CÂBLES ══ -->
+    <div class="section-label" id="lbl-cables" data-n="4" style="display:none;">Câbles et protections</div>
+    <div class="card sec-hidden" id="sec-cables">
+      <div class="form-row" style="margin-bottom:14px;">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Matériau des conducteurs</label>
+          <select id="inp-materiau">
+            <option value="cu">Cuivre (ρ = 0.0172 Ω·mm²/m)</option>
+            <option value="al">Aluminium (ρ = 0.028 Ω·mm²/m)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="cables-pv-reg" style="display:none;">
+        <div class="form-row" style="margin-bottom:14px;">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Longueur PV → Régulateur (m)</label>
+            <input type="number" id="inp-L-pv-reg" placeholder="ex: 10" min="0" step="1" value="10" style="pointer-events:auto;user-select:auto;"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Longueur Rég. → Pompe DC (m)</label>
+            <input type="number" id="inp-L-reg-pompe" placeholder="ex: 15" min="0" step="1" value="15" style="pointer-events:auto;user-select:auto;"/>
+          </div>
+        </div>
+      </div>
+
+      <div id="cables-pv-vfd" style="display:none;">
+        <div class="form-row" style="margin-bottom:14px;">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Longueur PV → VFD (m)</label>
+            <input type="number" id="inp-L-pv-vfd" placeholder="ex: 10" min="0" step="1" value="10" style="pointer-events:auto;user-select:auto;"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Longueur VFD → Pompe AC (m)</label>
+            <input type="number" id="inp-L-vfd-pompe" placeholder="ex: 15" min="0" step="1" value="15" style="pointer-events:auto;user-select:auto;"/>
+          </div>
+        </div>
+      </div>
+
+      <div id="cables-reg-bat" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Longueur Rég. → Batterie (m)</label>
+          <input type="number" id="inp-L-reg-bat" placeholder="ex: 3" min="0" step="1" value="3" style="pointer-events:auto;user-select:auto;"/>
+        </div>
+      </div>
+
+      <div id="cables-ac-pompe" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Longueur Source AC → Pompe (m)</label>
+          <input type="number" id="inp-L-ac-pompe" placeholder="ex: 20" min="0" step="1" value="20" style="pointer-events:auto;user-select:auto;"/>
+        </div>
+      </div>
+
+      <button class="btn-calc-cables" onclick="calculerCables()">Calculer les câbles et protections</button>
+
+      <div id="cables-results" style="display:none;margin-top:16px;">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Tronçon</th><th>I (A)</th><th>L (m)</th>
+              <th>S calc.</th><th class="s-norm">S norm.</th><th>In</th>
+              <th>Câble</th><th>Disj.</th><th class="prix-col">Prix/m</th>
+            </tr>
+          </thead>
+          <tbody id="cables-tbody"></tbody>
+        </table>
+        <div id="parafoudres-zone" style="display:none;">
+          <div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--text2);">Parafoudres recommandés</div>
+          <div class="para-row" id="para-chips"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-buttons" style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.08);">
+      <button onclick="window.location.href='/dimensionnement2'" class="btn-back">← Retour</button>
+      <button onclick="lancerResultats()" class="btn-calculate" style="margin-left:auto;">
+        Afficher le résultat
+      </button>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /main-wrap -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════
+const CALCUL   = {{ calcul | tojson }};
+const SOURCE   = CALCUL.source_energie || 'solaire';
+const Pm       = CALCUL.Pm       || 0;
+const Q_calc   = CALCUL.Q        || 0;
+const HMT_calc = CALCUL.HMT      || 0;
+const Usyst    = CALCUL.Usyst    || 24;
+const Pc_kWc   = CALCUL.Pc_kWc  || 0;
+const Eelec    = CALCUL.Eelec   || 0;
+
+const IS_SOLAIRE = SOURCE === 'solaire' || SOURCE === 'hybride_batteries';
+const IS_HYBAT   = SOURCE === 'hybride_batteries';
+const IS_GROUPE  = SOURCE === 'groupe' || SOURCE === 'groupe_electrogene';
+const IS_RESEAU  = SOURCE === 'sbee' || SOURCE === 'reseau';
+
+// ═══════════════════════════════════════════════════════════════
+// ÉTAT
+// ═══════════════════════════════════════════════════════════════
+window._choix = {
+  pompe:null, id_pompe:null,
+  controleur:null, id_controleur:null, type_ctrl:'',
+  mode_alim:'DC',
+  panneau:null, Nbr_pan:0, Nbr_serie:0, Nbr_par:0,
+  batterie:null, Ctot:0, Nbat_serie:0, Nbat_par:0, Nbat_tot:0,
+  jours_autonomie:2,
+  cables:null, parafoudres:null,
+};
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function fmt(x,dec){ return (x||0).toFixed(dec||2); }
+function round(x, d){ return Math.round(x * Math.pow(10,d)) / Math.pow(10,d); }
+function prix_fmt(x){ return x ? Math.round(x).toLocaleString('fr-FR')+' FCFA' : '—'; }
+
+function show(id, visible){
+  const el=document.getElementById(id);
+  if(el) el.style.display = visible ? '' : 'none';
+}
+function showCard(id){
+  const el=document.getElementById(id);
+  if(el){ el.classList.remove('sec-hidden'); el.style.display=''; }
+}
+function toggleProjSidebar(){
+  document.getElementById('proj-sidebar').classList.toggle('open');
+  document.getElementById('proj-overlay').classList.toggle('visible');
+}
+function closeProjSidebar(){
+  document.getElementById('proj-sidebar').classList.remove('open');
+  document.getElementById('proj-overlay').classList.remove('visible');
+}
+function afficherErreur(msg){
+  const el=document.getElementById('msg-err');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.display='flex';
+  setTimeout(()=>el.style.display='none',6000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 1 — POMPES
+// ═══════════════════════════════════════════════════════════════
+function chargerPompes(){
+  console.log('[chargerPompes] Pc_kWc=', CALCUL.Pc_kWc, 'Usyst=', CALCUL.Usyst);
+  fetch('/get_pompes_compatibles',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      Q:              CALCUL.Q,
+      HMT:            CALCUL.HMT,
+      Pm:             CALCUL.Pm,
+      Pc_kWc:         CALCUL.Pc_kWc || 0,
+      source_energie: CALCUL.source_energie,
+      Usyst:          CALCUL.Usyst || 24
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    document.getElementById('loading-pompes').style.display='none';
+    document.getElementById('table-pompes').style.display='block';
+    if(!data.succes||!data.pompes||data.pompes.length===0){
+      document.getElementById('msg-no-pompes').style.display='block';
+      return;
+    }
+    var tbody=document.getElementById('tbody-pompes');
+    tbody.innerHTML='';
+    data.pompes.forEach(function(p,i){
+      var ctrl=p.controleur;
+      var ctrlHtml='';
+      if(!ctrl){
+        ctrlHtml='<span style="color:rgba(255,255,255,0.3);">—</span>';
+      } else if(Array.isArray(ctrl)){
+        ctrlHtml='<div style="display:flex;flex-direction:column;gap:4px;">'
+          +ctrl.map(function(c,ci){
+            return '<label style="display:flex;align-items:center;gap:6px;'
+              +'cursor:pointer;font-size:11px;padding:4px 6px;'
+              +'border:1px solid rgba(255,255,255,0.15);border-radius:5px;">'
+              +'<input type="radio" name="ctrl-row-'+i+'" value="'+ci+'" '
+              +'onclick="event.stopPropagation();choisirControleurDansPack('+i+','+ci+')"'
+              +(ci===0?' checked':'')+'>'
+              +'<span style="color:#f0b429;font-weight:600;">'+c.type+'</span> '
+              +(c.marque?c.marque+' ':'')+c.modele
+              +'</label>';
+          }).join('')
+          +'</div>';
+      } else {
+        var info = '';
+        if (ctrl.modele) info += '<span style="font-size:12px;color:white;">' + ctrl.modele + '</span>';
+        if (ctrl.plage_tension_pv) info += '<br><span style="font-size:11px;color:rgba(255,255,255,0.5);">Plage: ' + ctrl.plage_tension_pv + '</span>';
+        if (ctrl.Ireg_A) info += '<br><span style="font-size:11px;color:rgba(255,255,255,0.5);">Ireg: ' + ctrl.Ireg_A + ' A</span>';
+        ctrlHtml = '<span style="color:#86efac;font-weight:600;font-size:11px;">' + (ctrl.type || 'MPPT') + '</span><br>' + info;
+      }
+      var tr=document.createElement('tr');
+      tr.id='row-pompe-'+i;
+      tr.style.cssText='border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:background 0.2s;';
+      tr.innerHTML=
+        '<td style="padding:12px;text-align:center;"><div style="width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.2);margin:auto;" id="dot-'+i+'"></div></td>'
+        +'<td style="padding:12px;"><div style="font-weight:600;color:#fff;">'+p.marque+' '+p.modele+'</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">'+(p.tension_V||'')+'</div></td>'
+        +'<td style="padding:12px;text-align:center;color:#f0b429;font-weight:600;">'+p.debit_max_m3h+' m³/h</td>'
+        +'<td style="padding:12px;text-align:center;color:#f0b429;font-weight:600;">'+p.HMT_max_m+' m</td>'
+        +'<td style="padding:12px;text-align:center;color:#22c55e;font-weight:600;">'+p.puissance_kW+' kW</td>'
+        +'<td style="padding:12px;">'+ctrlHtml+'</td>'
+        +'<td style="padding:12px;text-align:center;">'
+        +'<button onclick="choisirPack('+i+')" '
+        +'style="background:rgba(245,158,11,0.15);border:1px solid #f0b429;'
+        +'color:#f0b429;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Choisir</button></td>';
+      tbody.appendChild(tr);
+    });
+    window._pompes_data=data.pompes;
+  })
+  .catch(function(e){ afficherErreur('Erreur réseau: '+e.message); });
+}
+
+function choisirPack(i){
+  document.querySelectorAll('#tbody-pompes tr').forEach(function(tr,idx){
+    tr.style.background='';
+    var dot=document.getElementById('dot-'+idx);
+    if(dot) dot.style.background='rgba(255,255,255,0.2)';
+  });
+  var tr=document.getElementById('row-pompe-'+i);
+  if(tr) tr.style.background='rgba(245,158,11,0.1)';
+  var dot=document.getElementById('dot-'+i);
+  if(dot){
+    dot.style.background='#f0b429'; dot.innerHTML='✓';
+    dot.style.color='#000'; dot.style.fontSize='8px';
+    dot.style.display='flex'; dot.style.alignItems='center';
+    dot.style.justifyContent='center'; dot.style.fontWeight='700';
+  }
+
+  var p=window._pompes_data[i];
+  var ctrl=p.controleur;
+  window._choix.id_pompe=p.id;
+  window._choix.pompe=p;
+
+  var alim=p.type_alimentation||'DC';
+  if(alim==='DC'){
+    window._choix.mode_alim='DC';
+    window._choix.id_controleur=ctrl?ctrl.id:null;
+    window._choix.controleur=ctrl;
+    window._choix.type_ctrl=ctrl?ctrl.type:'';
+  } else if(alim==='AC_mono'||alim==='AC_tri'){
+    window._choix.mode_alim='AC';
+    window._choix.id_controleur=ctrl?ctrl.id:null;
+    window._choix.controleur=ctrl;
+    window._choix.type_ctrl=ctrl?ctrl.type:'';
+  } else if(alim==='DC/AC'){
+    window._choix.mode_alim='DC';
+    if(Array.isArray(ctrl)&&ctrl.length>0){
+      window._choix.id_controleur=ctrl[0].id||null;
+      window._choix.controleur=ctrl[0];
+      window._choix.type_ctrl=ctrl[0].type;
+    }
+  } else {
+    window._choix.mode_alim='DC';
+  }
+
+  var source='{{ calcul.source_energie }}';
+  if(source==='solaire'||source==='hybride_batteries'){
+    show('lbl-panneaux',true);
+    showCard('sec-panneaux');
+    chargerPanneaux();
+  } else {
+    show('lbl-cables',true);
+    showCard('sec-cables');
+    prepareCablesUI();
+  }
+  majBoutonFinal();
+  console.log('[Pack choisi]',window._choix);
+}
+
+function choisirControleurDansPack(iPompe,iCtrl){
+  var p=window._pompes_data[iPompe];
+  var ctrl=p.controleur;
+  if(!Array.isArray(ctrl)) return;
+  var c=ctrl[iCtrl];
+  window._choix.id_controleur=c.id||null;
+  window._choix.controleur=c;
+  window._choix.type_ctrl=c.type;
+  window._choix.mode_alim=(c.type==='MPPT')?'DC':'AC';
+  console.log('[Contrôleur choisi]',c);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 2 — PANNEAUX
+// ═══════════════════════════════════════════════════════════════
+async function chargerPanneaux(){
+  show('loading-panneaux',true);
+  document.getElementById('panneaux-list').innerHTML='';
+  try{
+    const r=await fetch('/get_panneaux_compatibles',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({Pc_kWc:Pc_kWc,Usyst:Usyst})
+    });
+    const d=await r.json();
+    show('loading-panneaux',false);
+    if(!d.succes){afficherErreur('Erreur panneaux: '+(d.erreur||''));return;}
+    if(!d.panneaux||d.panneaux.length===0){
+      document.getElementById('panneaux-list').innerHTML='<div class="msg msg-warn">Aucun panneau compatible.</div>';
+      return;
+    }
+    renderPanneaux(d.panneaux);
+  }catch(e){show('loading-panneaux',false);afficherErreur(e.message);}
+}
+
+function calcConfigPan(pan){
+  const pu=pan.puissance_W||300;
+  const vmp=pan.Vmp_V||36;
+  const nbr=Math.ceil(Pc_kWc*1000/pu);
+  const ns=Math.max(1,Math.round(Usyst/vmp));
+  const np=Math.ceil(nbr/ns);
+  return {nbr,ns,np};
+}
+
+function renderPanneaux(pans){
+  const el=document.getElementById('panneaux-list');
+  el._pans=pans.slice(0,20);
+  let html='<div class="equip-list">';
+  el._pans.forEach((p,i)=>{
+    const cfg=calcConfigPan(p);
+    const total=(p.prix||0)*cfg.nbr;
+    html+=`<div class="equip-card" id="pan-${i}" onclick="selectionnerPanneau(${i})">
+      <div class="equip-selected-tag">✓ Choisi</div>
+      <div class="equip-left">
+        <div class="equip-marque">${p.marque||''}</div>
+        <div class="equip-modele">${p.modele||''}</div>
+        <div class="equip-specs">
+          <span class="spec-chip">${p.puissance_W||'—'} Wc</span>
+          <span class="spec-chip">Voc ${p.Voc_V||'—'} V</span>
+          <span class="spec-chip">Vmp ${p.Vmp_V||'—'} V</span>
+          <span class="spec-chip">Isc ${p.Isc_A||'—'} A</span>
+          <span class="spec-chip">${p.type||''}</span>
+        </div>
+      </div>
+      <div class="equip-right">
+        <div class="equip-config">${cfg.nbr} pan — ${cfg.ns}S×${cfg.np}P</div>
+        <div class="equip-prix">${total>0?prix_fmt(total):'—'}</div>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function selectionnerPanneau(idx){
+  const el=document.getElementById('panneaux-list');
+  const pan=el._pans[idx];
+  const cfg=calcConfigPan(pan);
+  document.querySelectorAll('#panneaux-list .equip-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('pan-'+idx).classList.add('selected');
+  window._choix.panneau=pan;
+  window._choix.Nbr_pan=cfg.nbr;
+  window._choix.Nbr_serie=cfg.ns;
+  window._choix.Nbr_par=cfg.np;
+  document.getElementById('lbl-panneaux').classList.add('done');
+  if(IS_HYBAT){
+    show('lbl-batteries',true);
+    showCard('sec-batteries');
+    chargerBatteries();
+  } else {
+    show('lbl-cables',true);
+    showCard('sec-cables');
+    prepareCablesUI();
+  }
+  majBoutonFinal();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 3 — BATTERIES
+// ═══════════════════════════════════════════════════════════════
+async function chargerBatteries(){
+  show('loading-batteries',true);
+  document.getElementById('batteries-list').innerHTML='';
+  const jours=parseInt(document.getElementById('inp-jours').value)||2;
+  try{
+    const r=await fetch('/get_batteries_compatibles',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({Eelec:Eelec,Usyst:Usyst,jours_autonomie:jours})
+    });
+    const d=await r.json();
+    show('loading-batteries',false);
+    if(!d.succes){afficherErreur('Erreur batteries: '+(d.erreur||''));return;}
+    if(!d.batteries||d.batteries.length===0){
+      document.getElementById('batteries-list').innerHTML='<div class="msg msg-warn">Aucune batterie compatible.</div>';
+      return;
+    }
+    renderBatteries(d.batteries,jours);
+  }catch(e){show('loading-batteries',false);afficherErreur(e.message);}
+}
+
+function dodFromTechno(techno){
+  if(!techno) return 0.5;
+  const t=techno.toUpperCase();
+  if(t.includes('GEL')||t.includes('AGM')) return 0.5;
+  if(t.includes('LI')||t.includes('LITHIUM')) return 0.8;
+  return 0.5;
+}
+
+function calcConfigBat(bat,jours){
+  const dod=dodFromTechno(bat.technologie);
+  const U_bat=bat.tension_V||12;
+  const C_bat=bat.capacite_Ah||100;
+  const Ctot_Ah=(Eelec*1000*jours)/(Usyst*dod);
+  const nb_ser=Math.max(1,Math.round(Usyst/U_bat));
+  const nb_par=Math.ceil(Ctot_Ah/(C_bat*nb_ser));
+  const nb_tot=nb_ser*nb_par;
+  return {Ctot:Math.round(Ctot_Ah),ns:nb_ser,np:nb_par,tot:nb_tot};
+}
+
+function renderBatteries(bats,jours){
+  const el=document.getElementById('batteries-list');
+  el._bats=bats.slice(0,15);
+  let html='<div class="equip-list">';
+  el._bats.forEach((b,i)=>{
+    const cfg=calcConfigBat(b,jours);
+    const total=(b.prix||0)*cfg.tot;
+    html+=`<div class="equip-card" id="bat-${i}" onclick="selectionnerBatterie(${i})">
+      <div class="equip-selected-tag">✓ Choisie</div>
+      <div class="equip-left">
+        <div class="equip-marque">${b.marque||''}</div>
+        <div class="equip-modele">${b.technologie||''}</div>
+        <div class="equip-specs">
+          <span class="spec-chip">${b.capacite_Ah||'—'} Ah</span>
+          <span class="spec-chip">${b.tension_V||'—'} V</span>
+        </div>
+      </div>
+      <div class="equip-right">
+        <div class="equip-config">${cfg.tot} bat — ${cfg.ns}S×${cfg.np}P</div>
+        <div class="equip-config" style="font-size:12px;color:var(--text2);">Ctot ${cfg.Ctot} Ah</div>
+        <div class="equip-prix">${total>0?prix_fmt(total):'—'}</div>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function selectionnerBatterie(idx){
+  const el=document.getElementById('batteries-list');
+  const bat=el._bats[idx];
+  const jours=parseInt(document.getElementById('inp-jours').value)||2;
+  const cfg=calcConfigBat(bat,jours);
+  document.querySelectorAll('#batteries-list .equip-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('bat-'+idx).classList.add('selected');
+  window._choix.batterie=bat;
+  window._choix.Ctot=cfg.Ctot;
+  window._choix.Nbat_serie=cfg.ns;
+  window._choix.Nbat_par=cfg.np;
+  window._choix.Nbat_tot=cfg.tot;
+  window._choix.jours_autonomie=jours;
+  document.getElementById('lbl-batteries').classList.add('done');
+  show('lbl-cables',true);
+  showCard('sec-cables');
+  prepareCablesUI();
+  majBoutonFinal();
+}
+
+function onJoursChange(){
+  window._choix.jours_autonomie=parseInt(document.getElementById('inp-jours').value)||2;
+  if(window._choix.batterie) chargerBatteries();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 4 — CÂBLES
+// ═══════════════════════════════════════════════════════════════
+function prepareCablesUI(){
+  var alim=window._choix.pompe?(window._choix.pompe.type_alimentation||'DC'):'DC';
+  if(!window._choix.mode_alim) window._choix.mode_alim=(alim==='DC'?'DC':'AC');
+  var mode=window._choix.mode_alim;
+
+  show('cables-pv-reg',   IS_SOLAIRE && mode==='DC');
+  show('cables-pv-vfd',   IS_SOLAIRE && mode!=='DC');
+  show('cables-reg-bat',  IS_HYBAT);
+  show('cables-ac-pompe', false);
+  if(IS_GROUPE || IS_RESEAU){
+    show('cables-ac-pompe', true);
+  }
+}
+
+async function calculerCables(){
+  var alim=window._choix.pompe?(window._choix.pompe.type_alimentation||'DC'):'DC';
+  if(!window._choix.mode_alim) window._choix.mode_alim=(alim==='DC'?'DC':'AC');
+  var mode=window._choix.mode_alim;
+  const pan=window._choix.panneau||{};
+  const ctrl=window._choix.controleur||{};
+  const materiau=document.getElementById('inp-materiau').value;
+
+  var source='{{ calcul.source_energie }}';
+  var isAC=['groupe','groupe_electrogene','sbee','reseau'].includes(source);
+
+  var type_pompe=window._choix?.pompe?.type_alimentation||'DC';
+  if(isAC){ type_pompe={{ calcul.Pm }}>3?'AC_tri':'AC_mono'; }
+
+  const panneau_choisi = window._choix.panneau || {};
+  const puiss_pan = panneau_choisi.puissance_W || 0;
+  const nbr_pan = window._choix.Nbr_pan || 0;
+  const Ireg = (puiss_pan > 0 && nbr_pan > 0 && Usyst > 0)
+      ? round((puiss_pan * nbr_pan) / Usyst, 1)
+      : (Pc_kWc > 0 && Usyst > 0 ? round(Pc_kWc * 1000 / Usyst, 1) : Pm * 10);
+  // Pour VFD : recalculer Ivar depuis Pm
+  // Mono : I = Pm*1000 / (220 * 0.8)
+  // Tri  : I = Pm*1000 / (1.732 * 380 * 0.8)
+  var type_ctrl = window._choix.type_ctrl || '';
+  var Ivar;
+  if (type_ctrl === 'VFD_tri') {
+    Ivar = (Pm * 1000) / (1.732 * 380 * 0.8);
+  } else if (type_ctrl === 'VFD_mono') {
+    Ivar = (Pm * 1000) / (220 * 0.8);
+  } else {
+    Ivar = ctrl.courant_sortie_A || (Pm * 5);
+  }
+  Ivar = Math.round(Ivar * 100) / 100;
+  const cos_phi=0.8;
+  let Ia=0;
+  if(IS_GROUPE||IS_RESEAU){
+    Ia=Pm<=3?Pm/(0.220*cos_phi*(window._choix.pompe?.rendement||0.9))
+            :Pm/(1.732*0.380*cos_phi*(window._choix.pompe?.rendement||0.9));
+  }
+
+  const payload={
+    source:SOURCE, type_pompe:type_pompe,
+    Pm:Pm, Usyst:Usyst,
+    Isc:pan.Isc_A||0, Voc:pan.Voc_V||0,
+    Nbr_par:window._choix.Nbr_par||1, Nbr_ser:window._choix.Nbr_serie||1,
+    Ireg:Ireg, Ivar:Ivar, Ia:Ia,
+    L_pv_reg:    (!isAC&&mode==='DC')?(+document.getElementById('inp-L-pv-reg')?.value||0):0,
+    L_reg_pompe: (!isAC&&mode==='DC')?(+document.getElementById('inp-L-reg-pompe')?.value||0):0,
+    L_reg_bat:   IS_HYBAT?(+document.getElementById('inp-L-reg-bat')?.value||0):0,
+    L_ac_pompe: (function(){
+      const elVfd = document.getElementById('inp-L-vfd-pompe');
+      const elAc  = document.getElementById('inp-L-ac-pompe');
+      if (elVfd && elVfd.closest('div') && elVfd.closest('div').style.display !== 'none')
+        return +elVfd.value || 0;
+      if (elAc && elAc.closest('div') && elAc.closest('div').style.display !== 'none')
+        return +elAc.value || 0;
+      return 0;
+    })(),
+    materiau:materiau
+  };
+  if(mode!=='DC' && IS_SOLAIRE && window._choix.panneau){
+    payload.L_pv_reg = +document.getElementById('inp-L-pv-vfd')?.value || 0;
+  }
+
+  try{
+    const r=await fetch('/get_cables_protections',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const d=await r.json();
+    if(!d.succes){afficherErreur('Erreur câblage: '+(d.erreur||''));return;}
+    renderCables(d.troncons||[],d.parafoudres||{});
+    window._choix.cables=d.troncons;
+    window._choix.parafoudres=d.parafoudres;
+    document.getElementById('lbl-cables').classList.add('done');
+    majBoutonFinal();
+  }catch(e){afficherErreur(e.message);}
+}
+
+function renderCables(troncons,paras){
+  const tbody=document.getElementById('cables-tbody');
+  let html='';
+  var source='{{ calcul.source_energie }}';
+  var isAC=['groupe','groupe_electrogene','sbee','reseau'].includes(source);
+  troncons.forEach(t=>{
+    if(isAC && t.type==='DC') return;
+    const cb=t.cable||{};
+    const dj=t.disjoncteur||{};
+    html+=`<tr>
+      <td>${t.troncon||''}</td>
+      <td>${fmt(t.I_A,1)}</td>
+      <td>${t.L_m||0}</td>
+      <td class="s-calc">${fmt(t.S_calculee,2)} mm²</td>
+      <td class="s-norm"><strong>${t.S_normalisee||'—'} mm²</strong></td>
+      <td>${t.In_normalisee||'—'} A</td>
+      <td style="font-size:11px;">${cb.designation||'—'}</td>
+      <td style="font-size:11px;">${dj.designation||'—'}<br><span style="color:var(--text3)">${dj.calibre||''}</span></td>
+      <td class="prix-col">${prix_fmt(cb.prix||0)}</td>
+    </tr>`;
+  });
+  tbody.innerHTML=html||'<tr><td colspan="9" style="color:var(--text3);text-align:center;">Aucun tronçon calculé</td></tr>';
+  show('cables-results',true);
+
+  const zone=document.getElementById('para-chips');
+  const pAC=(paras||{}).AC;
+  if(pAC){
+    zone.innerHTML=`<div class="para-chip"><strong>${pAC.designation||'Parafoudre AC'}</strong>${pAC.calibre?'<br>'+pAC.calibre:''}<br>${prix_fmt(pAC.prix||0)}</div>`;
+  } else {
+    zone.innerHTML='<div class="para-chip" style="color:rgba(255,255,255,0.4);">Non disponible</div>';
+  }
+  show('parafoudres-zone',true);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VALIDATION
+// ═══════════════════════════════════════════════════════════════
+function majBoutonFinal(){
+  const c=window._choix;
+  const ok=!!c.pompe && (!IS_SOLAIRE||!!c.panneau) && (!IS_HYBAT||!!c.batterie);
+  const btnFinal=document.getElementById('btn-final');
+  if(btnFinal) btnFinal.disabled=!ok;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LANCER RÉSULTATS
+// ═══════════════════════════════════════════════════════════════
+async function lancerResultats(){
+  const c=window._choix;
+  const msgEl=document.getElementById('msg-err');
+  const btn=document.querySelector('.btn-calculate');
+  if(!c.pompe){afficherErreur('Sélectionnez un pack pompe.');return;}
+
+  const payload={
+    id_pompe:         c.pompe.id,
+    id_controleur:    c.controleur?c.controleur.id:null,
+    mode_alim:        c.mode_alim,
+    id_panneau:       c.panneau?c.panneau.id:null,
+    id_batterie:      c.batterie?c.batterie.id:null,
+    nbr_panneaux:     c.Nbr_pan,
+    nbr_pv_serie:     c.Nbr_serie,
+    nbr_pv_parallele: c.Nbr_par,
+    ctot:             c.Ctot,
+    nbat_serie:       c.Nbat_serie,
+    nbat_par:         c.Nbat_par,
+    nbat_tot:         c.Nbat_tot,
+    jours_autonomie:  c.jours_autonomie||2,
+    cables_resultats: c.cables||[],
+    parafoudres:      c.parafoudres||{},
+  };
+
+  if(btn){btn.disabled=true;btn.textContent='⏳ Enregistrement…';}
+
+  try{
+    const r=await fetch('/sauvegarder_equipements',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const d=await r.json();
+    if(d.succes){
+      window.location.href='/resultats2';
+    } else {
+      afficherErreur('Erreur : '+(d.erreur||'Sauvegarde échouée'));
+      if(btn){btn.disabled=false;btn.textContent='Afficher le résultat';}
+    }
+  }catch(e){
+    afficherErreur('Erreur réseau : '+e.message);
+    if(btn){btn.disabled=false;btn.textContent='Afficher le résultat';}
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+  chargerPompes();
+  majBoutonFinal();
+});
+</script>
+</body>
+</html>

@@ -283,6 +283,7 @@
                 el.dataset.value === 'autre' ? 'block' : 'none';
         }
         document.getElementById('usageForm').addEventListener('submit', function() {
+            console.log('type_usage envoyé:', document.getElementById('typeUsageInput').value);
             if (document.getElementById('typeUsageInput').value === 'autre') {
                 var txt = document.getElementById('autreText').value.trim();
                 document.getElementById('autreUsageInput').value = txt || 'Autre';

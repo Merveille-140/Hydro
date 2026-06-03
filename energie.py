@@ -172,7 +172,8 @@ def calculer_hybride_groupe(puissance_moteur_kW, heures_pompage, irradiation,
 
 def calculer_hybride_batteries(Q_m3_jour, HMT_m, Rmp, irradiation, Pr,
                                 puissance_panneau_W, tension_batterie,
-                                capacite_batterie, jours_autonomie, dod=0.70):
+                                capacite_batterie, jours_autonomie, type_bat='GEL'):
+    dod = 0.5 if str(type_bat).upper() == 'GEL' else 0.8
     solaire = calculer_solaire(Q_m3_jour, HMT_m, Rmp, irradiation, Pr, puissance_panneau_W)
     Eelec   = solaire["energie_jour_kWh"]
     U_syst  = solaire["U_syst"]
@@ -186,6 +187,13 @@ def calculer_hybride_batteries(Q_m3_jour, HMT_m, Rmp, irradiation, Pr,
     N_serie            = math.ceil(U_syst / tension_bat_num)
     N_parallele        = math.ceil(capacite_totale_Ah / cap_unitaire_Ah)
     N_total            = N_serie * N_parallele
+
+    print("=== BATTERIES ===")
+    print("DoD utilisé:", dod, "| Type batterie:", type_bat)
+    print("Eelec:", round(Eelec, 3), "kWh/j | Jours autonomie:", jours_autonomie)
+    print("Usyst:", U_syst, "V | Ubat:", tension_bat_num, "V | Cbat:", cap_unitaire_Ah, "Ah")
+    print("Ctot:", capacite_totale_Ah, "Ah")
+    print("Nbat_série:", N_serie, "| Nbat_parallèles:", N_parallele, "| Total:", N_total)
 
     return {
         "solaire":              solaire,
