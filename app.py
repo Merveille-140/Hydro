@@ -94,6 +94,14 @@ def verifier_session():
         return redirect(url_for('auth.connexion'))
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_file(
+        os.path.join(app.root_path, 'static', 'favicon.ico'),
+        mimetype='image/x-icon'
+    )
+
+
 @app.route('/verifier_session_active', methods=['POST'])
 def verifier_session_active():
     if 'user_id' in session and session.get('actif'):
