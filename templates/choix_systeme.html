@@ -217,7 +217,7 @@
                 <div class="projet-item">
                     <div class="projet-name">{{ projet.nom_projet }}</div>
                     <div class="projet-meta">{{ projet.source_energie or '—' }}{% if projet.date_modif %} · {{ projet.date_modif[:10] }}{% endif %}</div>
-                    <a href="/dimensionnement?projet_id={{ projet.id }}" class="projet-btn">Reprendre →</a>
+                    <a href="/dimensionnement2?projet_id={{ projet.id }}" class="projet-btn">Reprendre →</a>
                 </div>
                 {% else %}
                 <p class="no-projets">Aucun projet sauvegardé.<br>Créez votre premier dimensionnement.</p>
